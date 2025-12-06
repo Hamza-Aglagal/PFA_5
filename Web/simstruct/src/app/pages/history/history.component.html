@@ -1,0 +1,182 @@
+<div class="history-page">
+  <div class="history-container">
+    <!-- Header -->
+    <header class="history-header">
+      <div class="header-content">
+        <h1 class="page-title">Simulation History</h1>
+        <p class="page-subtitle">View and manage your past structural analyses</p>
+      </div>
+      
+      <a routerLink="/simulation" class="btn btn-primary">
+        <span>➕</span>
+        New Simulation
+      </a>
+    </header>
+    
+    <!-- Filters & Search -->
+    <section class="filters-section">
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Search simulations..."
+          [value]="searchQuery()"
+          (input)="updateSearch($event)"
+        />
+      </div>
+      
+      <div class="filter-tabs">
+        @for (filter of filters; track filter.value) {
+          <button 
+            class="filter-tab"
+            [class.active]="selectedFilter() === filter.value"
+            (click)="setFilter(filter.value)"
+          >
+            {{ filter.label }}
+            <span class="filter-count">{{ filter.count }}</span>
+          </button>
+        }
+      </div>
+      
+      <div class="controls">
+        <div class="sort-control">
+          <label for="sort">Sort by:</label>
+          <select 
+            id="sort" 
+            class="form-select small"
+            [value]="selectedSort()"
+            (change)="setSort($event)"
+          >
+            @for (option of sortOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </div>
+        
+        <div class="view-controls">
+          <button 
+            class="view-btn"
+            [class.active]="viewMode() === 'grid'"
+            (click)="setViewMode('grid')"
+            title="Grid View"
+          >
+            ▦
+          </button>
+          <button 
+            class="view-btn"
+            [class.active]="viewMode() === 'list'"
+            (click)="setViewMode('list')"
+            title="List View"
+          >
+            ☰
+          </button>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Bulk Actions -->
+    @if (selectedSimulations().size > 0) {
+      <div class="bulk-actions">
+        <span class="selection-count">{{ selectedSimulations().size }} selected</span>
+        <button class="btn btn-outline small" (click)="selectAll()">
+          {{ selectedSimulations().size === filteredSimulations.length ? 'Deselect All' : 'Select All' }}
+        </button>
+        <button class="btn btn-danger small" (click)="deleteSelected()">
+          🗑️ Delete Selected
+        </button>
+      </div>
+    }
+    
+    <!-- Simulations Grid -->
+    <section class="simulations-section" [class.list-view]="viewMode() === 'list'">
+      @if (filteredSimulations.length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">📂</div>
+          <h3>No simulations found</h3>
+          <p>Try adjusting your search or filter criteria</p>
+          <a routerLink="/simulation" class="btn btn-primary">
+            Create Your First Simulation
+          </a>
+        </div>
+      } @else {
+        <div class="simulations-grid" [class.list]="viewMode() === 'list'">
+          @for (sim of filteredSimulations; track sim.id) {
+            <div 
+              class="simulation-card"
+              [class.selected]="isSelected(sim.id)"
+            >
+              <!-- Selection Checkbox -->
+              <label class="selection-checkbox">
+                <input 
+                  type="checkbox"
+                  [checked]="isSelected(sim.id)"
+                  (change)="toggleSelection(sim.id)"
+                />
+                <span class="checkbox-custom"></span>
+              </label>
+              
+              <!-- Card Preview -->
+              <div class="card-preview">
+                <div class="preview-icon">{{ getTypeIcon(sim.type) }}</div>
+                <span class="status-badge" [class]="getStatusClass(sim.status)">
+                  {{ getStatusIcon(sim.status) }} {{ sim.status }}
+                </span>
+              </div>
+              
+              <!-- Card Content -->
+              <div class="card-content">
+                <h3 class="card-title">{{ sim.name }}</h3>
+                <div class="card-meta">
+                  <span class="meta-item">
+                    <span class="meta-icon">🏗️</span>
+                    {{ sim.type }}
+                  </span>
+                  <span class="meta-item">
+                    <span class="meta-icon">⚙️</span>
+                    {{ sim.material }}
+                  </span>
+                </div>
+                
+                @if (sim.status === 'completed') {
+                  <div class="safety-info" [class]="getSafetyClass(sim.safetyFactor)">
+                    <span class="safety-label">Safety Factor:</span>
+                    <span class="safety-value">{{ sim.safetyFactor.toFixed(1) }}</span>
+                  </div>
+                }
+                
+                <div class="card-footer">
+                  <span class="date">{{ formatDate(sim.date) }}</span>
+                  <div class="card-actions">
+                    <button class="action-btn" title="View Results" (click)="viewResults(sim, $event)">
+                      👁️
+                    </button>
+                    <button class="action-btn" title="Download" (click)="downloadSimulation(sim, $event)">
+                      📥
+                    </button>
+                    <button class="action-btn" title="Duplicate" (click)="duplicateSimulation(sim, $event)">
+                      📋
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </section>
+    
+    <!-- Pagination -->
+    @if (filteredSimulations.length > 0) {
+      <nav class="pagination">
+        <button class="page-btn" disabled>← Previous</button>
+        <div class="page-numbers">
+          <button class="page-btn active">1</button>
+          <button class="page-btn">2</button>
+          <button class="page-btn">3</button>
+        </div>
+        <button class="page-btn">Next →</button>
+      </nav>
+    }
+  </div>
+</div>

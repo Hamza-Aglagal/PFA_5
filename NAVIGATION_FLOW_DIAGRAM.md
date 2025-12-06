@@ -1,0 +1,592 @@
+# Navigation Flow Diagram - SimStruct Application
+
+## Web Frontend Navigation Map
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           SimStruct Web Application                              │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+                                    ┌─────────┐
+                                    │  START  │
+                                    └────┬────┘
+                                         │
+                                         ▼
+                              ┌──────────────────────┐
+                              │    / (Home Page)     │
+                              │   HomeComponent      │
+                              │   [Public Access]    │
+                              └──────────┬───────────┘
+                                         │
+                    ┌────────────────────┼────────────────────┐
+                    │                    │                    │
+                    ▼                    ▼                    ▼
+        ┌───────────────────┐ ┌───────────────────┐ ┌───────────────────┐
+        │   /login          │ │   /register       │ │   /community      │
+        │   LoginComponent  │ │ RegisterComponent │ │ CommunityComponent│
+        │   [Guest Only]    │ │   [Guest Only]    │ │   [Public]        │
+        └─────────┬─────────┘ └─────────┬─────────┘ └─────────┬─────────┘
+                  │                     │                     │
+                  │    ┌────────────────┘                     │
+                  │    │                                      │
+                  ▼    ▼                                      ▼
+        ┌───────────────────┐                     ┌───────────────────────┐
+        │   SUCCESS LOGIN   │                     │ /community/simulation │
+        │   ───────────────│                     │       /:id            │
+        │   Save Token      │                     │ SimulationDetail      │
+        │   Save User       │                     │   [Public]            │
+        └─────────┬─────────┘                     └───────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                        AUTHENTICATED ROUTES                                      │
+│                        ═══════════════════                                       │
+│                                                                                  │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐              │
+│  │   /dashboard    │◄───│   /simulation   │───►│    /results     │              │
+│  │  DashboardComp  │    │  SimulationComp │    │   ResultsComp   │              │
+│  │                 │    │                 │    │   /results/:id  │              │
+│  └────────┬────────┘    └─────────────────┘    └─────────────────┘              │
+│           │                                                                      │
+│           │             ┌─────────────────┐    ┌─────────────────┐              │
+│           └────────────►│    /history     │    │    /profile     │              │
+│                         │  HistoryComp    │    │   ProfileComp   │              │
+│                         │                 │    │                 │              │
+│                         └─────────────────┘    └─────────────────┘              │
+│                                                                                  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+                              NAVIGATION BAR LINKS
+                              ═══════════════════
+                              
+    ┌───────────────────────────────────────────────────────────────┐
+    │  When NOT Authenticated:                                       │
+    │  ┌──────┐  ┌────────────┐  ┌───────┐  ┌──────────┐            │
+    │  │ Home │  │ Simulation │  │ Login │  │ Register │            │
+    │  └──────┘  └────────────┘  └───────┘  └──────────┘            │
+    └───────────────────────────────────────────────────────────────┘
+    
+    ┌───────────────────────────────────────────────────────────────┐
+    │  When Authenticated:                                           │
+    │  ┌──────┐ ┌───────────┐ ┌────────────┐ ┌───────────┐ ┌───────┐│
+    │  │ Home │ │ Dashboard │ │ Simulation │ │ Community │ │History││
+    │  └──────┘ └───────────┘ └────────────┘ └───────────┘ └───────┘│
+    │                                                                │
+    │  User Menu: [Profile] [Notifications] [Messages] [Logout]     │
+    └───────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Mobile Frontend Navigation Map
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                         SimStruct Mobile Application                             │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+                                    ┌─────────┐
+                                    │  START  │
+                                    └────┬────┘
+                                         │
+                                         ▼
+                              ┌──────────────────────┐
+                              │   / (Splash Screen)  │
+                              │    SplashScreen      │
+                              │   Check Auth State   │
+                              └──────────┬───────────┘
+                                         │
+                    ┌────────────────────┼────────────────────┐
+                    │                    │                    │
+                    ▼                    ▼                    ▼
+        ┌───────────────────┐ ┌───────────────────┐ ┌───────────────────┐
+        │   First Time?     │ │   Has Token?      │ │   Token Valid?    │
+        │        │          │ │       │           │ │        │          │
+        │        ▼          │ │       ▼           │ │        ▼          │
+        │   /onboarding     │ │    NO ──────►     │ │    YES ──────►    │
+        │ OnboardingScreen  │ │    /login         │ │    /home          │
+        └───────────────────┘ └───────────────────┘ └───────────────────┘
+
+
+                           AUTHENTICATION SCREENS
+                           ══════════════════════
+
+        ┌───────────────────┐         ┌───────────────────┐
+        │      /login       │◄───────►│    /register      │
+        │    LoginScreen    │         │   RegisterScreen  │
+        │                   │         │                   │
+        │  ┌─────────────┐  │         │                   │
+        │  │Forgot Pass? │──┼────────►│  /forgot-password │
+        │  └─────────────┘  │         │ ForgotPassScreen  │
+        └─────────┬─────────┘         └───────────────────┘
+                  │
+                  │ SUCCESS
+                  ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                         MAIN SCREEN SHELL                                        │
+│                     (Bottom Navigation Bar)                                      │
+│ ═══════════════════════════════════════════════════════════════════════════════ │
+│                                                                                  │
+│  ┌─────────┐  ┌───────────┐  ┌─────────┐  ┌───────────┐  ┌─────────┐           │
+│  │  /home  │  │/dashboard │  │/history │  │/community │  │/profile │           │
+│  │  🏠     │  │    📊     │  │   📜    │  │    👥     │  │   👤    │           │
+│  │  Tab 1  │  │   Tab 2   │  │  Tab 3  │  │   Tab 4   │  │  Tab 5  │           │
+│  └────┬────┘  └─────┬─────┘  └────┬────┘  └─────┬─────┘  └────┬────┘           │
+│       │             │             │             │             │                 │
+│       ▼             ▼             ▼             ▼             ▼                 │
+│  HomeScreen    DashboardScr   HistoryScr   CommunityScr  ProfileScreen         │
+│                                                                                  │
+│  ════════════════════════════════════════════════════════════════════          │
+│                     BOTTOM NAVIGATION BAR                                        │
+│  ┌────────┬────────────┬─────────┬───────────┬─────────┐                       │
+│  │  Home  │  Dashboard │ History │ Community │ Profile │                       │
+│  └────────┴────────────┴─────────┴───────────┴─────────┘                       │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+
+                      SCREENS OUTSIDE SHELL (Full Screen)
+                      ═══════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                                                                                  │
+│  From Dashboard:                         From Any Screen:                        │
+│  ══════════════                          ═══════════════                         │
+│                                                                                  │
+│  ┌─────────────────┐                    ┌─────────────────┐                     │
+│  │  /simulation    │                    │  /notifications │                     │
+│  │ SimulationScreen│                    │NotificationsScr │                     │
+│  │                 │                    │                 │                     │
+│  │  Wizard Steps:  │                    └─────────────────┘                     │
+│  │  1. Structure   │                                                            │
+│  │  2. Dimensions  │                    ┌─────────────────┐                     │
+│  │  3. Material    │                    │   /settings     │                     │
+│  │  4. Review      │                    │  SettingsScreen │                     │
+│  │       │         │                    │                 │                     │
+│  │       ▼         │                    └─────────────────┘                     │
+│  │  Run Analysis   │                                                            │
+│  │       │         │                                                            │
+│  │       ▼         │                                                            │
+│  └───────┼─────────┘                                                            │
+│          │                                                                       │
+│          ▼                                                                       │
+│  ┌─────────────────┐                                                            │
+│  │  /results/:id   │                                                            │
+│  │  ResultsScreen  │                                                            │
+│  │                 │                                                            │
+│  │  Tabs:          │                                                            │
+│  │  - Summary      │                                                            │
+│  │  - Analysis     │                                                            │
+│  │  - Report       │                                                            │
+│  └─────────────────┘                                                            │
+│                                                                                  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Detailed Screen Flow Diagrams
+
+### Authentication Flow
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                           AUTHENTICATION FLOW                                 │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+                          ┌───────────────┐
+                          │  User Action  │
+                          └───────┬───────┘
+                                  │
+                    ┌─────────────┴─────────────┐
+                    │                           │
+                    ▼                           ▼
+            ┌───────────────┐           ┌───────────────┐
+            │    LOGIN      │           │   REGISTER    │
+            └───────┬───────┘           └───────┬───────┘
+                    │                           │
+                    ▼                           ▼
+            ┌───────────────┐           ┌───────────────┐
+            │ Email Input   │           │ Name Input    │
+            │ Password Input│           │ Email Input   │
+            │ Remember Me   │           │ Password Input│
+            └───────┬───────┘           │ Confirm Pass  │
+                    │                   │ Terms Accept  │
+                    │                   └───────┬───────┘
+                    │                           │
+                    ▼                           ▼
+            ┌───────────────┐           ┌───────────────┐
+            │   Validate    │           │   Validate    │
+            │    Form       │           │    Form       │
+            └───────┬───────┘           └───────┬───────┘
+                    │                           │
+            ┌───────┴───────┐           ┌───────┴───────┐
+            │               │           │               │
+            ▼               ▼           ▼               ▼
+      ┌─────────┐    ┌──────────┐ ┌─────────┐   ┌──────────┐
+      │  VALID  │    │ INVALID  │ │  VALID  │   │ INVALID  │
+      └────┬────┘    └────┬─────┘ └────┬────┘   └────┬─────┘
+           │              │            │             │
+           ▼              ▼            ▼             ▼
+    ┌─────────────┐ ┌──────────┐ ┌─────────────┐ ┌──────────┐
+    │ POST /login │ │Show Error│ │POST /register│ │Show Error│
+    └──────┬──────┘ └──────────┘ └──────┬──────┘ └──────────┘
+           │                            │
+           ▼                            ▼
+    ┌─────────────────────────────────────────┐
+    │              API RESPONSE               │
+    │  ─────────────────────────────────────  │
+    │  SUCCESS:                               │
+    │  • accessToken                          │
+    │  • refreshToken                         │
+    │  • user object                          │
+    │                                         │
+    │  ERROR:                                 │
+    │  • error code                           │
+    │  • error message                        │
+    └───────────────────┬─────────────────────┘
+                        │
+            ┌───────────┴───────────┐
+            │                       │
+            ▼                       ▼
+     ┌─────────────┐         ┌─────────────┐
+     │   SUCCESS   │         │    ERROR    │
+     └──────┬──────┘         └──────┬──────┘
+            │                       │
+            ▼                       ▼
+     ┌─────────────┐         ┌─────────────┐
+     │Store Tokens │         │Display Error│
+     │Store User   │         │  Message    │
+     │             │         │             │
+     │ Navigate to │         │Remain on    │
+     │ /dashboard  │         │   Page      │
+     └─────────────┘         └─────────────┘
+```
+
+---
+
+### Simulation Creation Flow
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                        SIMULATION CREATION FLOW                               │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                    SIMULATION WIZARD                             │
+    │   Step 1          Step 2          Step 3          Step 4        │
+    │  Structure      Dimensions       Material         Review        │
+    │   ────○─────────────○─────────────○─────────────○────          │
+    └─────────────────────────────────────────────────────────────────┘
+
+                              STEP 1: STRUCTURE
+                              ═════════════════
+    ┌─────────────────────────────────────────────────────────────────┐
+    │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐       │
+    │  │   Beam   │  │  Frame   │  │  Truss   │  │  Column  │       │
+    │  │   ═══    │  │   ╔═╗    │  │   △△△    │  │   ║║║    │       │
+    │  └──────────┘  └──────────┘  └──────────┘  └──────────┘       │
+    │                                                                 │
+    │  Select support type:                                          │
+    │  ○ Simply Supported  △──────△                                  │
+    │  ○ Cantilever        ▐──────                                   │
+    │  ○ Fixed-Fixed       ▐──────▌                                  │
+    └─────────────────────────────────────────────────────────────────┘
+                                  │
+                                  ▼
+                              STEP 2: DIMENSIONS
+                              ══════════════════
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                                                                 │
+    │  Length:  [________] m       ┌─────────────────────┐           │
+    │                              │                     │           │
+    │  Width:   [________] m       │    3D PREVIEW      │           │
+    │                              │                     │           │
+    │  Height:  [________] m       │   ┌───────────┐    │           │
+    │                              │   │  BEAM     │    │           │
+    │                              │   └───────────┘    │           │
+    │                              └─────────────────────┘           │
+    │                                                                 │
+    └─────────────────────────────────────────────────────────────────┘
+                                  │
+                                  ▼
+                              STEP 3: MATERIAL
+                              ════════════════
+    ┌─────────────────────────────────────────────────────────────────┐
+    │  Select Material:                                               │
+    │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐       │
+    │  │  Steel   │  │ Concrete │  │ Aluminum │  │   Wood   │       │
+    │  │ E=200GPa │  │ E=30GPa  │  │ E=70GPa  │  │ E=12GPa  │       │
+    │  └──────────┘  └──────────┘  └──────────┘  └──────────┘       │
+    │                                                                 │
+    │  Load Configuration:                                           │
+    │  Type:      ○ Point  ○ Distributed  ○ Moment                  │
+    │  Magnitude: [________] kN                                      │
+    │  Position:  [────●────────] 50%                                │
+    └─────────────────────────────────────────────────────────────────┘
+                                  │
+                                  ▼
+                              STEP 4: REVIEW
+                              ══════════════
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                      SIMULATION SUMMARY                         │
+    │  ───────────────────────────────────────────────────────────   │
+    │                                                                 │
+    │  Name:        [My Bridge Analysis_________]                    │
+    │                                                                 │
+    │  Structure:   Beam (Simply Supported)                          │
+    │  Dimensions:  10m × 0.3m × 0.5m                                │
+    │  Material:    Steel (E = 200 GPa)                              │
+    │  Load:        Point Load, 50 kN at center                      │
+    │                                                                 │
+    │  ┌─────────────────────────────────────────────────────────┐   │
+    │  │            [ RUN ANALYSIS ]                             │   │
+    │  └─────────────────────────────────────────────────────────┘   │
+    └─────────────────────────────────────────────────────────────────┘
+                                  │
+                                  ▼
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                     ANALYSIS IN PROGRESS                        │
+    │                                                                 │
+    │              ████████████░░░░░░░░░░  60%                       │
+    │                                                                 │
+    │              ⟳ Analyzing structure...                          │
+    │                                                                 │
+    └─────────────────────────────────────────────────────────────────┘
+                                  │
+                                  ▼
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                    NAVIGATE TO RESULTS                          │
+    │                    /results/{simulation_id}                     │
+    └─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### Community & Social Flow
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                         COMMUNITY & SOCIAL FLOW                               │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+                           ┌─────────────────┐
+                           │    /community   │
+                           │ CommunityScreen │
+                           └────────┬────────┘
+                                    │
+        ┌───────────────────────────┼───────────────────────────┐
+        │                           │                           │
+        ▼                           ▼                           ▼
+┌───────────────┐         ┌───────────────┐         ┌───────────────┐
+│    EXPLORE    │         │    FRIENDS    │         │  INVITATIONS  │
+│   (Tab 1)     │         │    (Tab 2)    │         │    (Tab 3)    │
+└───────┬───────┘         └───────┬───────┘         └───────┬───────┘
+        │                         │                         │
+        ▼                         ▼                         ▼
+┌───────────────┐         ┌───────────────┐         ┌───────────────┐
+│Public Sims    │         │Friend List    │         │Pending        │
+│Grid View      │         │               │         │Requests       │
+│               │         │ ○ User 1      │         │               │
+│ ┌───┐ ┌───┐  │         │ ○ User 2      │         │ [Accept]      │
+│ │Sim│ │Sim│  │         │ ○ User 3      │         │ [Decline]     │
+│ └───┘ └───┘  │         │               │         │               │
+│ ┌───┐ ┌───┐  │         │[+ Add Friend] │         │Sent Requests  │
+│ │Sim│ │Sim│  │         │               │         │               │
+│ └───┘ └───┘  │         │               │         │ [Cancel]      │
+└───────┬───────┘         └───────┬───────┘         └───────────────┘
+        │                         │
+        │                         ▼
+        │                 ┌───────────────┐
+        │                 │  CHAT SCREEN  │
+        │                 │               │
+        │                 │ Messages:     │
+        │                 │ ┌───────────┐ │
+        │                 │ │ User: Hi! │ │
+        │                 │ │ You: Hey! │ │
+        │                 │ └───────────┘ │
+        │                 │               │
+        │                 │ [Type msg...] │
+        │                 └───────────────┘
+        │
+        ▼
+┌───────────────────────────────┐
+│  /community/simulation/:id    │
+│  SimulationDetailScreen       │
+│                               │
+│  ┌─────────────────────────┐  │
+│  │    SIMULATION CARD      │  │
+│  │    ─────────────────    │  │
+│  │    Name: Bridge Test    │  │
+│  │    Owner: John Doe      │  │
+│  │    Likes: 45            │  │
+│  │    Views: 120           │  │
+│  │                         │  │
+│  │    [♥ Like] [Share]     │  │
+│  └─────────────────────────┘  │
+│                               │
+│  Comments Section:            │
+│  ┌─────────────────────────┐  │
+│  │ User1: Great work!      │  │
+│  │ User2: Nice analysis    │  │
+│  └─────────────────────────┘  │
+│                               │
+│  [Add Comment...]             │
+└───────────────────────────────┘
+```
+
+---
+
+## Route Protection Summary
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                          ROUTE PROTECTION MATRIX                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                     PUBLIC ROUTES                                │
+    │                   (No Auth Required)                             │
+    │   ─────────────────────────────────────────────────────────────  │
+    │                                                                  │
+    │   /                    - Home Page                               │
+    │   /community           - Community Browser                       │
+    │   /community/sim/:id   - Simulation Detail                       │
+    │                                                                  │
+    └─────────────────────────────────────────────────────────────────┘
+
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                    GUEST ONLY ROUTES                             │
+    │               (Redirects to /dashboard if logged in)             │
+    │   ─────────────────────────────────────────────────────────────  │
+    │                                                                  │
+    │   /login               - Login Page                              │
+    │   /register            - Registration Page                       │
+    │   /forgot-password     - Password Reset (Mobile only)            │
+    │   /onboarding          - First-time User Flow (Mobile only)      │
+    │                                                                  │
+    └─────────────────────────────────────────────────────────────────┘
+
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                   PROTECTED ROUTES                               │
+    │                (Requires Authentication)                         │
+    │   ─────────────────────────────────────────────────────────────  │
+    │                                                                  │
+    │   /dashboard           - User Dashboard                          │
+    │   /simulation          - Create Simulation                       │
+    │   /results             - View Results (no ID)                    │
+    │   /results/:id         - View Specific Results                   │
+    │   /history             - Simulation History                      │
+    │   /profile             - User Profile                            │
+    │   /notifications       - Notifications (Mobile)                  │
+    │   /settings            - Settings (Mobile)                       │
+    │                                                                  │
+    └─────────────────────────────────────────────────────────────────┘
+
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                      GUARD LOGIC                                 │
+    │   ─────────────────────────────────────────────────────────────  │
+    │                                                                  │
+    │   authGuard:                                                     │
+    │   ┌────────────────────────────────────────────────────────┐    │
+    │   │  if (isAuthenticated)                                  │    │
+    │   │      return true;                                      │    │
+    │   │  else                                                  │    │
+    │   │      store returnUrl;                                  │    │
+    │   │      redirect to /login;                               │    │
+    │   │      return false;                                     │    │
+    │   └────────────────────────────────────────────────────────┘    │
+    │                                                                  │
+    │   guestGuard:                                                    │
+    │   ┌────────────────────────────────────────────────────────┐    │
+    │   │  if (!isAuthenticated)                                 │    │
+    │   │      return true;                                      │    │
+    │   │  else                                                  │    │
+    │   │      redirect to /dashboard;                           │    │
+    │   │      return false;                                     │    │
+    │   └────────────────────────────────────────────────────────┘    │
+    │                                                                  │
+    └─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Error & Edge Case Handling
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                         ERROR HANDLING FLOWS                                  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+    404 NOT FOUND:
+    ─────────────
+    ┌───────────────┐     ┌───────────────┐     ┌───────────────┐
+    │ Invalid Route │ ──► │  Error Page   │ ──► │  Go to Home   │
+    │  /invalid/xyz │     │  "Not Found"  │     │     /         │
+    └───────────────┘     └───────────────┘     └───────────────┘
+
+
+    401 UNAUTHORIZED:
+    ────────────────
+    ┌───────────────┐     ┌───────────────┐     ┌───────────────┐
+    │  API Request  │ ──► │  Interceptor  │ ──► │Clear Storage  │
+    │   Returns 401 │     │  Catches 401  │     │Redirect Login │
+    └───────────────┘     └───────────────┘     └───────────────┘
+
+
+    SIMULATION NOT FOUND:
+    ────────────────────
+    ┌───────────────┐     ┌───────────────┐     ┌───────────────┐
+    │ /results/:id  │ ──► │  Not Found    │ ──► │   Show Error  │
+    │  Invalid ID   │     │  in Backend   │     │   Go Back     │
+    └───────────────┘     └───────────────┘     └───────────────┘
+
+
+    NETWORK ERROR:
+    ─────────────
+    ┌───────────────┐     ┌───────────────┐     ┌───────────────┐
+    │  API Request  │ ──► │  No Network   │ ──► │  Show Toast   │
+    │               │     │  Connection   │     │  Retry Button │
+    └───────────────┘     └───────────────┘     └───────────────┘
+```
+
+---
+
+## Quick Reference - All Routes
+
+### Web (Angular)
+```
+/                           → HomeComponent
+/login                      → LoginComponent (guestGuard)
+/register                   → RegisterComponent (guestGuard)
+/dashboard                  → DashboardComponent (authGuard)
+/simulation                 → SimulationComponent (authGuard)
+/results                    → ResultsComponent (authGuard)
+/results/:id                → ResultsComponent (authGuard)
+/history                    → HistoryComponent (authGuard)
+/profile                    → ProfileComponent (authGuard)
+/community                  → CommunityComponent
+/community/simulation/:id   → SimulationDetailComponent
+/**                         → Redirect to /
+```
+
+### Mobile (Flutter)
+```
+/                           → SplashScreen
+/onboarding                 → OnboardingScreen
+/login                      → LoginScreen
+/register                   → RegisterScreen
+/forgot-password            → ForgotPasswordScreen
+/home                       → HomeScreen (in MainScreen shell)
+/dashboard                  → DashboardScreen (in MainScreen shell)
+/history                    → HistoryScreen (in MainScreen shell)
+/community                  → CommunityScreen (in MainScreen shell)
+/profile                    → ProfileScreen (in MainScreen shell)
+/simulation                 → SimulationScreen (full screen)
+/results/:id                → ResultsScreen (full screen)
+/notifications              → NotificationsScreen (full screen)
+/settings                   → SettingsScreen (full screen)
+```
+
+---
+
+**Document Generated:** December 4, 2025

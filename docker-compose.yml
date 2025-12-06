@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # Spring Boot Backend
+  backend:
+    build:
+      context: ./Backend/simstruct-backend
+      dockerfile: Dockerfile
+    container_name: simstruct-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:h2:mem:simstruct
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.h2.Driver
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.H2Dialect
+      - JWT_SECRET=simstruct-secret-key-for-jwt-token-generation-minimum-256-bits
+    networks:
+      - simstruct-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Angular Frontend
+  frontend:
+    build:
+      context: ./Web/simstruct
+      dockerfile: Dockerfile
+    container_name: simstruct-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+    networks:
+      - simstruct-network
+
+  # PostgreSQL Database (optional - for production)
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: simstruct-db
+  #   environment:
+  #     - POSTGRES_DB=simstruct
+  #     - POSTGRES_USER=simstruct
+  #     - POSTGRES_PASSWORD=simstruct123
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   networks:
+  #     - simstruct-network
+
+networks:
+  simstruct-network:
+    driver: bridge
+
+# volumes:
+#   postgres-data:

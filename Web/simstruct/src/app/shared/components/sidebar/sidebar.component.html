@@ -1,0 +1,351 @@
+<!-- Backdrop -->
+@if (isOpen()) {
+  <div class="sidebar-backdrop" (click)="closePanel()"></div>
+}
+
+<!-- Floating Sidebar Panel -->
+<aside class="sidebar-panel" [class.open]="isOpen()">
+  <!-- Panel Header -->
+  <header class="panel-header">
+    @switch (currentPanel()) {
+      @case ('notifications') {
+        <div class="header-content">
+          <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <div>
+            <h3>Notifications</h3>
+            <span class="header-subtitle">{{ unreadCount() }} unread</span>
+          </div>
+        </div>
+      }
+      @case ('messages') {
+        <div class="header-content">
+          <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <div>
+            <h3>Messages</h3>
+            <span class="header-subtitle">{{ getUnreadMessagesCount() }} new messages</span>
+          </div>
+        </div>
+      }
+      @case ('quick-actions') {
+        <div class="header-content">
+          <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          </svg>
+          <div>
+            <h3>Quick Actions</h3>
+            <span class="header-subtitle">Shortcuts & tools</span>
+          </div>
+        </div>
+      }
+      @case ('share') {
+        <div class="header-content">
+          <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="18" cy="5" r="3"/>
+            <circle cx="6" cy="12" r="3"/>
+            <circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+          <div>
+            <h3>Share</h3>
+            <span class="header-subtitle">Share with collaborators</span>
+          </div>
+        </div>
+      }
+    }
+    <button class="close-btn" (click)="closePanel()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- Panel Content -->
+  <div class="panel-content">
+    <!-- Notifications Panel -->
+    @if (currentPanel() === 'notifications') {
+      <div class="notifications-panel">
+        @if (allNotifications().length === 0) {
+          <div class="empty-state">
+            <div class="empty-icon">🔔</div>
+            <h4>All caught up!</h4>
+            <p>No notifications at the moment</p>
+          </div>
+        } @else {
+          <div class="panel-actions">
+            @if (unreadCount() > 0) {
+              <button class="action-link" (click)="markAllAsRead()">
+                Mark all as read
+              </button>
+            }
+          </div>
+          <div class="notification-list">
+            @for (notif of allNotifications(); track notif.id) {
+              <div 
+                class="notification-card" 
+                [class.unread]="!notif.isRead"
+                (click)="markAsRead(notif.id)"
+              >
+                <div class="notif-icon-wrapper" [class]="'type-' + notif.type.toLowerCase()">
+                  {{ getNotificationIcon(notif.type) }}
+                </div>
+                <div class="notif-body">
+                  <strong>{{ notif.title }}</strong>
+                  <p>{{ notif.message }}</p>
+                  <div class="notif-meta">
+                    <span class="notif-time">{{ getTimeAgo(notif.createdAt) }}</span>
+                  </div>
+                </div>
+                <button class="dismiss-btn" (click)="removeNotification(notif.id); $event.stopPropagation()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Messages Panel -->
+    @if (currentPanel() === 'messages') {
+      <div class="messages-panel">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input type="text" placeholder="Search messages...">
+        </div>
+        
+        @if (messages.length === 0) {
+          <div class="empty-state">
+            <div class="empty-icon">💬</div>
+            <h4>No messages yet</h4>
+            <p>Start a conversation with your team</p>
+          </div>
+        } @else {
+          <div class="message-list">
+            @for (msg of messages; track msg.id) {
+              <div 
+                class="message-card" 
+                [class.unread]="msg.unread"
+                (click)="markMessageAsRead(msg.id)"
+              >
+                <div class="sender-avatar">
+                  @if (msg.avatar) {
+                    <img [src]="msg.avatar" alt="">
+                  } @else {
+                    <span>{{ getSenderInitials(msg.sender) }}</span>
+                  }
+                </div>
+                <div class="message-body">
+                  <div class="message-header">
+                    <strong>{{ msg.sender }}</strong>
+                    <span class="message-time">{{ getTimeAgo(msg.timestamp) }}</span>
+                  </div>
+                  <p>{{ msg.message }}</p>
+                </div>
+                @if (msg.unread) {
+                  <span class="unread-dot"></span>
+                }
+              </div>
+            }
+          </div>
+        }
+        
+        <div class="panel-footer">
+          <button class="compose-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            New Message
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Quick Actions Panel -->
+    @if (currentPanel() === 'quick-actions') {
+      <div class="quick-actions-panel">
+        <div class="actions-grid">
+          @for (action of quickActions; track action.id) {
+            @if (action.route) {
+              <a 
+                [routerLink]="action.route" 
+                class="action-card"
+                [style.--action-color]="action.color"
+                (click)="closePanel()"
+              >
+                <div class="action-icon-wrapper">
+                  @switch (action.icon) {
+                    @case ('simulation') {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
+                      </svg>
+                    }
+                    @case ('history') {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                      </svg>
+                    }
+                    @case ('settings') {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                      </svg>
+                    }
+                    @case ('share') {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="18" cy="5" r="3"/>
+                        <circle cx="6" cy="12" r="3"/>
+                        <circle cx="18" cy="19" r="3"/>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                      </svg>
+                    }
+                    @case ('export') {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                      </svg>
+                    }
+                    @case ('compare') {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="8" height="18" rx="1"/>
+                        <rect x="13" y="3" width="8" height="18" rx="1"/>
+                      </svg>
+                    }
+                  }
+                </div>
+                <span>{{ action.label }}</span>
+              </a>
+            } @else {
+              <button 
+                class="action-card"
+                [style.--action-color]="action.color"
+                (click)="action.action?.()"
+              >
+                <div class="action-icon-wrapper">
+                  @switch (action.icon) {
+                    @case ('share') {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="18" cy="5" r="3"/>
+                        <circle cx="6" cy="12" r="3"/>
+                        <circle cx="18" cy="19" r="3"/>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                      </svg>
+                    }
+                    @case ('export') {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                      </svg>
+                    }
+                  }
+                </div>
+                <span>{{ action.label }}</span>
+              </button>
+            }
+          }
+        </div>
+        
+        <div class="recent-simulations">
+          <h4>Recent Simulations</h4>
+          <div class="recent-list">
+            <a routerLink="/results/1" class="recent-item" (click)="closePanel()">
+              <div class="recent-icon">🏢</div>
+              <div class="recent-info">
+                <strong>Building Analysis</strong>
+                <span>Completed 2h ago</span>
+              </div>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </a>
+            <a routerLink="/results/2" class="recent-item" (click)="closePanel()">
+              <div class="recent-icon">🌉</div>
+              <div class="recent-info">
+                <strong>Bridge Stress Test</strong>
+                <span>Completed yesterday</span>
+              </div>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Share Panel -->
+    @if (currentPanel() === 'share') {
+      <div class="share-panel">
+        <div class="share-input-group">
+          <label>Share via email</label>
+          <div class="share-input">
+            <input type="email" placeholder="Enter email address">
+            <button class="send-btn">Send</button>
+          </div>
+        </div>
+        
+        <div class="share-divider">
+          <span>or share link</span>
+        </div>
+        
+        <div class="share-link-box">
+          <input type="text" value="https://simstruct.app/shared/abc123" readonly>
+          <button class="copy-btn" title="Copy link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="share-options">
+          <h4>Share settings</h4>
+          <label class="share-option">
+            <input type="checkbox" checked>
+            <span>Allow viewing</span>
+          </label>
+          <label class="share-option">
+            <input type="checkbox">
+            <span>Allow editing</span>
+          </label>
+          <label class="share-option">
+            <input type="checkbox">
+            <span>Allow downloading</span>
+          </label>
+        </div>
+        
+        <div class="shared-with">
+          <h4>Shared with</h4>
+          <div class="shared-user">
+            <div class="user-avatar-small">SE</div>
+            <div class="user-info">
+              <strong>Sarah Engineer</strong>
+              <span>Can view</span>
+            </div>
+            <button class="remove-btn">Remove</button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</aside>

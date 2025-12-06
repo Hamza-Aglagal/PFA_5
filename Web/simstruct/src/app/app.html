@@ -1,0 +1,18 @@
+@if (!isFullscreenPage()) {
+  <app-navbar></app-navbar>
+}
+<main class="app-main" [class.fullscreen]="isFullscreenPage()">
+  <router-outlet />
+</main>
+@if (!isFullscreenPage()) {
+  <app-footer></app-footer>
+}
+
+<!-- Sidebar Panel -->
+<app-sidebar></app-sidebar>
+
+<!-- Toast Notifications -->
+<app-toast></app-toast>
+
+<!-- Global Confirmation Modal -->
+<app-confirm-modal></app-confirm-modal>

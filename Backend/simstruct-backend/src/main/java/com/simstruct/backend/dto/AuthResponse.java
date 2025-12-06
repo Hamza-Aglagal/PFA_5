@@ -1,0 +1,22 @@
+package com.simstruct.backend.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+/**
+ * Auth Response DTO - returned after successful login/register
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class AuthResponse {
+
+    private String accessToken;
+    private String refreshToken;
+    private String tokenType;
+    private Long expiresIn;
+    private UserResponse user;
+}

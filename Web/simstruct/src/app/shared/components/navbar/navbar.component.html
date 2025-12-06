@@ -1,0 +1,389 @@
+<nav class="navbar" [class.scrolled]="isScrolled()">
+  <div class="navbar-container">
+    <!-- Logo -->
+    <a routerLink="/" class="navbar-logo" (click)="closeMobileMenu()">
+      <div class="logo-icon">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="28" width="32" height="8" rx="2" fill="url(#logo-gradient)"/>
+          <rect x="8" y="18" width="8" height="10" rx="1" fill="url(#logo-gradient)" opacity="0.8"/>
+          <rect x="24" y="18" width="8" height="10" rx="1" fill="url(#logo-gradient)" opacity="0.8"/>
+          <path d="M6 28L20 8L34 28" stroke="url(#logo-gradient)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="20" cy="8" r="3" fill="url(#logo-gradient)"/>
+          <defs>
+            <linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#3b82f6"/>
+              <stop offset="100%" stop-color="#f97316"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <span class="logo-text">
+        <span class="logo-primary">Sim</span><span class="logo-accent">Struct</span>
+      </span>
+    </a>
+
+    <!-- Desktop Navigation -->
+    <div class="navbar-nav">
+      @for (link of navLinks(); track link.path) {
+        <a 
+          [routerLink]="link.path" 
+          routerLinkActive="active" 
+          [routerLinkActiveOptions]="{exact: link.path === '/'}"
+          class="nav-link"
+        >
+          @switch (link.icon) {
+            @case ('home') {
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+            }
+            @case ('dashboard') {
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                <rect x="14" y="14" width="7" height="7" rx="1"/>
+              </svg>
+            }
+            @case ('simulation') {
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
+              </svg>
+            }
+            @case ('history') {
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+            }
+            @case ('community') {
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            }
+          }
+          <span class="nav-label">{{ link.label }}</span>
+        </a>
+      }
+    </div>
+
+    <!-- Actions Area -->
+    <div class="navbar-actions">
+      <!-- Theme Toggle -->
+      <button class="action-btn theme-toggle" (click)="toggleTheme()" [attr.aria-label]="isLightMode() ? 'Switch to dark mode' : 'Switch to light mode'">
+        @if (isLightMode()) {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        } @else {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+        }
+      </button>
+
+      @if (isAuthenticated()) {
+        <!-- Notification Bell -->
+        <div class="notification-container">
+          <button class="action-btn notification-btn" (click)="toggleNotificationPanel()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            @if (unreadCount() > 0) {
+              <span class="notification-badge">{{ unreadCount() }}</span>
+            }
+          </button>
+
+          <!-- Notification Dropdown -->
+          @if (showNotificationPanel()) {
+            <div class="notification-dropdown">
+              <div class="dropdown-header">
+                <h4>Notifications</h4>
+                @if (unreadCount() > 0) {
+                  <button class="mark-all-btn" (click)="markAllNotificationsAsRead()">Mark all read</button>
+                }
+              </div>
+              <div class="dropdown-content">
+                @if (mockNotifications().length === 0) {
+                  <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                      <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                    </svg>
+                    <p>No notifications yet</p>
+                  </div>
+                } @else {
+                  @for (notif of mockNotifications(); track notif.id) {
+                    <div class="notification-item" [class.unread]="!notif.isRead" (click)="markNotificationAsRead(notif.id)">
+                      <span class="notif-icon">{{ getNotificationIcon(notif.type) }}</span>
+                      <div class="notif-content">
+                        <strong>{{ notif.title }}</strong>
+                        <p>{{ notif.message }}</p>
+                        <span class="notif-time">{{ getTimeAgo(notif.createdAt) }}</span>
+                      </div>
+                    </div>
+                  }
+                }
+              </div>
+              <div class="dropdown-footer">
+                <button class="view-all-btn" (click)="openSidebar('notifications')">View All Notifications</button>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Quick Actions -->
+        <button class="action-btn" (click)="openSidebar('quick-actions')" title="Quick Actions">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <line x1="12" y1="8" x2="12" y2="16"/>
+            <line x1="8" y1="12" x2="16" y2="12"/>
+          </svg>
+        </button>
+
+        <!-- User Menu -->
+        <div class="user-menu-container">
+          <button class="user-avatar-btn" (click)="toggleUserDropdown()">
+            @if (user()?.avatarUrl) {
+              <img [src]="user()?.avatarUrl" alt="User avatar" class="user-avatar-img">
+            } @else {
+              <span class="user-initials">{{ userInitials() }}</span>
+            }
+            <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [class.open]="showUserDropdown()">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+
+          <!-- User Dropdown -->
+          @if (showUserDropdown()) {
+            <div class="user-dropdown">
+              <div class="dropdown-user-info">
+                <div class="user-avatar-large">
+                  @if (user()?.avatarUrl) {
+                    <img [src]="user()?.avatarUrl" alt="">
+                  } @else {
+                    <span>{{ userInitials() }}</span>
+                  }
+                </div>
+                <div class="user-details">
+                  <strong>{{ user()?.name }}</strong>
+                  <span>{{ user()?.email }}</span>
+                  <span class="user-role">{{ user()?.role === 'PRO' ? '⭐ Pro Member' : '👤 Free Account' }}</span>
+                </div>
+              </div>
+              <div class="dropdown-divider"></div>
+              <a routerLink="/profile" class="dropdown-item" (click)="showUserDropdown.set(false)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                Profile
+              </a>
+              <a routerLink="/dashboard" class="dropdown-item" (click)="showUserDropdown.set(false)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="7" height="7"/>
+                  <rect x="14" y="3" width="7" height="7"/>
+                  <rect x="14" y="14" width="7" height="7"/>
+                  <rect x="3" y="14" width="7" height="7"/>
+                </svg>
+                Dashboard
+              </a>
+              <button class="dropdown-item" (click)="openSidebar('messages')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                Messages
+                <span class="badge-new">3</span>
+              </button>
+              <div class="dropdown-divider"></div>
+              <a routerLink="/settings" class="dropdown-item" (click)="showUserDropdown.set(false)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+                Settings
+              </a>
+              <div class="dropdown-divider"></div>
+              <button class="dropdown-item logout" (click)="logout()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                  <polyline points="16 17 21 12 16 7"/>
+                  <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                Sign Out
+              </button>
+            </div>
+          }
+        </div>
+      } @else {
+        <!-- Not Authenticated -->
+        <a routerLink="/login" class="btn btn-ghost">Sign In</a>
+        <a routerLink="/register" class="btn btn-primary">Get Started</a>
+      }
+    </div>
+
+    <!-- Mobile Menu Toggle -->
+    <button 
+      class="mobile-menu-toggle" 
+      (click)="toggleMobileMenu()"
+      [class.active]="isMobileMenuOpen()"
+      aria-label="Toggle menu"
+    >
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" [class.open]="isMobileMenuOpen()">
+    <div class="mobile-menu-content">
+      @if (isAuthenticated()) {
+        <div class="mobile-user-info">
+          <div class="mobile-avatar">
+            @if (user()?.avatarUrl) {
+              <img [src]="user()?.avatarUrl" alt="">
+            } @else {
+              <span>{{ userInitials() }}</span>
+            }
+          </div>
+          <div class="mobile-user-details">
+            <strong>{{ user()?.name }}</strong>
+            <span>{{ user()?.email }}</span>
+          </div>
+        </div>
+        <div class="mobile-divider"></div>
+      }
+
+      @for (link of navLinks(); track link.path) {
+        <a 
+          [routerLink]="link.path" 
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{exact: link.path === '/'}"
+          class="mobile-nav-link"
+          (click)="closeMobileMenu()"
+        >
+          @switch (link.icon) {
+            @case ('home') {
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+            }
+            @case ('dashboard') {
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                <rect x="14" y="14" width="7" height="7" rx="1"/>
+              </svg>
+            }
+            @case ('simulation') {
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
+              </svg>
+            }
+            @case ('history') {
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+            }
+            @case ('community') {
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            }
+          }
+          {{ link.label }}
+        </a>
+      }
+
+      @if (isAuthenticated()) {
+        <div class="mobile-divider"></div>
+        <a routerLink="/profile" class="mobile-nav-link" (click)="closeMobileMenu()">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          Profile
+        </a>
+        <button class="mobile-nav-link" (click)="openSidebar('messages'); closeMobileMenu()">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          Messages
+          <span class="mobile-badge">3</span>
+        </button>
+        <button class="mobile-nav-link" (click)="openSidebar('notifications'); closeMobileMenu()">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          Notifications
+          @if (unreadCount() > 0) {
+            <span class="mobile-badge">{{ unreadCount() }}</span>
+          }
+        </button>
+      }
+
+      <div class="mobile-auth-buttons">
+        <button class="theme-toggle mobile-theme" (click)="toggleTheme()">
+          @if (isLightMode()) {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+            <span>Dark Mode</span>
+          } @else {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="5"/>
+              <line x1="12" y1="1" x2="12" y2="3"/>
+              <line x1="12" y1="21" x2="12" y2="23"/>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+              <line x1="1" y1="12" x2="3" y2="12"/>
+              <line x1="21" y1="12" x2="23" y2="12"/>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            </svg>
+            <span>Light Mode</span>
+          }
+        </button>
+
+        @if (isAuthenticated()) {
+          <button class="btn btn-outline logout-btn" (click)="logout()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            Sign Out
+          </button>
+        } @else {
+          <a routerLink="/login" class="btn btn-outline" (click)="closeMobileMenu()">Sign In</a>
+          <a routerLink="/register" class="btn btn-primary" (click)="closeMobileMenu()">Get Started</a>
+        }
+      </div>
+    </div>
+  </div>
+</nav>

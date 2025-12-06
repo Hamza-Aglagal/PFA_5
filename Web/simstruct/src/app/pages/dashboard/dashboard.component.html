@@ -1,0 +1,216 @@
+<div class="dashboard-page">
+  <!-- 3D Background -->
+  <div class="dashboard-bg">
+    <canvas #statsCanvas class="stats-canvas"></canvas>
+  </div>
+  
+  <div class="dashboard-container">
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="header-content">
+        <div class="welcome-section">
+          <h1 class="welcome-title">
+            {{ greeting() }}, <span class="user-name">{{ userName() }}</span> 👋
+          </h1>
+          <p class="welcome-subtitle">
+            Here's what's happening with your structural simulations today.
+          </p>
+        </div>
+        
+        <div class="header-actions">
+          <button class="btn btn-outline notification-btn" (click)="toggleNotifications()">
+            <span class="notification-icon">🔔</span>
+            @if (notifications().length > 0) {
+              <span class="notification-badge">{{ notifications().length }}</span>
+            }
+          </button>
+          <a routerLink="/simulation" class="btn btn-primary">
+            <span>➕</span>
+            New Simulation
+          </a>
+        </div>
+      </div>
+    </header>
+    
+    <!-- Stats Grid -->
+    <section class="stats-section">
+      <div class="stats-grid">
+        @for (stat of stats(); track stat.title) {
+          <div class="stat-card" [class]="'stat-' + stat.color">
+            <div class="stat-icon">{{ stat.icon }}</div>
+            <div class="stat-content">
+              <span class="stat-value">{{ stat.value }}</span>
+              <span class="stat-title">{{ stat.title }}</span>
+            </div>
+            <div class="stat-change" [class.positive]="stat.change > 0" [class.negative]="stat.change < 0">
+              @if (stat.change > 0) {
+                <span>↑ +{{ stat.change }}</span>
+              } @else if (stat.change < 0) {
+                <span>↓ {{ stat.change }}</span>
+              } @else {
+                <span>→ 0</span>
+              }
+              <span class="change-label">vs last month</span>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+    
+    <!-- Main Content Grid -->
+    <div class="dashboard-grid">
+      <!-- Recent Simulations -->
+      <section class="recent-simulations card">
+        <div class="card-header">
+          <h2 class="card-title">Recent Simulations</h2>
+          <a routerLink="/history" class="view-all-link">View All →</a>
+        </div>
+        
+        <div class="simulations-list">
+          @for (simulation of recentSimulations(); track simulation.id) {
+            <div class="simulation-item">
+              <div class="simulation-preview">
+                <div class="preview-placeholder">
+                  <span class="type-icon">
+                    @switch (simulation.type) {
+                      @case ('Beam') { ═══ }
+                      @case ('Frame') { ╔═╗ }
+                      @case ('Truss') { △△△ }
+                      @case ('Column') { ║║║ }
+                    }
+                  </span>
+                </div>
+              </div>
+              
+              <div class="simulation-info">
+                <h3 class="simulation-name">{{ simulation.name }}</h3>
+                <div class="simulation-meta">
+                  <span class="type-badge">{{ simulation.type }}</span>
+                  <span class="date">{{ formatDate(simulation.date) }}</span>
+                </div>
+              </div>
+              
+              <div class="simulation-status">
+                <div class="status-indicator" [class]="getStatusClass(simulation.status)">
+                  <span class="status-icon">{{ getStatusIcon(simulation.status) }}</span>
+                  <span class="status-text">{{ simulation.status }}</span>
+                </div>
+                
+                @if (simulation.status === 'completed') {
+                  <div class="safety-factor" [class]="getSafetyClass(simulation.safetyFactor)">
+                    <span class="sf-label">SF:</span>
+                    <span class="sf-value">{{ simulation.safetyFactor.toFixed(1) }}</span>
+                  </div>
+                }
+              </div>
+              
+              <div class="simulation-actions">
+                <button class="action-btn" title="View Results" (click)="viewSimulationResults(simulation)">
+                  <span>👁️</span>
+                </button>
+                <button class="action-btn" title="Download Report" (click)="downloadReport(simulation, $event)">
+                  <span>📄</span>
+                </button>
+                <button class="action-btn" title="More Options" (click)="showMoreOptions(simulation, $event)">
+                  <span>⋯</span>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+      
+      <!-- Quick Actions -->
+      <section class="quick-actions card">
+        <div class="card-header">
+          <h2 class="card-title">Quick Actions</h2>
+        </div>
+        
+        <div class="actions-grid">
+          @for (action of quickActions; track action.label) {
+            <a [routerLink]="action.route" class="action-card" [class]="'action-' + action.color">
+              <span class="action-icon">{{ action.icon }}</span>
+              <span class="action-label">{{ action.label }}</span>
+            </a>
+          }
+        </div>
+      </section>
+      
+      <!-- Notifications -->
+      <section class="notifications card">
+        <div class="card-header">
+          <h2 class="card-title">Notifications</h2>
+          @if (notifications().length > 0) {
+            <button class="clear-btn" (click)="clearAllNotifications()">Clear All</button>
+          }
+        </div>
+        
+        <div class="notifications-list">
+          @if (notifications().length === 0) {
+            <div class="empty-state">
+              <span class="empty-icon">🔔</span>
+              <p>No new notifications</p>
+            </div>
+          } @else {
+            @for (notification of notifications(); track notification.id) {
+              <div class="notification-item" [class]="'notification-' + notification.type">
+                <div class="notification-indicator"></div>
+                <div class="notification-content">
+                  <p class="notification-message">{{ notification.message }}</p>
+                  <span class="notification-time">{{ notification.time }}</span>
+                </div>
+                <button class="dismiss-btn" (click)="dismissNotification(notification.id)">
+                  ✕
+                </button>
+              </div>
+            }
+          }
+        </div>
+      </section>
+      
+      <!-- Performance Chart Placeholder -->
+      <section class="performance-chart card">
+        <div class="card-header">
+          <h2 class="card-title">Analysis Performance</h2>
+          <div class="chart-filters">
+            <button class="filter-btn active">Week</button>
+            <button class="filter-btn">Month</button>
+            <button class="filter-btn">Year</button>
+          </div>
+        </div>
+        
+        <div class="chart-container">
+          <div class="chart-placeholder">
+            <div class="chart-bars">
+              @for (height of [40, 65, 45, 80, 55, 90, 70]; track $index) {
+                <div class="chart-bar" [style.height.%]="height">
+                  <div class="bar-fill"></div>
+                </div>
+              }
+            </div>
+            <div class="chart-labels">
+              <span>Mon</span>
+              <span>Tue</span>
+              <span>Wed</span>
+              <span>Thu</span>
+              <span>Fri</span>
+              <span>Sat</span>
+              <span>Sun</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="chart-legend">
+          <div class="legend-item">
+            <span class="legend-color primary"></span>
+            <span>Simulations Run</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color success"></span>
+            <span>Passed Analysis</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>

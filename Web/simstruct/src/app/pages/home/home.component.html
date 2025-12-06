@@ -1,0 +1,230 @@
+<div class="home-page" [class.loaded]="isLoaded()">
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <canvas #heroCanvas class="hero-canvas"></canvas>
+    
+    <div class="hero-overlay"></div>
+    
+    <div class="hero-content container">
+      <div class="hero-text">
+        <div class="hero-badge animate-fade-in">
+          <span class="badge-icon">🚀</span>
+          <span>Revolutionizing Structural Engineering</span>
+        </div>
+        
+        <h1 class="hero-title animate-fade-in-up delay-100">
+          AI-Powered
+          <span class="text-gradient"> Structure Stability</span>
+          <br>Simulation Platform
+        </h1>
+        
+        <p class="hero-description animate-fade-in-up delay-200">
+          Analyze civil structures in seconds with our deep learning engine. 
+          Get instant stability predictions, stress analysis, and comprehensive reports 
+          — all from your browser or mobile device.
+        </p>
+        
+        <div class="hero-actions animate-fade-in-up delay-300">
+          <a routerLink="/simulation" class="btn btn-primary btn-lg">
+            <span>Start Simulation</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </a>
+          <a routerLink="/dashboard" class="btn btn-outline btn-lg">
+            <span>View Demo</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5,3 19,12 5,21"/>
+            </svg>
+          </a>
+        </div>
+        
+        <div class="hero-stats animate-fade-in-up delay-400">
+          @for (stat of stats; track stat.label) {
+            <div class="stat-item">
+              <span class="stat-icon">{{ stat.icon }}</span>
+              <div class="stat-content">
+                <span class="stat-value">{{ stat.value }}</span>
+                <span class="stat-label">{{ stat.label }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+    
+    <div class="scroll-indicator animate-fade-in delay-500">
+      <div class="mouse">
+        <div class="wheel"></div>
+      </div>
+      <span>Scroll to explore</span>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features-section section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Features</span>
+        <h2 class="section-title">
+          Everything You Need for
+          <span class="text-gradient">Structural Analysis</span>
+        </h2>
+        <p class="section-description">
+          Our platform combines cutting-edge AI technology with intuitive design 
+          to deliver the most advanced structural simulation experience.
+        </p>
+      </div>
+
+      <div class="features-grid">
+        @for (feature of features; track feature.title; let i = $index) {
+          <div 
+            class="feature-card" 
+            [class.active]="activeFeature() === i"
+            (mouseenter)="setActiveFeature(i)"
+            [style.--feature-color]="feature.color"
+          >
+            <div class="feature-icon">{{ feature.icon }}</div>
+            <h3 class="feature-title">{{ feature.title }}</h3>
+            <p class="feature-description">{{ feature.description }}</p>
+            <div class="feature-glow"></div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Structure Types Section -->
+  <section class="structures-section section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Capabilities</span>
+        <h2 class="section-title">
+          Analyze Any
+          <span class="text-gradient">Structure Type</span>
+        </h2>
+      </div>
+
+      <div class="structures-grid">
+        @for (type of structureTypes; track type.name) {
+          <div class="structure-card glass-card">
+            <div class="structure-preview">
+              <span class="structure-icon">{{ type.icon }}</span>
+            </div>
+            <h4 class="structure-name">{{ type.name }}</h4>
+            <p class="structure-desc">{{ type.description }}</p>
+            <a routerLink="/simulation" class="structure-link">
+              Analyze now
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section class="how-it-works-section section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Process</span>
+        <h2 class="section-title">
+          How
+          <span class="text-gradient">SimStruct</span>
+          Works
+        </h2>
+      </div>
+
+      <div class="steps-container">
+        <div class="step-card">
+          <div class="step-number">01</div>
+          <div class="step-icon">📝</div>
+          <h4 class="step-title">Define Structure</h4>
+          <p class="step-description">
+            Input your structure parameters: dimensions, materials, loads, and support conditions 
+            using our intuitive multi-step wizard.
+          </p>
+        </div>
+
+        <div class="step-connector">
+          <svg viewBox="0 0 100 20" preserveAspectRatio="none">
+            <path d="M0,10 L100,10" stroke="url(#connector-gradient)" stroke-width="2" stroke-dasharray="8,4"/>
+            <defs>
+              <linearGradient id="connector-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#3b82f6"/>
+                <stop offset="100%" stop-color="#f97316"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+
+        <div class="step-card">
+          <div class="step-number">02</div>
+          <div class="step-icon">🤖</div>
+          <h4 class="step-title">AI Analysis</h4>
+          <p class="step-description">
+            Our deep learning model processes your input and predicts stability, 
+            stress distribution, and potential failure points in seconds.
+          </p>
+        </div>
+
+        <div class="step-connector">
+          <svg viewBox="0 0 100 20" preserveAspectRatio="none">
+            <path d="M0,10 L100,10" stroke="url(#connector-gradient)" stroke-width="2" stroke-dasharray="8,4"/>
+          </svg>
+        </div>
+
+        <div class="step-card">
+          <div class="step-number">03</div>
+          <div class="step-icon">📊</div>
+          <h4 class="step-title">Get Results</h4>
+          <p class="step-description">
+            View interactive 3D visualizations, detailed stress analysis, 
+            and download comprehensive PDF reports.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section section">
+    <div class="container">
+      <div class="cta-card">
+        <div class="cta-background">
+          <div class="cta-gradient"></div>
+          <div class="cta-grid"></div>
+        </div>
+        
+        <div class="cta-content">
+          <h2 class="cta-title">
+            Ready to Transform Your
+            <span class="text-gradient">Structural Analysis?</span>
+          </h2>
+          <p class="cta-description">
+            Join thousands of engineers using SimStruct to analyze structures faster and more accurately than ever before.
+          </p>
+          <div class="cta-actions">
+            <a routerLink="/register" class="btn btn-accent btn-lg">
+              Get Started Free
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a routerLink="/login" class="btn btn-ghost btn-lg">
+              Sign In
+            </a>
+          </div>
+        </div>
+        
+        <div class="cta-decoration">
+          <div class="floating-shape shape-1"></div>
+          <div class="floating-shape shape-2"></div>
+          <div class="floating-shape shape-3"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

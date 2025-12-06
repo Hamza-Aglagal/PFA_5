@@ -1,0 +1,243 @@
+<div class="results-page">
+  <div class="results-container">
+    <!-- Header Section -->
+    <header class="results-header">
+      <div class="header-left">
+        <a routerLink="/dashboard" class="back-link">
+          <span>←</span>
+          Back to Dashboard
+        </a>
+        <h1 class="results-title">{{ simulationName() }}</h1>
+        <div class="results-meta">
+          <span class="meta-item">
+            <span class="meta-icon">📅</span>
+            {{ formatDate(simulationDate()) }}
+          </span>
+          <span class="meta-item">
+            <span class="meta-icon">🏗️</span>
+            {{ structureType() }}
+          </span>
+          <span class="meta-item">
+            <span class="meta-icon">⚙️</span>
+            {{ material() }}
+          </span>
+        </div>
+      </div>
+      
+      <div class="header-actions">
+        <button class="btn btn-outline" (click)="shareResults()">
+          <span>📤</span>
+          Share
+        </button>
+        <div class="dropdown">
+          <button class="btn btn-primary">
+            <span>📄</span>
+            Export Report
+            <span class="dropdown-arrow">▼</span>
+          </button>
+          <div class="dropdown-menu">
+            <button (click)="exportReport('pdf')">PDF Report</button>
+            <button (click)="exportReport('csv')">CSV Data</button>
+            <button (click)="exportReport('json')">JSON Export</button>
+          </div>
+        </div>
+      </div>
+    </header>
+    
+    <!-- Status Overview -->
+    <section class="status-overview">
+      <div class="status-card main-status" [class]="'status-' + overallStatus()">
+        <div class="status-icon-large">
+          {{ getStatusIcon(overallStatus()) }}
+        </div>
+        <div class="status-content">
+          <h2 class="status-title">
+            @switch (overallStatus()) {
+              @case ('safe') { Structure is Safe }
+              @case ('warning') { Attention Required }
+              @case ('critical') { Critical Issues Detected }
+            }
+          </h2>
+          <p class="status-description">
+            AI analysis complete with {{ aiConfidence() }}% confidence
+          </p>
+        </div>
+      </div>
+      
+      <div class="status-metrics">
+        <div class="metric-card">
+          <span class="metric-label">Safety Factor</span>
+          <span class="metric-value" [class]="safetyFactor() >= 2 ? 'text-success' : safetyFactor() >= 1.5 ? 'text-warning' : 'text-danger'">
+            {{ safetyFactor().toFixed(1) }}
+          </span>
+          <div class="metric-bar">
+            <div class="bar-fill" [style.width.%]="getSafetyBarWidth()"></div>
+          </div>
+        </div>
+        
+        <div class="metric-card">
+          <span class="metric-label">AI Confidence</span>
+          <span class="metric-value text-primary">{{ aiConfidence() }}%</span>
+          <div class="metric-bar">
+            <div class="bar-fill primary" [style.width.%]="aiConfidence()"></div>
+          </div>
+        </div>
+        
+        <div class="metric-card">
+          <span class="metric-label">Checks Passed</span>
+          <span class="metric-value text-success">6/6</span>
+          <div class="metric-bar">
+            <div class="bar-fill success" [style.width.%]="100"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Main Content Grid -->
+    <div class="results-grid">
+      <!-- 3D Visualization -->
+      <section class="visualization-panel">
+        <div class="panel-header">
+          <h3 class="panel-title">3D Stress Visualization</h3>
+          <div class="panel-controls">
+            <button 
+              class="control-btn"
+              [class.active]="showStressVisualization()"
+              (click)="toggleStressVisualization()"
+            >
+              <span>🎨</span>
+              Stress Colors
+            </button>
+          </div>
+        </div>
+        
+        <div class="canvas-container">
+          <canvas #structureCanvas class="structure-canvas"></canvas>
+          
+          <!-- Color Legend -->
+          <div class="color-legend">
+            <span class="legend-label">Low Stress</span>
+            <div class="legend-gradient"></div>
+            <span class="legend-label">High Stress</span>
+          </div>
+        </div>
+        
+        <div class="visualization-tabs">
+          <button 
+            class="tab-btn"
+            [class.active]="activeTab() === '3d'"
+            (click)="setActiveTab('3d')"
+          >
+            3D Model
+          </button>
+          <button 
+            class="tab-btn"
+            [class.active]="activeTab() === 'stress'"
+            (click)="setActiveTab('stress')"
+          >
+            Stress Map
+          </button>
+          <button 
+            class="tab-btn"
+            [class.active]="activeTab() === 'deformation'"
+            (click)="setActiveTab('deformation')"
+          >
+            Deformation
+          </button>
+        </div>
+      </section>
+      
+      <!-- Analysis Results -->
+      <section class="analysis-panel">
+        <div class="panel-header">
+          <h3 class="panel-title">Analysis Results</h3>
+        </div>
+        
+        <div class="results-list">
+          @for (result of results(); track result.id) {
+            <div class="result-item" [class]="'result-' + result.status">
+              <div class="result-header">
+                <span class="result-category">{{ result.category }}</span>
+                <span class="result-status" [class]="'status-' + result.status">
+                  {{ getStatusIcon(result.status) }}
+                </span>
+              </div>
+              
+              <div class="result-content">
+                <span class="result-metric">{{ result.metric }}</span>
+                <div class="result-values">
+                  <span class="result-value">
+                    {{ result.value }}
+                    @if (result.unit) {
+                      <span class="result-unit">{{ result.unit }}</span>
+                    }
+                  </span>
+                  <span class="result-threshold">/ {{ result.threshold }}{{ result.unit }}</span>
+                </div>
+              </div>
+              
+              <div class="result-bar">
+                <div 
+                  class="bar-fill"
+                  [class]="'bar-' + result.status"
+                  [style.width.%]="getValuePercentage(result.value, result.threshold)"
+                ></div>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+      
+      <!-- Recommendations -->
+      <section class="recommendations-panel">
+        <div class="panel-header">
+          <h3 class="panel-title">AI Recommendations</h3>
+        </div>
+        
+        <div class="recommendations-list">
+          @for (rec of recommendations(); track rec.title) {
+            <div class="recommendation-card" [class]="'rec-' + rec.type">
+              <div class="rec-icon">
+                @switch (rec.type) {
+                  @case ('success') { ✓ }
+                  @case ('info') { 💡 }
+                  @case ('warning') { ⚠ }
+                }
+              </div>
+              <div class="rec-content">
+                <h4 class="rec-title">{{ rec.title }}</h4>
+                <p class="rec-description">{{ rec.description }}</p>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+      
+      <!-- Quick Actions -->
+      <section class="actions-panel">
+        <div class="panel-header">
+          <h3 class="panel-title">Quick Actions</h3>
+        </div>
+        
+        <div class="action-buttons">
+          <a routerLink="/simulation" class="action-btn">
+            <span class="action-icon">🔄</span>
+            <span class="action-label">Run New Analysis</span>
+          </a>
+          <button class="action-btn" (click)="compareResults()">
+            <span class="action-icon">📊</span>
+            <span class="action-label">Compare Results</span>
+          </button>
+          <button class="action-btn" (click)="modifyParameters()">
+            <span class="action-icon">✏️</span>
+            <span class="action-label">Modify Parameters</span>
+          </button>
+          <a routerLink="/history" class="action-btn">
+            <span class="action-icon">📜</span>
+            <span class="action-label">View History</span>
+          </a>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
