@@ -27,9 +27,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((error: HttpErrorResponse) => {
       console.log('Interceptor: Error -', error.status, error.url);
       
-      // If 401 Unauthorized, clear session and redirect to login
-      if (error.status === 401) {
-        console.log('Interceptor: 401 - Clearing session and redirecting to login');
+      // If 401 Unauthorized or 403 Forbidden, clear session and redirect to login
+      // 403 can happen when token is valid but user doesn't exist in database
+      if (error.status === 401 || error.status === 403) {
+        console.log('Interceptor: Auth error - Clearing session and redirecting to login');
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');

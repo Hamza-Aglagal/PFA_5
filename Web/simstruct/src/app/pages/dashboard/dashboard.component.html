@@ -108,11 +108,14 @@
                 <button class="action-btn" title="View Results" (click)="viewSimulationResults(simulation)">
                   <span>👁️</span>
                 </button>
+                <button class="action-btn" title="Toggle Favorite" (click)="toggleFavorite(simulation, $event)">
+                  <span>⭐</span>
+                </button>
                 <button class="action-btn" title="Download Report" (click)="downloadReport(simulation, $event)">
                   <span>📄</span>
                 </button>
-                <button class="action-btn" title="More Options" (click)="showMoreOptions(simulation, $event)">
-                  <span>⋯</span>
+                <button class="action-btn danger" title="Delete" (click)="deleteSimulation(simulation, $event)">
+                  <span>🗑️</span>
                 </button>
               </div>
             </div>

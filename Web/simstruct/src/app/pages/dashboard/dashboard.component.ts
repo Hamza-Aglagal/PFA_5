@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import * as THREE from 'three';
 import { ModalService } from '../../shared/components/confirm-modal/confirm-modal.component';
+import { SimulationService, SimulationResponse } from '../../core/services/simulation.service';
 
 interface Simulation {
   id: string; name: string; type: string; status: 'completed' | 'running' | 'failed' | 'pending'; date: Date; safetyFactor: number; thumbnail?: string;
@@ -28,6 +29,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   
   private router = inject(Router);
   private modalService = inject(ModalService);
+  private simulationService = inject(SimulationService);
   
   private scene!: THREE.Scene;
   private camera!: THREE.PerspectiveCamera;
@@ -40,18 +42,13 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   isLoading = signal(false);
   
   stats = signal<StatCard[]>([
-    { title: 'Total Simulations', value: 12, change: 3, icon: '', color: 'primary' },
-    { title: 'Safe Structures', value: 10, change: 2, icon: '', color: 'success' },
-    { title: 'Warnings', value: 2, change: 0, icon: '', color: 'warning' },
-    { title: 'Favorites', value: 5, change: 1, icon: '', color: 'accent' }
+    { title: 'Total Simulations', value: 0, change: 0, icon: '', color: 'primary' },
+    { title: 'Safe Structures', value: 0, change: 0, icon: '', color: 'success' },
+    { title: 'Warnings', value: 0, change: 0, icon: '', color: 'warning' },
+    { title: 'Favorites', value: 0, change: 0, icon: '', color: 'accent' }
   ]);
   
-  recentSimulations = signal<Simulation[]>([
-    { id: '1', name: 'Steel Beam Analysis', type: 'Beam', status: 'completed', date: new Date(), safetyFactor: 2.5 },
-    { id: '2', name: 'Concrete Frame', type: 'Frame', status: 'completed', date: new Date(Date.now() - 86400000), safetyFactor: 1.8 },
-    { id: '3', name: 'Truss Bridge', type: 'Truss', status: 'completed', date: new Date(Date.now() - 2*86400000), safetyFactor: 2.1 },
-    { id: '4', name: 'Column Test', type: 'Column', status: 'pending', date: new Date(Date.now() - 3*86400000), safetyFactor: 0 }
-  ]);
+  recentSimulations = signal<Simulation[]>([]);
   
   quickActions = [
     { icon: '', label: 'New Simulation', route: '/simulation', color: 'primary' },
@@ -60,15 +57,12 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     { icon: '', label: 'Export Report', route: '/results', color: 'accent' }
   ];
   
-  notifications = signal<Notification[]>([
-    { id: '1', type: 'success', message: 'Simulation completed successfully', time: '2m ago' },
-    { id: '2', type: 'info', message: 'New community post available', time: '1h ago' },
-    { id: '3', type: 'warning', message: 'Low safety factor detected', time: '3h ago' }
-  ]);
+  notifications = signal<Notification[]>([]);
   
   ngOnInit(): void {
     this.setGreeting();
     this.loadUserName();
+    this.loadDashboardData();
   }
   
   ngAfterViewInit(): void {
@@ -88,6 +82,75 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         this.userName.set(user.name?.split(' ')[0] || 'Engineer');
       } catch { }
     }
+  }
+  
+  private loadDashboardData(): void {
+    this.isLoading.set(true);
+    console.log('Dashboard: Loading data from API...');
+    
+    // Load all user simulations to calculate stats
+    this.simulationService.getUserSimulations().subscribe({
+      next: (simulations) => {
+        console.log('Dashboard: Loaded', simulations.length, 'simulations');
+        
+        // Calculate stats from real data
+        const total = simulations.length;
+        const safe = simulations.filter(s => s.results?.safetyFactor >= 1.5).length;
+        const warnings = simulations.filter(s => s.results?.safetyFactor < 1.5 && s.results?.safetyFactor >= 1.0).length;
+        const favorites = simulations.filter(s => s.isFavorite).length;
+        
+        this.stats.set([
+          { title: 'Total Simulations', value: total, change: 0, icon: '', color: 'primary' },
+          { title: 'Safe Structures', value: safe, change: 0, icon: '', color: 'success' },
+          { title: 'Warnings', value: warnings, change: 0, icon: '', color: 'warning' },
+          { title: 'Favorites', value: favorites, change: 0, icon: '', color: 'accent' }
+        ]);
+        
+        // Map to dashboard format and take first 5
+        const recentSims: Simulation[] = simulations.slice(0, 5).map(s => ({
+          id: s.id,
+          name: s.name,
+          type: this.getStructureTypeFromMaterial(s.materialType),
+          status: this.mapStatus(s.status),
+          date: new Date(s.createdAt),
+          safetyFactor: s.results?.safetyFactor || 0
+        }));
+        
+        this.recentSimulations.set(recentSims);
+        
+        // Add notification for recent simulation
+        if (recentSims.length > 0) {
+          const latest = recentSims[0];
+          if (latest.status === 'completed') {
+            this.notifications.set([
+              { id: '1', type: 'success', message: `"${latest.name}" completed successfully`, time: this.getTimeAgo(latest.date) }
+            ]);
+          }
+        }
+        
+        this.isLoading.set(false);
+      },
+      error: (error) => {
+        console.error('Dashboard: Failed to load data', error);
+        this.isLoading.set(false);
+        // Keep empty state - no mock data
+      }
+    });
+  }
+  
+  private getStructureTypeFromMaterial(materialType: string): string {
+    // Simple mapping - in real app this would be from the simulation data
+    return 'Beam';
+  }
+  
+  private mapStatus(status: string): 'completed' | 'running' | 'failed' | 'pending' {
+    const statusMap: Record<string, 'completed' | 'running' | 'failed' | 'pending'> = {
+      'COMPLETED': 'completed',
+      'RUNNING': 'running',
+      'FAILED': 'failed',
+      'PENDING': 'pending'
+    };
+    return statusMap[status] || 'pending';
   }
   
   private setGreeting(): void {
@@ -156,17 +219,54 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   
   downloadReport(sim: Simulation, event?: Event): void {
     if (event) event.stopPropagation();
-    if (sim.status !== 'completed') { console.log('Cannot download incomplete simulation'); return; }
-    console.log('UI Only: Download report for', sim.name);
+    if (sim.status !== 'completed') { 
+      console.log('Cannot download incomplete simulation'); 
+      return; 
+    }
+    // Navigate to results page where they can export
+    this.router.navigate(['/results', sim.id]);
   }
   
-  async toggleFavorite(sim: Simulation): Promise<void> { console.log('UI Only: Toggle favorite for', sim.name); }
+  toggleFavorite(sim: Simulation, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.simulationService.toggleFavorite(sim.id).subscribe({
+      next: (updated) => {
+        console.log('Dashboard: Toggled favorite for', sim.name);
+        // Reload dashboard data
+        this.loadDashboardData();
+      },
+      error: (err) => console.error('Dashboard: Failed to toggle favorite', err)
+    });
+  }
   
-  async deleteSimulation(sim: Simulation): Promise<void> {
-    const confirmed = await this.modalService.confirm({ title: 'Delete Simulation', message: 'Are you sure you want to delete "' + sim.name + '"?', confirmText: 'Delete', cancelText: 'Cancel', type: 'danger' });
+  togglePublic(sim: Simulation, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.simulationService.togglePublic(sim.id).subscribe({
+      next: (updated) => {
+        console.log('Dashboard: Toggled public for', sim.name);
+      },
+      error: (err) => console.error('Dashboard: Failed to toggle public', err)
+    });
+  }
+  
+  async deleteSimulation(sim: Simulation, event?: Event): Promise<void> {
+    if (event) event.stopPropagation();
+    const confirmed = await this.modalService.confirm({ 
+      title: 'Delete Simulation', 
+      message: 'Are you sure you want to delete "' + sim.name + '"?', 
+      confirmText: 'Delete', 
+      cancelText: 'Cancel', 
+      type: 'danger' 
+    });
     if (confirmed) {
-      this.recentSimulations.update(sims => sims.filter(s => s.id !== sim.id));
-      console.log('UI Only: Deleted', sim.name);
+      this.simulationService.deleteSimulation(sim.id).subscribe({
+        next: () => {
+          console.log('Dashboard: Deleted', sim.name);
+          this.recentSimulations.update(sims => sims.filter(s => s.id !== sim.id));
+          this.loadDashboardData();
+        },
+        error: (err) => console.error('Dashboard: Failed to delete', err)
+      });
     }
   }
   

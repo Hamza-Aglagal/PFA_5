@@ -1,26 +1,37 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
+import '../config/api_config.dart';
 import '../models/simulation.dart';
 import '../models/simulation_params.dart';
+import 'api_service.dart';
 
-/// Simulation Service - Manages simulation operations
+/// Simulation Service - Manages simulation operations with REAL BACKEND
 class SimulationService extends ChangeNotifier {
+  // API Service for backend calls
+  final ApiService _apiService = ApiService();
+  
   final List<Simulation> _simulations = [];
+  List<Simulation> _favoriteSimulations = [];
+  List<Simulation> _publicSimulations = [];
   Simulation? _currentSimulation;
   SimulationParams _currentParams = const SimulationParams();
   int _currentStep = 0;
   bool _isRunning = false;
+  bool _isLoading = false;
   double _progress = 0.0;
   String? _error;
   String? _currentUserId;
 
   // Getters
   List<Simulation> get simulations => List.unmodifiable(_simulations);
+  List<Simulation> get favoriteSimulationsFromBackend => _favoriteSimulations;
+  List<Simulation> get publicSimulations => _publicSimulations;
   Simulation? get currentSimulation => _currentSimulation;
   SimulationParams get currentParams => _currentParams;
   int get currentStep => _currentStep;
   bool get isRunning => _isRunning;
+  bool get isLoading => _isLoading;
   double get progress => _progress;
   String? get error => _error;
 
@@ -46,22 +57,145 @@ class SimulationService extends ChangeNotifier {
     await loadSimulations(userId);
   }
 
-  /// Load simulations from server
+  /// Load simulations from REAL BACKEND
   Future<void> loadSimulations(String userId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    
     try {
-      // Mock loading - replace with actual API call
-      await Future.delayed(const Duration(milliseconds: 800));
-
+      final response = await _apiService.get(ApiConfig.simulations);
+      
       _simulations.clear();
-      _simulations.addAll(_generateMockSimulations(userId));
+      
+      if (response.success && response.data != null) {
+        // Backend returns list directly
+        final List<dynamic> data = response.data is List 
+            ? response.data 
+            : (response.data['data'] ?? []);
+        
+        _simulations.addAll(
+          data.map((json) => _parseSimulationFromBackend(json)).toList()
+        );
+        debugPrint('Loaded ${_simulations.length} simulations from backend');
+      } else if (!response.success) {
+        debugPrint('Failed to load simulations: ${response.message}');
+        // No mock data - show empty list
+      } else {
+        debugPrint('Simulations loaded successfully but no data returned');
+      }
+      
+      _isLoading = false;
       notifyListeners();
     } catch (e) {
+      debugPrint('Error loading simulations: $e');
       _error = 'Failed to load simulations';
+      _isLoading = false;
       notifyListeners();
     }
   }
 
-  /// Create a new simulation
+  /// Load favorite simulations from backend
+  Future<void> loadFavoriteSimulations() async {
+    try {
+      final response = await _apiService.get('${ApiConfig.simulations}/favorites');
+      
+      if (response.success && response.data != null) {
+        final List<dynamic> data = response.data is List 
+            ? response.data 
+            : (response.data['data'] ?? []);
+        
+        _favoriteSimulations = data.map((json) => _parseSimulationFromBackend(json)).toList();
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error loading favorites: $e');
+    }
+  }
+
+  /// Load public simulations (community)
+  Future<void> loadPublicSimulations() async {
+    try {
+      final response = await _apiService.get('${ApiConfig.simulations}/public');
+      
+      if (response.success && response.data != null) {
+        final List<dynamic> data = response.data is List 
+            ? response.data 
+            : (response.data['data'] ?? []);
+        
+        _publicSimulations = data.map((json) => _parseSimulationFromBackend(json)).toList();
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error loading public simulations: $e');
+    }
+  }
+
+  /// Create a new simulation - CALLS REAL BACKEND
+  Future<Simulation?> createSimulationOnBackend({
+    required String name,
+    String? description,
+    required SimulationParams params,
+    bool isPublic = false,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      // Build request body matching backend SimulationRequest
+      final body = {
+        'name': name,
+        'description': description,
+        'beamLength': params.length,
+        'beamWidth': params.width,
+        'beamHeight': params.height,
+        'materialType': _mapMaterialType(params.material),
+        'elasticModulus': params.elasticModulus,
+        'density': params.density,
+        'yieldStrength': params.yieldStrength,
+        'loadType': _mapLoadType(params.loadType),
+        'loadMagnitude': params.loadValue,
+        'loadPosition': params.loadPosition,
+        'supportType': _mapSupportType(params.supportType),
+        'isPublic': isPublic,
+      };
+
+      debugPrint('Creating simulation on backend: $body');
+
+      final response = await _apiService.post(
+        ApiConfig.simulations,
+        body: body,
+      );
+
+      if (response.success && response.data != null) {
+        final data = response.data['data'] ?? response.data;
+        final simulation = _parseSimulationFromBackend(data);
+        
+        // Add to local list
+        _simulations.insert(0, simulation);
+        _currentSimulation = simulation;
+        
+        debugPrint('Simulation created: ${simulation.id}');
+        _isLoading = false;
+        notifyListeners();
+        return simulation;
+      } else {
+        _error = response.message;
+        _isLoading = false;
+        notifyListeners();
+        return null;
+      }
+    } catch (e) {
+      debugPrint('Error creating simulation: $e');
+      _error = 'Failed to create simulation';
+      _isLoading = false;
+      notifyListeners();
+      return null;
+    }
+  }
+
+  /// Create a new simulation (local, for wizard)
   Simulation createSimulation({
     required String userId,
     String? name,
@@ -292,8 +426,41 @@ class SimulationService extends ChangeNotifier {
     }
   }
 
-  /// Toggle favorite status
+  /// Toggle favorite status - CALLS REAL BACKEND
+  Future<bool> toggleFavoriteOnBackend(String simulationId) async {
+    try {
+      final response = await _apiService.post(
+        '${ApiConfig.simulations}/$simulationId/favorite',
+      );
+
+      if (response.success && response.data != null) {
+        final data = response.data['data'] ?? response.data;
+        final simulation = _parseSimulationFromBackend(data);
+        
+        // Update in local list
+        final index = _simulations.indexWhere((s) => s.id == simulationId);
+        if (index != -1) {
+          _simulations[index] = simulation;
+        }
+        
+        // Refresh favorites list
+        await loadFavoriteSimulations();
+        notifyListeners();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error toggling favorite: $e');
+      return false;
+    }
+  }
+
+  /// Toggle favorite status (local)
   void toggleFavorite(String simulationId) {
+    // Also call backend
+    toggleFavoriteOnBackend(simulationId);
+    
+    // Local update for instant feedback
     final index = _simulations.indexWhere((s) => s.id == simulationId);
     if (index != -1) {
       _simulations[index] = _simulations[index].copyWith(
@@ -303,17 +470,54 @@ class SimulationService extends ChangeNotifier {
     }
   }
 
-  /// Delete simulation
+  /// Delete simulation - CALLS REAL BACKEND
   Future<bool> deleteSimulation(String simulationId) async {
     try {
-      await Future.delayed(const Duration(milliseconds: 300));
-      _simulations.removeWhere((s) => s.id == simulationId);
-      if (_currentSimulation?.id == simulationId) {
-        _currentSimulation = null;
+      final response = await _apiService.delete(
+        '${ApiConfig.simulations}/$simulationId',
+      );
+
+      if (response.success) {
+        // Remove from local lists
+        _simulations.removeWhere((s) => s.id == simulationId);
+        _favoriteSimulations.removeWhere((s) => s.id == simulationId);
+        _publicSimulations.removeWhere((s) => s.id == simulationId);
+        
+        if (_currentSimulation?.id == simulationId) {
+          _currentSimulation = null;
+        }
+        notifyListeners();
+        return true;
       }
-      notifyListeners();
-      return true;
+      return false;
     } catch (e) {
+      debugPrint('Error deleting simulation: $e');
+      return false;
+    }
+  }
+
+  /// Toggle public status - CALLS REAL BACKEND
+  Future<bool> togglePublicOnBackend(String simulationId) async {
+    try {
+      final response = await _apiService.post(
+        '${ApiConfig.simulations}/$simulationId/public',
+      );
+
+      if (response.success && response.data != null) {
+        final data = response.data['data'] ?? response.data;
+        final simulation = _parseSimulationFromBackend(data);
+        
+        // Update in local list
+        final index = _simulations.indexWhere((s) => s.id == simulationId);
+        if (index != -1) {
+          _simulations[index] = simulation;
+        }
+        notifyListeners();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error toggling public: $e');
       return false;
     }
   }
@@ -463,6 +667,33 @@ class SimulationService extends ChangeNotifier {
     }
   }
 
+  /// Get simulation from backend by ID
+  Future<Simulation?> getSimulationFromBackend(String id) async {
+    try {
+      final response = await _apiService.get('${ApiConfig.simulations}/$id');
+      
+      if (response.success && response.data != null) {
+        final data = response.data['data'] ?? response.data;
+        final simulation = _parseSimulationFromBackend(data);
+        
+        // Add to local list if not exists
+        final existingIndex = _simulations.indexWhere((s) => s.id == id);
+        if (existingIndex == -1) {
+          _simulations.add(simulation);
+        } else {
+          _simulations[existingIndex] = simulation;
+        }
+        
+        notifyListeners();
+        return simulation;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error loading simulation from backend: $e');
+      return null;
+    }
+  }
+
   /// Generate mock simulations
   List<Simulation> _generateMockSimulations(String userId) {
     final now = DateTime.now();
@@ -537,5 +768,161 @@ class SimulationService extends ChangeNotifier {
         updatedAt: now.subtract(const Duration(hours: 3)),
       ),
     ];
+  }
+
+  // ========== HELPER: PARSE SIMULATION FROM BACKEND ==========
+  /// Parse backend response to Simulation model
+  Simulation _parseSimulationFromBackend(Map<String, dynamic> json) {
+    // Parse results if present
+    AnalysisResult? result;
+    if (json['results'] != null) {
+      final r = json['results'];
+      result = AnalysisResult(
+        safetyFactor: (r['safetyFactor'] as num?)?.toDouble() ?? 0.0,
+        maxDeflection: (r['maxDeflection'] as num?)?.toDouble() ?? 0.0,
+        maxStress: (r['maxStress'] as num?)?.toDouble() ?? 0.0,
+        bucklingLoad: (r['criticalLoad'] as num?)?.toDouble() ?? 0.0,
+        naturalFrequency: (r['naturalFrequency'] as num?)?.toDouble() ?? 0.0,
+        status: (r['isSafe'] == true) ? ResultStatus.safe : ResultStatus.warning,
+        recommendations: r['recommendations'] != null 
+            ? [r['recommendations'].toString()] 
+            : [],
+      );
+    }
+
+    // Parse status
+    SimulationStatus status = SimulationStatus.draft;
+    final statusStr = json['status']?.toString().toUpperCase();
+    if (statusStr == 'COMPLETED') {
+      status = SimulationStatus.completed;
+    } else if (statusStr == 'RUNNING') {
+      status = SimulationStatus.running;
+    } else if (statusStr == 'FAILED') {
+      status = SimulationStatus.failed;
+    } else if (statusStr == 'PENDING') {
+      status = SimulationStatus.draft;
+    }
+
+    // Parse material type
+    StructuralMaterial material = StructuralMaterial.steel;
+    final materialStr = json['materialType']?.toString().toUpperCase();
+    if (materialStr == 'CONCRETE') {
+      material = StructuralMaterial.concrete;
+    } else if (materialStr == 'ALUMINUM') {
+      material = StructuralMaterial.aluminum;
+    } else if (materialStr == 'WOOD') {
+      material = StructuralMaterial.wood;
+    }
+
+    // Parse load type
+    LoadType loadType = LoadType.point;
+    final loadTypeStr = json['loadType']?.toString().toUpperCase();
+    if (loadTypeStr == 'DISTRIBUTED' || loadTypeStr == 'UNIFORM') {
+      loadType = LoadType.distributed;
+    } else if (loadTypeStr == 'MOMENT') {
+      loadType = LoadType.moment;
+    }
+
+    // Parse support type
+    SupportType supportType = SupportType.simplySupported;
+    final supportStr = json['supportType']?.toString().toUpperCase();
+    if (supportStr == 'FIXED_FIXED') {
+      supportType = SupportType.fixedFixed;
+    } else if (supportStr == 'FIXED_FREE' || supportStr == 'CANTILEVER') {
+      supportType = SupportType.cantilever;
+    } else if (supportStr == 'FIXED_PINNED' || supportStr == 'PINNED') {
+      supportType = SupportType.pinned;
+    } else if (supportStr == 'FIXED') {
+      supportType = SupportType.fixed;
+    }
+
+    // Build params
+    final params = SimulationParams(
+      structureType: StructureType.beam,
+      material: material,
+      length: (json['beamLength'] as num?)?.toDouble() ?? 5.0,
+      width: (json['beamWidth'] as num?)?.toDouble() ?? 0.3,
+      height: (json['beamHeight'] as num?)?.toDouble() ?? 0.5,
+      loadType: loadType,
+      loadValue: (json['loadMagnitude'] as num?)?.toDouble() ?? 10.0,
+      loadPosition: (json['loadPosition'] as num?)?.toDouble() ?? 0.5,
+      supportType: supportType,
+      elasticModulus: (json['elasticModulus'] as num?)?.toDouble() ?? material.elasticModulus,
+      density: (json['density'] as num?)?.toDouble() ?? material.density,
+      yieldStrength: (json['yieldStrength'] as num?)?.toDouble() ?? material.yieldStrength,
+    );
+
+    return Simulation(
+      id: json['id'] ?? '',
+      name: json['name'] ?? 'Untitled',
+      description: json['description'],
+      userId: json['userId'] ?? '',
+      params: params,
+      status: status,
+      result: result,
+      isFavorite: json['isFavorite'] ?? false,
+      isShared: json['isPublic'] ?? false,
+      createdAt: json['createdAt'] != null 
+          ? DateTime.parse(json['createdAt']) 
+          : DateTime.now(),
+      updatedAt: json['updatedAt'] != null 
+          ? DateTime.parse(json['updatedAt']) 
+          : DateTime.now(),
+    );
+  }
+
+  // ========== HELPER: MAP MATERIAL TYPE ==========
+  String _mapMaterialType(StructuralMaterial material) {
+    switch (material) {
+      case StructuralMaterial.steel:
+        return 'STEEL';
+      case StructuralMaterial.concrete:
+        return 'CONCRETE';
+      case StructuralMaterial.aluminum:
+        return 'ALUMINUM';
+      case StructuralMaterial.wood:
+        return 'WOOD';
+    }
+  }
+
+  // ========== HELPER: MAP LOAD TYPE ==========
+  String _mapLoadType(LoadType loadType) {
+    switch (loadType) {
+      case LoadType.point:
+        return 'POINT';
+      case LoadType.distributed:
+        return 'DISTRIBUTED';
+      case LoadType.moment:
+        return 'MOMENT';
+    }
+  }
+
+  // ========== HELPER: MAP SUPPORT TYPE ==========
+  String _mapSupportType(SupportType supportType) {
+    switch (supportType) {
+      case SupportType.simplySupported:
+        return 'SIMPLY_SUPPORTED';
+      case SupportType.fixedFixed:
+        return 'FIXED_FIXED';
+      case SupportType.cantilever:
+        return 'FIXED_FREE';
+      case SupportType.pinned:
+        return 'PINNED';
+      case SupportType.fixed:
+        return 'FIXED';
+      case SupportType.roller:
+        return 'SIMPLY_SUPPORTED'; // Fallback
+    }
+  }
+
+  // ========== CLEAR DATA ==========
+  /// Clear all data (on logout)
+  void clearData() {
+    _simulations.clear();
+    _favoriteSimulations.clear();
+    _publicSimulations.clear();
+    _currentSimulation = null;
+    _error = null;
+    notifyListeners();
   }
 }

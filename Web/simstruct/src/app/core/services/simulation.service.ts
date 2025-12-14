@@ -1,6 +1,13 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, tap, catchError, throwError } from 'rxjs';
+import { Observable, tap, catchError, throwError, map } from 'rxjs';
+
+// API Response wrapper
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  error?: string;
+}
 
 // Types for simulation
 export interface SimulationRequest {
@@ -88,7 +95,16 @@ export class SimulationService {
     console.log('SimulationService: Creating simulation', request);
     this._isLoading.set(true);
 
-    return this.http.post<SimulationResponse>(this.API_URL, request).pipe(
+    return this.http.post<ApiResponse<SimulationResponse>>(this.API_URL, request).pipe(
+      map(response => {
+        console.log('SimulationService: API Response', response);
+        // Extract data from wrapped response
+        if (response && response.data) {
+          return response.data;
+        }
+        // If not wrapped, return as-is (fallback)
+        return response as unknown as SimulationResponse;
+      }),
       tap(simulation => {
         console.log('SimulationService: Simulation created', simulation);
         this._currentSimulation.set(simulation);
@@ -111,7 +127,14 @@ export class SimulationService {
     console.log('SimulationService: Getting simulation', id);
     this._isLoading.set(true);
 
-    return this.http.get<SimulationResponse>(`${this.API_URL}/${id}`).pipe(
+    return this.http.get<ApiResponse<SimulationResponse>>(`${this.API_URL}/${id}`).pipe(
+      map(response => {
+        // Extract data from wrapped response
+        if (response && response.data) {
+          return response.data;
+        }
+        return response as unknown as SimulationResponse;
+      }),
       tap(simulation => {
         console.log('SimulationService: Got simulation', simulation);
         this._currentSimulation.set(simulation);

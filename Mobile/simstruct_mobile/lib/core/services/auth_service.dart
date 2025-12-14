@@ -1,8 +1,10 @@
-import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/api_config.dart';
 import '../models/user.dart';
+import 'api_service.dart';
+import 'notification_service.dart';
 
 /// Authentication State
 enum AuthState {
@@ -13,12 +15,21 @@ enum AuthState {
   error,
 }
 
-/// Auth Service - Handles authentication logic (UI-only mock version)
+/// Auth Service - Handles authentication with real backend
 class AuthService extends ChangeNotifier {
   static const String _tokenKey = 'auth_token';
   static const String _userKey = 'user_data';
 
   SharedPreferences? _prefs;
+  final ApiService _apiService = ApiService();
+  
+  // Notification service for showing welcome toast
+  NotificationService? _notificationService;
+  
+  // Set notification service (called from main.dart)
+  void setNotificationService(NotificationService service) {
+    _notificationService = service;
+  }
 
   AuthState _state = AuthState.initial;
   User? _user;
@@ -49,6 +60,8 @@ class AuthService extends ChangeNotifier {
       final userData = _prefs?.getString(_userKey);
 
       if (_token != null && userData != null) {
+        // Restore token to API service
+        await _apiService.saveToken(_token!);
         _user = User.fromJson(jsonDecode(userData));
         _setState(AuthState.authenticated);
       } else {
@@ -60,7 +73,7 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  /// Sign in with email and password
+  /// Sign in with email and password - REAL BACKEND CALL
   Future<bool> signIn({
     required String email,
     required String password,
@@ -70,50 +83,64 @@ class AuthService extends ChangeNotifier {
     _clearError();
 
     try {
-      // Mock API call - replace with actual API
-      await Future.delayed(const Duration(seconds: 1));
-      
-      // Simulate successful login
-      if (email.isNotEmpty && password.length >= 6) {
-        _token = 'mock_token_${DateTime.now().millisecondsSinceEpoch}';
-        _user = User(
-          id: 'user_1',
-          email: email,
-          name: email.split('@').first.replaceAll('.', ' ').split(' ').map((w) => w[0].toUpperCase() + w.substring(1)).join(' '),
-          role: UserRole.user,
-          subscriptionPlan: SubscriptionPlan.free,
-          emailVerified: true,
-          createdAt: DateTime.now().subtract(const Duration(days: 30)),
-          updatedAt: DateTime.now(),
-          profile: const UserProfile(
-            stats: UsageStats(
-              totalSimulations: 5,
-              monthlySimulations: 3,
-              sharedSimulations: 1,
-              completedSimulations: 3,
-              failedSimulations: 1,
-              storageUsed: 25.5,
-            ),
-          ),
-        );
+      // Make real API call to backend
+      final response = await _apiService.post(
+        ApiConfig.login,
+        body: {
+          'email': email,
+          'password': password,
+        },
+        withAuth: false, // No token needed for login
+      );
 
+      debugPrint('Login response: $response');
+
+      if (response.success && response.data != null) {
+        // Parse response data
+        final data = response.data;
+        
+        // Get token
+        _token = data['accessToken'];
+        
+        // Save token to API service for future requests
+        if (_token != null) {
+          await _apiService.saveToken(_token!);
+        }
+        
+        // Parse user data
+        final userData = data['user'];
+        if (userData != null) {
+          _user = _parseUserFromBackend(userData);
+        }
+
+        // Save to local storage
         await _saveAuth();
         _setState(AuthState.authenticated);
         _setLoading(false);
+        
+        // Show welcome notification
+        if (_notificationService != null && _user != null) {
+          _notificationService!.showSuccess(
+            'Welcome back, ${_user!.firstName}! 👋',
+          );
+        }
+        
         return true;
       } else {
-        _setError('Invalid email or password');
+        // Login failed
+        _setError(response.message);
         _setLoading(false);
         return false;
       }
     } catch (e) {
+      debugPrint('Login error: $e');
       _setError('An unexpected error occurred');
       _setLoading(false);
       return false;
     }
   }
 
-  /// Sign up with email and password
+  /// Sign up with email and password - REAL BACKEND CALL
   Future<bool> signUp({
     required String name,
     required String email,
@@ -123,36 +150,97 @@ class AuthService extends ChangeNotifier {
     _clearError();
 
     try {
-      // Mock API call - replace with actual API
-      await Future.delayed(const Duration(seconds: 1));
+      // Make real API call to backend
+      final response = await _apiService.post(
+        ApiConfig.register,
+        body: {
+          'name': name,
+          'email': email,
+          'password': password,
+        },
+        withAuth: false, // No token needed for register
+      );
 
-      // Simulate successful registration
-      if (email.isNotEmpty && password.length >= 8 && name.isNotEmpty) {
-        _token = 'mock_token_${DateTime.now().millisecondsSinceEpoch}';
-        _user = User(
-          id: 'user_${DateTime.now().millisecondsSinceEpoch}',
-          email: email,
-          name: name,
-          role: UserRole.user,
-          subscriptionPlan: SubscriptionPlan.free,
-          emailVerified: false,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        );
+      debugPrint('Register response: $response');
 
+      if (response.success && response.data != null) {
+        // Parse response data
+        final data = response.data;
+        
+        // Get token
+        _token = data['accessToken'];
+        
+        // Save token to API service
+        if (_token != null) {
+          await _apiService.saveToken(_token!);
+        }
+        
+        // Parse user data
+        final userData = data['user'];
+        if (userData != null) {
+          _user = _parseUserFromBackend(userData);
+        }
+
+        // Save to local storage
         await _saveAuth();
         _setState(AuthState.authenticated);
         _setLoading(false);
+        
+        // Show welcome notification for new user
+        if (_notificationService != null && _user != null) {
+          _notificationService!.showSuccess(
+            'Welcome to SimStruct, ${_user!.firstName}! 🎉',
+          );
+        }
+        
         return true;
       } else {
-        _setError('Please check your input');
+        // Registration failed
+        _setError(response.message);
         _setLoading(false);
         return false;
       }
     } catch (e) {
+      debugPrint('Register error: $e');
       _setError('An unexpected error occurred');
       _setLoading(false);
       return false;
+    }
+  }
+
+  /// Parse user from backend response
+  User _parseUserFromBackend(Map<String, dynamic> userData) {
+    return User(
+      id: userData['id'] ?? '',
+      email: userData['email'] ?? '',
+      name: userData['name'] ?? '',
+      role: _parseRole(userData['role']),
+      subscriptionPlan: SubscriptionPlan.free,
+      emailVerified: userData['emailVerified'] ?? false,
+      createdAt: userData['createdAt'] != null 
+          ? DateTime.parse(userData['createdAt']) 
+          : DateTime.now(),
+      updatedAt: DateTime.now(),
+      profile: UserProfile(
+        avatarUrl: userData['avatarUrl'],
+        phone: userData['phone'],
+        company: userData['company'],
+        jobTitle: userData['jobTitle'],
+        bio: userData['bio'],
+      ),
+    );
+  }
+
+  /// Parse role from string
+  UserRole _parseRole(String? role) {
+    if (role == null) return UserRole.user;
+    switch (role.toUpperCase()) {
+      case 'ADMIN':
+        return UserRole.admin;
+      case 'PRO':
+        return UserRole.pro;
+      default:
+        return UserRole.user;
     }
   }
 
@@ -161,12 +249,14 @@ class AuthService extends ChangeNotifier {
     _setLoading(true);
     
     try {
-      // Mock API call
-      await Future.delayed(const Duration(milliseconds: 500));
+      // Call backend logout (optional, JWT is stateless)
+      await _apiService.post(ApiConfig.logout, withAuth: true);
     } catch (e) {
       debugPrint('Error during sign out: $e');
     }
 
+    // Clear token from API service
+    await _apiService.deleteToken();
     await _clearAuth();
     _setState(AuthState.unauthenticated);
     _setLoading(false);
@@ -181,7 +271,7 @@ class AuthService extends ChangeNotifier {
     _clearError();
 
     try {
-      // Mock API call
+      // TODO: Implement when backend has this endpoint
       await Future.delayed(const Duration(seconds: 1));
       
       _setLoading(false);
@@ -206,7 +296,7 @@ class AuthService extends ChangeNotifier {
     _clearError();
 
     try {
-      // Mock API call
+      // TODO: Implement with real API when needed
       await Future.delayed(const Duration(seconds: 1));
 
       _user = _user!.copyWith(
@@ -239,7 +329,7 @@ class AuthService extends ChangeNotifier {
     _clearError();
 
     try {
-      // Mock API call
+      // TODO: Implement with real API when needed
       await Future.delayed(const Duration(seconds: 1));
       
       _setLoading(false);

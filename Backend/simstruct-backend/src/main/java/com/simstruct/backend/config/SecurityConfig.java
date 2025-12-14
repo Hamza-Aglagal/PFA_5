@@ -61,6 +61,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/simulations/public/**").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/error").permitAll()
+                // WebSocket endpoints
+                .requestMatchers("/ws/**").permitAll()
                 // All other endpoints require authentication
                 .anyRequest().authenticated()
             )

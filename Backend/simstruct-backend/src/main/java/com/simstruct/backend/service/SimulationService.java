@@ -22,13 +22,16 @@ public class SimulationService {
     private final SimulationRepository simulationRepository;
     private final UserRepository userRepository;
     private final SimulationEngine simulationEngine;
+    private final NotificationService notificationService;
 
     public SimulationService(SimulationRepository simulationRepository,
                             UserRepository userRepository,
-                            SimulationEngine simulationEngine) {
+                            SimulationEngine simulationEngine,
+                            NotificationService notificationService) {
         this.simulationRepository = simulationRepository;
         this.userRepository = userRepository;
         this.simulationEngine = simulationEngine;
+        this.notificationService = notificationService;
     }
 
     /**
@@ -79,6 +82,25 @@ public class SimulationService {
         // Save and return
         Simulation saved = simulationRepository.save(simulation);
         System.out.println("SimulationService: Simulation saved with ID: " + saved.getId());
+
+        // Send notification based on status
+        try {
+            if (saved.getStatus() == Simulation.SimulationStatus.COMPLETED) {
+                notificationService.sendSimulationCompleteNotification(
+                    user.getId(),
+                    saved.getId(),
+                    saved.getName()
+                );
+            } else if (saved.getStatus() == Simulation.SimulationStatus.FAILED) {
+                notificationService.sendSimulationFailedNotification(
+                    user.getId(),
+                    saved.getId(),
+                    saved.getName()
+                );
+            }
+        } catch (Exception e) {
+            System.out.println("SimulationService: Failed to send notification - " + e.getMessage());
+        }
 
         return SimulationResponse.fromEntity(saved);
     }

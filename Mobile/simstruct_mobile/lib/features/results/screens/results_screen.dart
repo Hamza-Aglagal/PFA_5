@@ -25,20 +25,35 @@ class _ResultsScreenState extends State<ResultsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   Simulation? _simulation;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _loadSimulation();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadSimulation();
+    });
   }
 
-  void _loadSimulation() {
+  Future<void> _loadSimulation() async {
     final simulationService = context.read<SimulationService>();
-    // First try to get by ID
+    
+    // First try to get by ID locally
     _simulation = simulationService.getSimulationById(widget.simulationId);
-    // If not found, try to get the current simulation (useful after running a new simulation)
+    
+    // If not found locally, try to get the current simulation (useful after running a new simulation)
     _simulation ??= simulationService.currentSimulation;
+    
+    // If still not found, try loading from backend
+    if (_simulation == null) {
+      await simulationService.getSimulationFromBackend(widget.simulationId);
+      _simulation = simulationService.getSimulationById(widget.simulationId);
+    }
+    
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -51,6 +66,17 @@ class _ResultsScreenState extends State<ResultsScreen>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final simulationService = context.watch<SimulationService>();
+    
+    // Show loading while fetching
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor:
+            isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+        body: const Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+      );
+    }
     
     // Re-check for simulation if still null
     if (_simulation == null) {

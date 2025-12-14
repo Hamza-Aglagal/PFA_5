@@ -455,3 +455,64 @@ class CommunityStats {
     );
   }
 }
+
+/// Conversation Model (for chat list)
+class Conversation {
+  final String id;
+  final String partnerId;
+  final String partnerName;
+  final String? partnerEmail;
+  final String? partnerAvatar;
+  final String lastMessage;
+  final DateTime lastMessageAt;
+  final int unreadCount;
+
+  const Conversation({
+    required this.id,
+    required this.partnerId,
+    required this.partnerName,
+    this.partnerEmail,
+    this.partnerAvatar,
+    required this.lastMessage,
+    required this.lastMessageAt,
+    this.unreadCount = 0,
+  });
+
+  String get partnerInitials {
+    final parts = partnerName.split(' ');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return partnerName.length >= 2 
+        ? partnerName.substring(0, 2).toUpperCase() 
+        : partnerName.toUpperCase();
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'partnerId': partnerId,
+      'partnerName': partnerName,
+      'partnerEmail': partnerEmail,
+      'partnerAvatar': partnerAvatar,
+      'lastMessage': lastMessage,
+      'lastMessageAt': lastMessageAt.toIso8601String(),
+      'unreadCount': unreadCount,
+    };
+  }
+
+  factory Conversation.fromJson(Map<String, dynamic> json) {
+    return Conversation(
+      id: json['id']?.toString() ?? '',
+      partnerId: json['partnerId']?.toString() ?? '',
+      partnerName: json['partnerName'] ?? 'Unknown',
+      partnerEmail: json['partnerEmail'],
+      partnerAvatar: json['partnerAvatar'],
+      lastMessage: json['lastMessage'] ?? '',
+      lastMessageAt: json['lastMessageAt'] != null 
+          ? DateTime.parse(json['lastMessageAt']) 
+          : DateTime.now(),
+      unreadCount: json['unreadCount'] ?? 0,
+    );
+  }
+}

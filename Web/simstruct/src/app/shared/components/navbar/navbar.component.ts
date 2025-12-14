@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { BackendNotificationService, BackendNotification, NotificationType } from '../../../core/services/backend-notification.service';
 
 interface NavLink {
   path: string;
@@ -24,24 +25,23 @@ export class NavbarComponent implements OnInit {
   private router = inject(Router);
   private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
+  private backendNotificationService = inject(BackendNotificationService);
   
   // Auth state - reactive from AuthService
   isAuthenticated = this.authService.isAuthenticated;
   user = this.authService.user;
   userInitials = this.authService.userInitials;
   
-  unreadCount = signal(0);
+  // Real notifications from backend
+  notifications = this.backendNotificationService.notifications;
+  unreadCount = this.backendNotificationService.unreadCount;
+  notificationsLoading = this.backendNotificationService.loading;
   
   isScrolled = signal(false);
   isMobileMenuOpen = signal(false);
   isLightMode = signal(false);
   showUserDropdown = signal(false);
   showNotificationPanel = signal(false);
-  
-  // Mock notifications (UI only)
-  mockNotifications = signal([
-    { id: '1', title: 'Welcome', message: 'Welcome to SimStruct!', type: 'INFO', isRead: false, createdAt: new Date() }
-  ]);
 
   // Public nav links (before login)
   publicNavLinks: NavLink[] = [
@@ -132,32 +132,29 @@ export class NavbarComponent implements OnInit {
   }
 
   markNotificationAsRead(id: string) {
-    // Mock mark as read (UI only)
-    const notifications = this.mockNotifications();
-    const notif = notifications.find(n => n.id === id);
-    if (notif) notif.isRead = true;
-    this.mockNotifications.set([...notifications]);
+    this.backendNotificationService.markAsRead(id);
   }
 
   markAllNotificationsAsRead() {
-    // Mock mark all as read (UI only)
-    const notifications = this.mockNotifications();
-    notifications.forEach(n => n.isRead = true);
-    this.mockNotifications.set([...notifications]);
+    this.backendNotificationService.markAllAsRead();
   }
 
-  getTimeAgo(date: Date): string {
-    const now = new Date();
-    const diff = now.getTime() - new Date(date).getTime();
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
+  navigateToNotification(notification: BackendNotification) {
+    this.showNotificationPanel.set(false);
+    this.backendNotificationService.navigateToAction(notification);
+  }
 
-    if (minutes < 1) return 'Just now';
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days < 7) return `${days}d ago`;
-    return new Date(date).toLocaleDateString();
+  deleteNotification(id: string, event: Event) {
+    event.stopPropagation();
+    this.backendNotificationService.deleteNotification(id);
+  }
+
+  deleteAllNotifications() {
+    this.backendNotificationService.deleteAllNotifications();
+  }
+
+  getTimeAgo(dateString: string): string {
+    return this.backendNotificationService.formatTime(dateString);
   }
 
   openSidebar(panel: 'notifications' | 'messages' | 'quick-actions') {
@@ -166,12 +163,11 @@ export class NavbarComponent implements OnInit {
     this.showUserDropdown.set(false);
   }
 
-  getNotificationIcon(type: string): string {
-    switch (type) {
-      case 'SUCCESS': return '✅';
-      case 'ERROR': return '❌';
-      case 'WARNING': return '⚠️';
-      default: return '📢';
-    }
+  getNotificationIcon(type: NotificationType): string {
+    return this.backendNotificationService.getNotificationIcon(type);
+  }
+
+  getNotificationColor(type: NotificationType): string {
+    return this.backendNotificationService.getNotificationColor(type);
   }
 }

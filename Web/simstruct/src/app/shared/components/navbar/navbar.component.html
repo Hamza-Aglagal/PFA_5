@@ -105,7 +105,7 @@
               <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
             </svg>
             @if (unreadCount() > 0) {
-              <span class="notification-badge">{{ unreadCount() }}</span>
+              <span class="notification-badge">{{ unreadCount() > 99 ? '99+' : unreadCount() }}</span>
             }
           </button>
 
@@ -114,34 +114,58 @@
             <div class="notification-dropdown">
               <div class="dropdown-header">
                 <h4>Notifications</h4>
-                @if (unreadCount() > 0) {
-                  <button class="mark-all-btn" (click)="markAllNotificationsAsRead()">Mark all read</button>
-                }
+                <div class="header-actions">
+                  @if (unreadCount() > 0) {
+                    <button class="mark-all-btn" (click)="markAllNotificationsAsRead()">Mark all read</button>
+                  }
+                  @if (notifications().length > 0) {
+                    <button class="clear-all-btn" (click)="deleteAllNotifications()">Clear all</button>
+                  }
+                </div>
               </div>
               <div class="dropdown-content">
-                @if (mockNotifications().length === 0) {
+                @if (notificationsLoading()) {
+                  <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Loading notifications...</p>
+                  </div>
+                } @else if (notifications().length === 0) {
                   <div class="empty-state">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                       <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                       <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                     </svg>
                     <p>No notifications yet</p>
+                    <span class="empty-subtext">You're all caught up! 🎉</span>
                   </div>
                 } @else {
-                  @for (notif of mockNotifications(); track notif.id) {
-                    <div class="notification-item" [class.unread]="!notif.isRead" (click)="markNotificationAsRead(notif.id)">
-                      <span class="notif-icon">{{ getNotificationIcon(notif.type) }}</span>
+                  @for (notif of notifications().slice(0, 10); track notif.id) {
+                    <div class="notification-item" 
+                         [class.unread]="!notif.isRead" 
+                         (click)="navigateToNotification(notif)">
+                      <span class="notif-icon material-icon" [class]="getNotificationColor(notif.type)">{{ getNotificationIcon(notif.type) }}</span>
                       <div class="notif-content">
                         <strong>{{ notif.title }}</strong>
                         <p>{{ notif.message }}</p>
                         <span class="notif-time">{{ getTimeAgo(notif.createdAt) }}</span>
                       </div>
+                      <button class="notif-delete" (click)="deleteNotification(notif.id, $event)" title="Delete">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <line x1="18" y1="6" x2="6" y2="18"/>
+                          <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                      </button>
+                    </div>
+                  }
+                  @if (notifications().length > 10) {
+                    <div class="more-notifications">
+                      <span>+ {{ notifications().length - 10 }} more notifications</span>
                     </div>
                   }
                 }
               </div>
               <div class="dropdown-footer">
-                <button class="view-all-btn" (click)="openSidebar('notifications')">View All Notifications</button>
+                <button class="view-all-btn" routerLink="/notifications" (click)="showNotificationPanel.set(false)">View All Notifications</button>
               </div>
             </div>
           }

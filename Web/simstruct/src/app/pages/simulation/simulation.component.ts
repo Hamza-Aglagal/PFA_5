@@ -55,6 +55,11 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   analysisStage = signal<'preprocessing' | 'inference' | 'postprocessing' | 'complete'>('preprocessing');
   isLightMode = signal(false);
   errorMessage = signal<string | null>(null);
+  
+  // Form validation
+  nameError = signal<string | null>(null);
+  descriptionError = signal<string | null>(null);
+  isFormValid = computed(() => !this.nameError() && this.params().name.trim().length >= 3);
 
   params = signal<SimulationParams>({
     name: '',
@@ -433,6 +438,36 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  // Form validation methods
+  validateName(name: string): void {
+    if (!name || name.trim().length === 0) {
+      this.nameError.set('Le nom de simulation est requis');
+    } else if (name.trim().length < 3) {
+      this.nameError.set('Le nom doit contenir au moins 3 caractères');
+    } else if (name.trim().length > 100) {
+      this.nameError.set('Le nom ne peut pas dépasser 100 caractères');
+    } else {
+      this.nameError.set(null);
+    }
+  }
+
+  validateDescription(description: string): void {
+    if (description && description.length > 500) {
+      this.descriptionError.set('La description ne peut pas dépasser 500 caractères');
+    } else {
+      this.descriptionError.set(null);
+    }
+  }
+
+  validateForm(): boolean {
+    const p = this.params();
+    this.validateName(p.name);
+    this.validateDescription(p.description);
+    
+    // Check if form is valid
+    return !this.nameError() && !this.descriptionError();
+  }
+
   nextStep(): void {
     if (this.currentStep() < this.totalSteps) {
       this.currentStep.update(s => s + 1);
@@ -474,6 +509,12 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   }
 
   async runAnalysis(): Promise<void> {
+    // Validate form before submitting
+    if (!this.validateForm()) {
+      this.notificationService.error('Validation Error', 'Please fix the form errors before submitting.');
+      return;
+    }
+    
     this.isAnalyzing.set(true);
     this.analysisProgress.set(0);
     this.analysisStage.set('preprocessing');

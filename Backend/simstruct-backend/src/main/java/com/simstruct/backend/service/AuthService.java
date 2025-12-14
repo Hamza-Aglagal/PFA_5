@@ -18,6 +18,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final NotificationService notificationService;
 
     /**
      * Register a new user
@@ -42,6 +43,13 @@ public class AuthService {
         // Save user
         user = userRepository.save(user);
         System.out.println("AuthService: User created with ID - " + user.getId());
+
+        // Send welcome notification
+        try {
+            notificationService.sendWelcomeNotification(user.getId(), user.getName());
+        } catch (Exception e) {
+            System.out.println("AuthService: Failed to send welcome notification - " + e.getMessage());
+        }
 
         // Generate tokens
         String accessToken = jwtTokenProvider.generateAccessToken(user.getId(), user.getEmail());

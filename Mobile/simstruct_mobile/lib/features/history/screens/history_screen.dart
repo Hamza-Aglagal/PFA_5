@@ -8,6 +8,7 @@ import '../../../app/theme/app_text_styles.dart';
 import '../../../core/models/simulation.dart';
 import '../../../core/models/simulation_params.dart';
 import '../../../core/services/simulation_service.dart';
+import '../../../core/services/auth_service.dart';
 import '../../../shared/widgets/modern_buttons.dart';
 import '../../../shared/widgets/modern_cards.dart';
 import '../../../shared/widgets/widgets.dart';
@@ -24,9 +25,29 @@ class _HistoryScreenState extends State<HistoryScreen> {
   bool _isGridView = false;
   String _selectedFilter = 'All';
   String _selectedSort = 'Newest';
+  bool _isLoading = false;
 
   final _filters = ['All', 'Completed', 'In Progress', 'Failed'];
   final _sortOptions = ['Newest', 'Oldest', 'Name A-Z', 'Name Z-A'];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadSimulations();
+    });
+  }
+
+  Future<void> _loadSimulations() async {
+    final authService = context.read<AuthService>();
+    final simulationService = context.read<SimulationService>();
+    
+    if (authService.user != null) {
+      setState(() => _isLoading = true);
+      await simulationService.loadSimulations(authService.user!.id);
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -84,7 +105,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return Scaffold(
       backgroundColor:
           isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
-      body: CustomScrollView(
+      body: RefreshIndicator(
+        onRefresh: _loadSimulations,
+        color: AppColors.primary,
+        child: _isLoading && simulations.isEmpty
+            ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+            : CustomScrollView(
         slivers: [
           // App Bar
           SliverAppBar(
@@ -337,6 +363,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       simulation: simulation,
                       onTap: () => context.go('/results/${simulation.id}'),
                       onDelete: () => _deleteSimulation(simulation),
+                      onFavorite: () => _toggleFavorite(simulation),
+                      onDuplicate: () => _duplicateSimulation(simulation),
+                      onShare: () => _shareSimulation(simulation),
                     ).animate(delay: (index * 50).ms).fadeIn().scale(
                           begin: const Offset(0.95, 0.95),
                         );
@@ -356,6 +385,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       simulation: simulation,
                       onTap: () => context.go('/results/${simulation.id}'),
                       onDelete: () => _deleteSimulation(simulation),
+                      onFavorite: () => _toggleFavorite(simulation),
+                      onDuplicate: () => _duplicateSimulation(simulation),
+                      onShare: () => _shareSimulation(simulation),
                     ).animate(delay: (index * 50).ms).fadeIn().slideX(
                           begin: 0.05,
                         );
@@ -369,6 +401,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           const SliverPadding(padding: EdgeInsets.only(bottom: 20)),
         ],
       ),
+      ), // Close RefreshIndicator
     );
   }
 
@@ -394,6 +427,60 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     if (confirmed == true && mounted) {
       await context.read<SimulationService>().deleteSimulation(simulation.id);
+    }
+  }
+
+  void _toggleFavorite(Simulation simulation) {
+    context.read<SimulationService>().toggleFavorite(simulation.id);
+  }
+
+  void _duplicateSimulation(Simulation simulation) {
+    final simulationService = context.read<SimulationService>();
+    final newSimulation = simulationService.duplicateSimulation(simulation);
+    
+    // Show snackbar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Duplicated as "${newSimulation.name}"'),
+        action: SnackBarAction(
+          label: 'View',
+          onPressed: () => context.go('/results/${newSimulation.id}'),
+        ),
+      ),
+    );
+  }
+
+  void _shareSimulation(Simulation simulation) async {
+    final simulationService = context.read<SimulationService>();
+    
+    // If not already public, make it public first
+    if (!simulation.isPublic) {
+      await simulationService.togglePublicOnBackend(simulation.id);
+    }
+    
+    // Show share dialog
+    if (mounted) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Share Simulation'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Your simulation "${simulation.name}" is now public.'),
+              const SizedBox(height: 12),
+              const Text('Other users can view it in the Community section.'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
     }
   }
 }
@@ -461,11 +548,17 @@ class _SimulationListCard extends StatelessWidget {
   final Simulation simulation;
   final VoidCallback onTap;
   final VoidCallback onDelete;
+  final VoidCallback onFavorite;
+  final VoidCallback onDuplicate;
+  final VoidCallback onShare;
 
   const _SimulationListCard({
     required this.simulation,
     required this.onTap,
     required this.onDelete,
+    required this.onFavorite,
+    required this.onDuplicate,
+    required this.onShare,
   });
 
   @override
@@ -605,6 +698,17 @@ class _SimulationListCard extends StatelessWidget {
                   ),
                 ),
                 PopupMenuItem(
+                  onTap: onFavorite,
+                  child: Row(
+                    children: [
+                      Icon(simulation.isFavorite ? Iconsax.heart5 : Iconsax.heart, size: 18, color: simulation.isFavorite ? AppColors.error : null),
+                      const SizedBox(width: 8),
+                      Text(simulation.isFavorite ? 'Remove Favorite' : 'Add Favorite'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  onTap: onDuplicate,
                   child: const Row(
                     children: [
                       Icon(Iconsax.copy, size: 18),
@@ -614,6 +718,7 @@ class _SimulationListCard extends StatelessWidget {
                   ),
                 ),
                 PopupMenuItem(
+                  onTap: onShare,
                   child: const Row(
                     children: [
                       Icon(Iconsax.share, size: 18),
@@ -699,11 +804,17 @@ class _SimulationGridCard extends StatelessWidget {
   final Simulation simulation;
   final VoidCallback onTap;
   final VoidCallback onDelete;
+  final VoidCallback onFavorite;
+  final VoidCallback onDuplicate;
+  final VoidCallback onShare;
 
   const _SimulationGridCard({
     required this.simulation,
     required this.onTap,
     required this.onDelete,
+    required this.onFavorite,
+    required this.onDuplicate,
+    required this.onShare,
   });
 
   @override

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Simulation;
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
@@ -10,6 +10,7 @@ import '../../../core/models/simulation.dart';
 import '../../../core/services/community_service.dart';
 import '../../../core/services/simulation_service.dart';
 import '../../../core/services/notification_service.dart';
+import '../../../core/services/auth_service.dart';
 import '../../../shared/widgets/modern_avatar.dart';
 import '../../../shared/widgets/modern_buttons.dart';
 import '../../../shared/widgets/modern_cards.dart';
@@ -32,7 +33,10 @@ class _CommunityScreenState extends State<CommunityScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    _loadData();
+    // Use addPostFrameCallback to avoid setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
   }
 
   void _loadData() {
@@ -247,11 +251,22 @@ class _CommunityScreenState extends State<CommunityScreen>
               text: 'Send Invitation',
               onPressed: () async {
                 if (emailController.text.isNotEmpty) {
-                  await context.read<CommunityService>().sendInvitation(
-                        email: emailController.text,
-                      );
+                  final communityService = context.read<CommunityService>();
+                  final notificationService = context.read<NotificationService>();
+                  
+                  final success = await communityService.sendInvitation(
+                    email: emailController.text,
+                  );
+                  
                   if (context.mounted) {
                     Navigator.pop(context);
+                    if (success) {
+                      notificationService.showSuccess('Friend request sent successfully!');
+                    } else {
+                      notificationService.showError(
+                        communityService.error ?? 'Failed to send friend request',
+                      );
+                    }
                   }
                 }
               },
@@ -307,73 +322,99 @@ class _TabWithBadge extends StatelessWidget {
 class _ExploreTab extends StatelessWidget {
   const _ExploreTab();
 
+  Future<void> _refresh(BuildContext context) async {
+    await context.read<CommunityService>().loadSharedSimulations();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final sharedSimulations =
-        context.watch<CommunityService>().sharedSimulations;
+    // Show simulations shared with me (Explore = received shares)
+    final sharedWithMe = context.watch<CommunityService>().sharedWithMe;
 
-    if (sharedSimulations.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Iconsax.global,
-                size: 48,
-                color: AppColors.primary,
+    if (sharedWithMe.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: () => _refresh(context),
+        color: AppColors.primary,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.6,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Iconsax.global,
+                      size: 48,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'No shared simulations',
+                    style: AppTextStyles.titleLarge.copyWith(
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Simulations shared with you will appear here',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Pull down to refresh',
+                    style: AppTextStyles.labelSmall.copyWith(
+                      color: isDark
+                          ? AppColors.textTertiaryDark
+                          : AppColors.textTertiaryLight,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 24),
-            Text(
-              'No shared simulations',
-              style: AppTextStyles.titleLarge.copyWith(
-                color: isDark
-                    ? AppColors.textPrimaryDark
-                    : AppColors.textPrimaryLight,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Explore simulations shared by the community',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: isDark
-                    ? AppColors.textSecondaryDark
-                    : AppColors.textSecondaryLight,
-              ),
-            ),
-          ],
-        ),
-      ).animate().fadeIn();
+          ),
+        ).animate().fadeIn(),
+      );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(20),
-      itemCount: sharedSimulations.length,
-      itemBuilder: (context, index) {
-        final shared = sharedSimulations[index];
-        return _SharedSimulationCard(shared: shared)
-            .animate(delay: (index * 50).ms)
-            .fadeIn()
-            .slideX(begin: 0.05);
-      },
+    return RefreshIndicator(
+      onRefresh: () => _refresh(context),
+      color: AppColors.primary,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(20),
+        itemCount: sharedWithMe.length,
+        itemBuilder: (context, index) {
+          final shared = sharedWithMe[index];
+          return _SharedSimulationCard(shared: shared)
+              .animate(delay: (index * 50).ms)
+              .fadeIn()
+              .slideX(begin: 0.05);
+        },
+      ),
     );
   }
 }
 
 class _SharedSimulationCard extends StatelessWidget {
   final SharedSimulation shared;
+  final bool isMyShare;
 
-  const _SharedSimulationCard({required this.shared});
-
-  // Check if the current user shared this simulation
-  bool get isMyShare => shared.ownerId == 'current_user';
+  const _SharedSimulationCard({required this.shared, this.isMyShare = false});
 
   // Get accent color based on who shared
   Color get accentColor => isMyShare ? AppColors.accent : AppColors.secondary;
@@ -1253,67 +1294,85 @@ class _ActionChip extends StatelessWidget {
 class _FriendsTab extends StatelessWidget {
   const _FriendsTab();
 
+  Future<void> _refresh(BuildContext context) async {
+    await context.read<CommunityService>().loadFriends();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final friends = context.watch<CommunityService>().friends;
 
     if (friends.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AppColors.secondary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Iconsax.people,
-                size: 48,
-                color: AppColors.secondary,
+      return RefreshIndicator(
+        onRefresh: () => _refresh(context),
+        color: AppColors.primary,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.6,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Iconsax.people,
+                      size: 48,
+                      color: AppColors.secondary,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'No friends yet',
+                    style: AppTextStyles.titleLarge.copyWith(
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Add friends to collaborate on simulations',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  CustomButton(
+                    text: 'Add Friend',
+                    onPressed: () {},
+                    icon: Iconsax.user_add,
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 24),
-            Text(
-              'No friends yet',
-              style: AppTextStyles.titleLarge.copyWith(
-                color: isDark
-                    ? AppColors.textPrimaryDark
-                    : AppColors.textPrimaryLight,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Add friends to collaborate on simulations',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: isDark
-                    ? AppColors.textSecondaryDark
-                    : AppColors.textSecondaryLight,
-              ),
-            ),
-            const SizedBox(height: 24),
-            CustomButton(
-              text: 'Add Friend',
-              onPressed: () {},
-              icon: Iconsax.user_add,
-            ),
-          ],
-        ),
-      ).animate().fadeIn();
+          ),
+        ).animate().fadeIn(),
+      );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(20),
-      itemCount: friends.length,
-      itemBuilder: (context, index) {
-        final friend = friends[index];
-        return _FriendCard(friend: friend)
-            .animate(delay: (index * 50).ms)
-            .fadeIn()
-            .slideX(begin: 0.05);
-      },
+    return RefreshIndicator(
+      onRefresh: () => _refresh(context),
+      color: AppColors.primary,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(20),
+        itemCount: friends.length,
+        itemBuilder: (context, index) {
+          final friend = friends[index];
+          return _FriendCard(friend: friend)
+              .animate(delay: (index * 50).ms)
+              .fadeIn()
+              .slideX(begin: 0.05);
+        },
+      ),
     );
   }
 }
@@ -1435,147 +1494,233 @@ class _FriendCard extends StatelessWidget {
   }
 
   void _showShareSimulationDialog(BuildContext context, Friend friend) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final simulationService = context.read<SimulationService>();
-    final simulations = simulationService.simulations;
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.6,
-        minChildSize: 0.4,
-        maxChildSize: 0.9,
-        builder: (context, scrollController) => Container(
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.cardDark : AppColors.cardLight,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+      builder: (context) => _ShareSimulationSheet(friend: friend),
+    );
+  }
+}
+
+/// Separate StatefulWidget for share simulation dialog to properly load and display simulations
+class _ShareSimulationSheet extends StatefulWidget {
+  final Friend friend;
+
+  const _ShareSimulationSheet({required this.friend});
+
+  @override
+  State<_ShareSimulationSheet> createState() => _ShareSimulationSheetState();
+}
+
+class _ShareSimulationSheetState extends State<_ShareSimulationSheet> {
+  bool _isLoading = true;
+  bool _isSharing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSimulations();
+  }
+
+  Future<void> _loadSimulations() async {
+    final simulationService = context.read<SimulationService>();
+    final authService = context.read<AuthService>();
+    
+    // Load simulations if not already loaded
+    if (simulationService.simulations.isEmpty && authService.user != null) {
+      await simulationService.loadSimulations(authService.user!.id);
+    }
+    
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _shareSimulation(Simulation simulation) async {
+    setState(() => _isSharing = true);
+    
+    try {
+      final communityService = context.read<CommunityService>();
+      final success = await communityService.shareSimulation(
+        simulation: simulation,
+        friendId: widget.friend.id,
+      );
+      
+      if (!mounted) return;
+      
+      Navigator.pop(context);
+      
+      if (success) {
+        context.read<NotificationService>().showSuccess(
+          'Simulation shared with ${widget.friend.name}!',
+        );
+      } else {
+        context.read<NotificationService>().showError(
+          communityService.error ?? 'Failed to share simulation',
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        context.read<NotificationService>().showError('Failed to share simulation');
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final simulations = context.watch<SimulationService>().simulations;
+
+    return DraggableScrollableSheet(
+      initialChildSize: 0.6,
+      minChildSize: 0.4,
+      maxChildSize: 0.9,
+      builder: (context, scrollController) => Container(
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.cardDark : AppColors.cardLight,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
+                borderRadius: BorderRadius.circular(2),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                      child: Text(
-                        friend.name.isNotEmpty ? friend.name[0].toUpperCase() : 'U',
-                        style: AppTextStyles.titleMedium.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                    child: Text(
+                      widget.friend.name.isNotEmpty ? widget.friend.name[0].toUpperCase() : 'U',
+                      style: AppTextStyles.titleMedium.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Share with ${widget.friend.name}',
+                          style: AppTextStyles.titleMedium.copyWith(
+                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Share with ${friend.name}',
-                            style: AppTextStyles.titleMedium.copyWith(
-                              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        Text(
+                          'Select a simulation to share',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                           ),
-                          Text(
-                            'Select a simulation to share',
-                            style: AppTextStyles.bodySmall.copyWith(
-                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              const Divider(height: 1),
-              Expanded(
-                child: simulations.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Iconsax.document,
-                              size: 48,
-                              color: isDark ? AppColors.textTertiaryDark : AppColors.textTertiaryLight,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No simulations to share',
-                              style: AppTextStyles.titleMedium.copyWith(
-                                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(color: AppColors.primary),
+                    )
+                  : _isSharing
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const CircularProgressIndicator(color: AppColors.primary),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Sharing simulation...',
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      )
-                    : ListView.separated(
-                        controller: scrollController,
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        itemCount: simulations.length,
-                        separatorBuilder: (_, __) => const Divider(height: 1, indent: 72),
-                        itemBuilder: (context, index) {
-                          final simulation = simulations[index];
-                          return ListTile(
-                            onTap: () async {
-                              Navigator.pop(context);
-                              await context.read<CommunityService>().shareSimulation(
-                                simulation: simulation,
-                                friendId: friend.id,
-                              );
-                              if (context.mounted) {
-                                context.read<NotificationService>().showSuccess(
-                                  'Simulation shared with ${friend.name}!',
+                            ],
+                          ),
+                        )
+                      : simulations.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Iconsax.document,
+                                    size: 48,
+                                    color: isDark ? AppColors.textTertiaryDark : AppColors.textTertiaryLight,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'No simulations to share',
+                                    style: AppTextStyles.titleMedium.copyWith(
+                                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Create a simulation first to share it',
+                                    style: AppTextStyles.bodySmall.copyWith(
+                                      color: isDark ? AppColors.textTertiaryDark : AppColors.textTertiaryLight,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : ListView.separated(
+                              controller: scrollController,
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              itemCount: simulations.length,
+                              separatorBuilder: (_, __) => const Divider(height: 1, indent: 72),
+                              itemBuilder: (context, index) {
+                                final simulation = simulations[index];
+                                return ListTile(
+                                  onTap: () => _shareSimulation(simulation),
+                                  leading: Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Icon(
+                                      simulation.params.structureType.iconData,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                  title: Text(
+                                    simulation.name,
+                                    style: AppTextStyles.bodyMedium.copyWith(
+                                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    simulation.subtitle,
+                                    style: AppTextStyles.labelSmall.copyWith(
+                                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                                    ),
+                                  ),
+                                  trailing: const Icon(Iconsax.send_1, color: AppColors.primary),
                                 );
-                              }
-                            },
-                            leading: Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(
-                                simulation.params.structureType.iconData,
-                                color: AppColors.primary,
-                              ),
+                              },
                             ),
-                            title: Text(
-                              simulation.name,
-                              style: AppTextStyles.bodyMedium.copyWith(
-                                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            subtitle: Text(
-                              simulation.subtitle,
-                              style: AppTextStyles.labelSmall.copyWith(
-                                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                              ),
-                            ),
-                            trailing: const Icon(Iconsax.send_1, color: AppColors.primary),
-                          );
-                        },
-                      ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -1584,6 +1729,10 @@ class _FriendCard extends StatelessWidget {
 
 class _InvitationsTab extends StatelessWidget {
   const _InvitationsTab();
+
+  Future<void> _refresh(BuildContext context) async {
+    await context.read<CommunityService>().loadInvitations();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1594,55 +1743,69 @@ class _InvitationsTab extends StatelessWidget {
         .toList();
 
     if (pendingInvitations.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AppColors.accent.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Iconsax.sms,
-                size: 48,
-                color: AppColors.accent,
+      return RefreshIndicator(
+        onRefresh: () => _refresh(context),
+        color: AppColors.primary,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.6,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: AppColors.accent.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Iconsax.sms,
+                      size: 48,
+                      color: AppColors.accent,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'No pending invitations',
+                    style: AppTextStyles.titleLarge.copyWith(
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Pull down to refresh',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 24),
-            Text(
-              'No pending invitations',
-              style: AppTextStyles.titleLarge.copyWith(
-                color: isDark
-                    ? AppColors.textPrimaryDark
-                    : AppColors.textPrimaryLight,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'You\'re all caught up!',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: isDark
-                    ? AppColors.textSecondaryDark
-                    : AppColors.textSecondaryLight,
-              ),
-            ),
-          ],
-        ),
-      ).animate().fadeIn();
+          ),
+        ).animate().fadeIn(),
+      );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(20),
-      itemCount: pendingInvitations.length,
-      itemBuilder: (context, index) {
-        final invitation = pendingInvitations[index];
-        return _InvitationCard(invitation: invitation)
-            .animate(delay: (index * 50).ms)
-            .fadeIn()
-            .slideX(begin: 0.05);
-      },
+    return RefreshIndicator(
+      onRefresh: () => _refresh(context),
+      color: AppColors.primary,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(20),
+        itemCount: pendingInvitations.length,
+        itemBuilder: (context, index) {
+          final invitation = pendingInvitations[index];
+          return _InvitationCard(invitation: invitation)
+              .animate(delay: (index * 50).ms)
+              .fadeIn()
+              .slideX(begin: 0.05);
+        },
+      ),
     );
   }
 }
@@ -1655,7 +1818,9 @@ class _InvitationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isReceived = invitation.toUserId == 'current_user_id';
+    // All invitations from /friends/invitations are received (sent TO the current user)
+    // So isReceived is always true for this endpoint
+    final isReceived = true;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -1675,9 +1840,12 @@ class _InvitationCard extends StatelessWidget {
               CircleAvatar(
                 radius: 24,
                 backgroundColor: AppColors.accent.withValues(alpha: 0.1),
-                child: const Icon(
-                  Iconsax.user,
-                  color: AppColors.accent,
+                child: Text(
+                  invitation.senderInitials,
+                  style: AppTextStyles.titleSmall.copyWith(
+                    color: AppColors.accent,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -1686,7 +1854,7 @@ class _InvitationCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isReceived ? 'Friend Request' : 'Invitation Sent',
+                      invitation.senderName,
                       style: AppTextStyles.titleSmall.copyWith(
                         color: isDark
                             ? AppColors.textPrimaryDark
@@ -1695,7 +1863,7 @@ class _InvitationCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      _formatDate(invitation.sentAt),
+                      'wants to be your friend • ${_formatDate(invitation.sentAt)}',
                       style: AppTextStyles.labelSmall.copyWith(
                         color: isDark
                             ? AppColors.textTertiaryDark
@@ -1776,69 +1944,90 @@ class _InvitationCard extends StatelessWidget {
 class _MySharesTab extends StatelessWidget {
   const _MySharesTab();
 
+  Future<void> _refresh(BuildContext context) async {
+    await context.read<CommunityService>().loadSharedSimulations();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final myShares = context.watch<CommunityService>().sharedSimulations
-        .where((s) => s.sharedBy.id == 'current_user_id')
-        .toList();
+    // Use the myShares getter which returns simulations I shared with others
+    final myShares = context.watch<CommunityService>().myShares;
 
     if (myShares.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AppColors.info.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Iconsax.share,
-                size: 48,
-                color: AppColors.info,
+      return RefreshIndicator(
+        onRefresh: () => _refresh(context),
+        color: AppColors.primary,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.6,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: AppColors.info.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Iconsax.share,
+                      size: 48,
+                      color: AppColors.info,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'No shared simulations',
+                    style: AppTextStyles.titleLarge.copyWith(
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Share your simulations with friends',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Pull down to refresh',
+                    style: AppTextStyles.labelSmall.copyWith(
+                      color: isDark
+                          ? AppColors.textTertiaryDark
+                          : AppColors.textTertiaryLight,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 24),
-            Text(
-              'No shared simulations',
-              style: AppTextStyles.titleLarge.copyWith(
-                color: isDark
-                    ? AppColors.textPrimaryDark
-                    : AppColors.textPrimaryLight,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Share your simulations with the community',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: isDark
-                    ? AppColors.textSecondaryDark
-                    : AppColors.textSecondaryLight,
-              ),
-            ),
-            const SizedBox(height: 24),
-            CustomButton(
-              text: 'Share a Simulation',
-              onPressed: () {},
-              icon: Iconsax.share,
-            ),
-          ],
-        ),
-      ).animate().fadeIn();
+          ),
+        ).animate().fadeIn(),
+      );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(20),
-      itemCount: myShares.length,
-      itemBuilder: (context, index) {
-        final shared = myShares[index];
-        return _SharedSimulationCard(shared: shared)
-            .animate(delay: (index * 50).ms)
-            .fadeIn()
-            .slideX(begin: 0.05);
-      },
+    return RefreshIndicator(
+      onRefresh: () => _refresh(context),
+      color: AppColors.primary,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(20),
+        itemCount: myShares.length,
+        itemBuilder: (context, index) {
+          final shared = myShares[index];
+          return _SharedSimulationCard(shared: shared, isMyShare: true)
+              .animate(delay: (index * 50).ms)
+              .fadeIn()
+              .slideX(begin: 0.05);
+        },
+      ),
     );
   }
 }

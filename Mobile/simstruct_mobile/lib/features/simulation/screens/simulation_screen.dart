@@ -83,6 +83,7 @@ class _SimulationScreenState extends State<SimulationScreen> {
 
     notificationService.notifySimulationStarted(name);
 
+    // Run local simulation for instant results
     final result = await simulationService.runSimulation(
       userId: authService.user!.id,
       name: name,
@@ -93,6 +94,19 @@ class _SimulationScreenState extends State<SimulationScreen> {
         name,
         resultStatus: result.status.name,
       );
+      
+      // Also save to backend (non-blocking)
+      simulationService.createSimulationOnBackend(
+        name: name,
+        description: 'Created from mobile app',
+        params: simulationService.currentParams,
+        isPublic: false,
+      ).then((_) {
+        debugPrint('Simulation saved to backend');
+      }).catchError((e) {
+        debugPrint('Failed to save to backend: $e');
+      });
+      
       context.go('/results/${simulationService.currentSimulation!.id}');
     } else if (mounted) {
       notificationService.notifySimulationFailed(

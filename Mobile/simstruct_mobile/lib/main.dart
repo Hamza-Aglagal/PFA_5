@@ -59,14 +59,23 @@ class SimStructApp extends StatelessWidget {
         // Connectivity Service
         ChangeNotifierProvider<ConnectivityService>.value(value: connectivityService),
         
-        // Auth Service
-        ChangeNotifierProvider<AuthService>(
-          create: (_) => AuthService()..init(),
-        ),
-        
         // Notification Service
         ChangeNotifierProvider<NotificationService>(
           create: (_) => NotificationService(),
+        ),
+        
+        // Auth Service - depends on NotificationService for welcome toast
+        ChangeNotifierProxyProvider<NotificationService, AuthService>(
+          create: (_) => AuthService()..init(),
+          update: (_, notificationService, authService) {
+            authService?.setNotificationService(notificationService);
+            return authService ?? (AuthService()..init());
+          },
+        ),
+        
+        // User Service - for profile management
+        ChangeNotifierProvider<UserService>(
+          create: (_) => UserService(),
         ),
         
         // Simulation Service

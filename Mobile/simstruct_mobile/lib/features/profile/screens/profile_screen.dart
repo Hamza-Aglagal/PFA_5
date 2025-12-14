@@ -8,9 +8,9 @@ import '../../../app/theme/app_text_styles.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/models/user.dart';
 import '../../../shared/widgets/modern_avatar.dart';
-import '../../../shared/widgets/modern_buttons.dart';
-import '../../../shared/widgets/modern_cards.dart';
 import '../../../shared/widgets/widgets.dart';
+import '../widgets/edit_profile_sheet.dart';
+import '../widgets/change_password_sheet.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -359,7 +359,12 @@ class _ProfileTab extends StatelessWidget {
           // Edit Profile Button
           CustomButton(
             text: 'Edit Profile',
-            onPressed: () {},
+            onPressed: () async {
+              final result = await EditProfileSheet.show(context, user);
+              if (result == true) {
+                // Profile was updated - the auth service will notify listeners
+              }
+            },
             type: ButtonType.outline,
             icon: Iconsax.edit,
             isFullWidth: true,
@@ -554,9 +559,11 @@ class _SecurityTab extends StatelessWidget {
               children: [
                 _SecurityItem(
                   title: 'Change Password',
-                  subtitle: 'Last changed 30 days ago',
+                  subtitle: 'Keep your account secure',
                   icon: Iconsax.lock,
-                  onTap: () {},
+                  onTap: () {
+                    ChangePasswordSheet.show(context);
+                  },
                 ),
               ],
             ),
