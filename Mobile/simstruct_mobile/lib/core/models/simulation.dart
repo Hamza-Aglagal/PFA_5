@@ -112,6 +112,12 @@ class AnalysisResult {
   final List<StressPoint> stressDistribution;
   final List<DeflectionPoint> deflectionCurve;
   final AIInsight? aiInsight;
+  
+  // AI Model Predictions
+  final double? stabilityIndex;
+  final double? seismicResistance;
+  final double? crackRisk;
+  final double? foundationStability;
 
   const AnalysisResult({
     required this.safetyFactor,
@@ -124,7 +130,14 @@ class AnalysisResult {
     this.stressDistribution = const [],
     this.deflectionCurve = const [],
     this.aiInsight,
+    this.stabilityIndex,
+    this.seismicResistance,
+    this.crackRisk,
+    this.foundationStability,
   });
+
+  /// Check if has AI predictions
+  bool get hasAIPredictions => stabilityIndex != null || seismicResistance != null;
 
   /// Calculate status from safety factor
   static ResultStatus calculateStatus(double safetyFactor) {
@@ -298,6 +311,9 @@ class Simulation {
 
   /// Check if simulation has results
   bool get hasResult => result != null && status == SimulationStatus.completed;
+
+  /// Alias for isShared (for backward compatibility)
+  bool get isPublic => isShared;
 
   /// Get display subtitle
   String get subtitle {

@@ -1,6 +1,21 @@
-version: '3.8'
-
 services:
+  # Python AI Model API
+  ai-model:
+    build:
+      context: ./Model_AI
+      dockerfile: Dockerfile
+    container_name: simstruct-ai-model
+    ports:
+      - "8000:8000"
+    networks:
+      - simstruct-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
   # Spring Boot Backend
   backend:
     build:
@@ -15,6 +30,9 @@ services:
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.h2.Driver
       - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.H2Dialect
       - JWT_SECRET=simstruct-secret-key-for-jwt-token-generation-minimum-256-bits
+      - AI_API_URL=http://ai-model:8000
+    depends_on:
+      - ai-model
     networks:
       - simstruct-network
     healthcheck:

@@ -22,6 +22,19 @@ interface SimulationParams {
   loadMagnitude: number;
   loadPosition: number;
   supportType: string;
+  // AI Building Parameters (Optional)
+  useAI: boolean;
+  numFloors?: number;
+  floorHeight?: number;
+  numBeams?: number;
+  numColumns?: number;
+  beamSection?: number;
+  columnSection?: number;
+  concreteStrength?: number;
+  steelGrade?: number;
+  windLoad?: number;
+  liveLoad?: number;
+  deadLoad?: number;
 }
 
 @Component({
@@ -49,7 +62,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   private autoRotate = signal(true);
 
   currentStep = signal(1);
-  totalSteps = 4;
+  totalSteps = 5; // Increased to 5 steps (added AI parameters)
   isAnalyzing = signal(false);
   analysisProgress = signal(0);
   analysisStage = signal<'preprocessing' | 'inference' | 'postprocessing' | 'complete'>('preprocessing');
@@ -75,7 +88,20 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     loadType: 'point',
     loadMagnitude: 50,
     loadPosition: 50,
-    supportType: 'simply-supported'
+    supportType: 'simply-supported',
+    // AI Parameters
+    useAI: false,
+    numFloors: 5,
+    floorHeight: 3.0,
+    numBeams: 40,
+    numColumns: 30,
+    beamSection: 0.3,
+    columnSection: 0.4,
+    concreteStrength: 25.0,
+    steelGrade: 400.0,
+    windLoad: 1.5,
+    liveLoad: 3.0,
+    deadLoad: 5.0
   });
 
   structureTypes = [
@@ -95,7 +121,8 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   loadTypes = [
     { id: 'point', name: 'Point Load', icon: '↓' },
     { id: 'distributed', name: 'Distributed', icon: '↓↓↓' },
-    { id: 'moment', name: 'Moment', icon: '↻' }
+    { id: 'moment', name:AI Analysis', icon: '🤖' },
+    { number: 5, title: ' 'Moment', icon: '↻' }
   ];
 
   supportTypes = [
@@ -534,10 +561,24 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
       loadMagnitude: p.loadMagnitude * 1000, // Convert kN to N
       loadPosition: p.loadPosition / 100 * p.length, // Convert percentage to meters
       supportType: this.mapSupportType(p.supportType),
-      isPublic: false
+      // Add AI parameters if enabled
+      ...(p.useAI && {
+        numFloors: p.numFloors,
+        floorHeight: p.floorHeight,
+        numBeams: p.numBeams,
+        numColumns: p.numColumns,
+        beamSection: p.beamSection,
+        columnSection: p.columnSection,
+        concreteStrength: p.concreteStrength,
+        steelGrade: p.steelGrade,
+        windLoad: p.windLoad,
+        liveLoad: p.liveLoad,
+        deadLoad: p.deadLoad
+      })
     };
 
     console.log('SimulationComponent: Starting analysis with request:', request);
+    console.log('SimulationComponent: AI Mode:', p.useAI ? 'ENABLED' : 'DISABLED');
 
     // Simulate preprocessing stage
     await this.simulateProgress('preprocessing', 30, 800);
@@ -606,6 +647,17 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
       'moment': 'MOMENT'
     };
     return map[loadType] || 'POINT';
+  }
+
+  private mapSupportType(supportType: string): 'SIMPLY_SUPPORTED' | 'FIXED_FIXED' | 'FIXED_FREE' | 'FIXED_PINNED' {
+    const map: Record<string, 'SIMPLY_SUPPORTED' | 'FIXED_FIXED' | 'FIXED_FREE' | 'FIXED_PINNED'> = {
+      'simply-supported': 'SIMPLY_SUPPORTED',
+      'fixed-fixed': 'FIXED_FIXED',
+      'fixed-free': 'FIXED_FREE',
+      'cantilever': 'FIXED_FREE',
+      'fixed-pinned': 'FIXED_PINNED'
+    };
+    return map[supportType] || 'SIMPLY_SUPPORTED';
   }
 
   private mapSupportType(supportType: string): 'SIMPLY_SUPPORTED' | 'FIXED_FIXED' | 'FIXED_FREE' | 'FIXED_PINNED' {

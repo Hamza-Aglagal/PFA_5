@@ -1080,6 +1080,74 @@ class _AIInsightsTab extends StatelessWidget {
 
           const SizedBox(height: 24),
 
+          // AI Model Predictions (if available)
+          if (result?.hasAIPredictions == true) ...[
+            Text(
+              'AI Model Predictions',
+              style: AppTextStyles.titleLarge.copyWith(
+                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+              ),
+            ).animate(delay: 100.ms).fadeIn(),
+            const SizedBox(height: 16),
+
+            // Prediction Cards Grid
+            Row(
+              children: [
+                if (result!.stabilityIndex != null)
+                  Expanded(
+                    child: _AIPredictionCard(
+                      title: 'Stability Index',
+                      value: result.stabilityIndex!,
+                      unit: '%',
+                      icon: Iconsax.status_up,
+                      color: _getPredictionColor(result.stabilityIndex!),
+                    ).animate(delay: 150.ms).fadeIn().scale(begin: const Offset(0.95, 0.95)),
+                  ),
+                if (result.stabilityIndex != null && result.seismicResistance != null)
+                  const SizedBox(width: 12),
+                if (result.seismicResistance != null)
+                  Expanded(
+                    child: _AIPredictionCard(
+                      title: 'Seismic Resistance',
+                      value: result.seismicResistance!,
+                      unit: '%',
+                      icon: Iconsax.house_2,
+                      color: _getPredictionColor(result.seismicResistance!),
+                    ).animate(delay: 200.ms).fadeIn().scale(begin: const Offset(0.95, 0.95)),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                if (result.crackRisk != null)
+                  Expanded(
+                    child: _AIPredictionCard(
+                      title: 'Crack Risk',
+                      value: result.crackRisk!,
+                      unit: '%',
+                      icon: Iconsax.danger,
+                      color: _getRiskColor(result.crackRisk!),
+                      isRisk: true,
+                    ).animate(delay: 250.ms).fadeIn().scale(begin: const Offset(0.95, 0.95)),
+                  ),
+                if (result.crackRisk != null && result.foundationStability != null)
+                  const SizedBox(width: 12),
+                if (result.foundationStability != null)
+                  Expanded(
+                    child: _AIPredictionCard(
+                      title: 'Foundation Stability',
+                      value: result.foundationStability!,
+                      unit: '%',
+                      icon: Iconsax.shield_tick,
+                      color: _getPredictionColor(result.foundationStability!),
+                    ).animate(delay: 300.ms).fadeIn().scale(begin: const Offset(0.95, 0.95)),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 24),
+          ],
+
           // Recommendations
           Text(
             'Recommendations',
@@ -1159,6 +1227,122 @@ class _AIInsightsTab extends StatelessWidget {
               ],
             ),
           ).animate(delay: 300.ms).fadeIn().slideY(begin: 0.1),
+        ],
+      ),
+    );
+  }
+
+  Color _getPredictionColor(double value) {
+    if (value >= 80) return AppColors.success;
+    if (value >= 60) return AppColors.warning;
+    return AppColors.error;
+  }
+
+  Color _getRiskColor(double value) {
+    if (value <= 20) return AppColors.success;
+    if (value <= 40) return AppColors.warning;
+    return AppColors.error;
+  }
+}
+
+class _AIPredictionCard extends StatelessWidget {
+  final String title;
+  final double value;
+  final String unit;
+  final IconData icon;
+  final Color color;
+  final bool isRisk;
+
+  const _AIPredictionCard({
+    required this.title,
+    required this.value,
+    required this.unit,
+    required this.icon,
+    required this.color,
+    this.isRisk = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.cardDark : AppColors.cardLight,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: color.withValues(alpha: 0.3),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: 20,
+                ),
+              ),
+              const Spacer(),
+              Icon(
+                Iconsax.cpu,
+                color: AppColors.accent.withValues(alpha: 0.5),
+                size: 16,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            title,
+            style: AppTextStyles.labelMedium.copyWith(
+              color: isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textSecondaryLight,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                value.toStringAsFixed(1),
+                style: AppTextStyles.headlineMedium.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                unit,
+                style: AppTextStyles.bodyLarge.copyWith(
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          LinearProgressIndicator(
+            value: isRisk ? (100 - value) / 100 : value / 100,
+            backgroundColor: color.withValues(alpha: 0.2),
+            valueColor: AlwaysStoppedAnimation<Color>(color),
+            borderRadius: BorderRadius.circular(4),
+          ),
         ],
       ),
     );

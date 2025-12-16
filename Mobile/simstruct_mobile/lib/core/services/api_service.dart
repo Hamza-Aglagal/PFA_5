@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/api_config.dart';
@@ -142,36 +143,67 @@ class ApiService {
   ApiResponse _handleResponse(http.Response response) {
     final statusCode = response.statusCode;
     
-    // Try to parse JSON response
-    Map<String, dynamic>? jsonData;
+    // Debug: Log raw response
+    print('================================================================================');
+    print('🔍 API RESPONSE DEBUG [Status: $statusCode]');
+    print('Response body length: ${response.body.length} characters');
+    print('Response body isEmpty: ${response.body.isEmpty}');
+    if (response.body.isNotEmpty && response.body.length <= 1000) {
+      print('Full response body: ${response.body}');
+    } else if (response.body.isNotEmpty) {
+      print('Response body (first 1000 chars): ${response.body.substring(0, 1000)}');
+    }
+    
+    // Try to parse JSON response (could be Map or List)
+    dynamic jsonData;
+    Map<String, dynamic>? jsonMap;
     try {
       if (response.body.isNotEmpty) {
         jsonData = jsonDecode(response.body);
+        print('✅ JSON parsed successfully');
+        print('Parsed data type: ${jsonData.runtimeType}');
+        print('Is List: ${jsonData is List}');
+        print('Is Map: ${jsonData is Map}');
+        if (jsonData is List) {
+          print('List length: ${jsonData.length}');
+        }
+        
+        // If it's a Map, store it separately for extracting message/error
+        if (jsonData is Map<String, dynamic>) {
+          jsonMap = jsonData;
+        }
+      } else {
+        print('⚠️ Response body is EMPTY!');
       }
     } catch (e) {
       // Response is not JSON
+      print('❌ Failed to parse JSON: $e');
     }
+    print('================================================================================');
     
     // Success (200-299)
     if (statusCode >= 200 && statusCode < 300) {
       return ApiResponse(
         success: true,
-        message: jsonData?['message'] ?? 'Success',
-        data: jsonData?['data'] ?? jsonData,
+        message: jsonMap?['message'] ?? 'Success',
+        // If jsonData is a List, use it directly. If it's a Map, check for 'data' field
+        data: jsonData is List 
+            ? jsonData 
+            : (jsonMap?['data'] ?? jsonData),
         statusCode: statusCode,
       );
     }
     
     // Error
     String errorMessage = 'Something went wrong';
-    if (jsonData != null) {
+    if (jsonMap != null) {
       // Check if error is an object with message field (backend format)
-      if (jsonData['error'] is Map) {
-        errorMessage = jsonData['error']['message'] ?? errorMessage;
-      } else if (jsonData['message'] is String) {
-        errorMessage = jsonData['message'];
-      } else if (jsonData['error'] is String) {
-        errorMessage = jsonData['error'];
+      if (jsonMap['error'] is Map) {
+        errorMessage = jsonMap['error']['message'] ?? errorMessage;
+      } else if (jsonMap['message'] is String) {
+        errorMessage = jsonMap['message'];
+      } else if (jsonMap['error'] is String) {
+        errorMessage = jsonMap['error'];
       }
     }
     

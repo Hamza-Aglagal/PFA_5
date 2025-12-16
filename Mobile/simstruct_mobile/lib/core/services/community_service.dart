@@ -429,10 +429,15 @@ class CommunityService extends ChangeNotifier {
         backendPermission = 'ADMIN';
       }
       
+      print('🔗 Sharing simulation ${simulation.id} with friend $friendId');
+      print('   URL: ${ApiConfig.shares}?simulationId=${simulation.id}&friendId=$friendId&permission=$backendPermission');
+      
       // Call backend to share
       final response = await _apiService.post(
         '${ApiConfig.shares}?simulationId=${simulation.id}&friendId=$friendId&permission=$backendPermission',
       );
+      
+      print('   Response: success=${response.success}, message=${response.message}');
       
       if (response.success) {
         // Reload shared simulations
@@ -448,7 +453,8 @@ class CommunityService extends ChangeNotifier {
       notifyListeners();
       return false;
     } catch (e) {
-      _error = 'Failed to share simulation';
+      print('❌ Share error: $e');
+      _error = 'Failed to share simulation: $e';
       _isLoading = false;
       notifyListeners();
       return false;

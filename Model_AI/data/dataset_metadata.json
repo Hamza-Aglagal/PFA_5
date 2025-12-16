@@ -1,0 +1,29 @@
+{
+  "generated_at": "2025-12-14T18:31:50.101403",
+  "num_samples": 10000,
+  "version": "1.0.0",
+  "generator": "ProfessionalStructuralDataGenerator",
+  "description": "High-quality structural analysis dataset with realistic engineering parameters",
+  "columns": {
+    "inputs": {
+      "numFloors": "Number of building floors [1-50]",
+      "floorHeight": "Height of each floor in meters [2.7-6.0]",
+      "numBeams": "Number of structural beams",
+      "numColumns": "Number of structural columns",
+      "beamSection": "Beam cross-section size in cm [10-60]",
+      "columnSection": "Column cross-section size in cm [12-60]",
+      "concreteStrength": "Concrete compressive strength in MPa [20-90]",
+      "steelGrade": "Steel yield strength in MPa [235-460]",
+      "seismicZone": "Seismic hazard zone classification",
+      "windLoad": "Wind pressure in kN/m\u00b2",
+      "liveLoad": "Live load in kN/m\u00b2",
+      "deadLoad": "Dead load in kN/m\u00b2"
+    },
+    "outputs": {
+      "maxDeflection": "Maximum structural deflection in mm",
+      "maxStress": "Maximum stress in structural elements in MPa",
+      "stabilityIndex": "Overall structural stability score [0-100]",
+      "seismicResistance": "Seismic performance score [0-100]"
+    }
+  }
+}

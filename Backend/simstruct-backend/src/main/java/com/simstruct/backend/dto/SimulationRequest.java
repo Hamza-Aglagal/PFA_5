@@ -65,4 +65,51 @@ public class SimulationRequest {
     // Visibility
     @Builder.Default
     private Boolean isPublic = false;
+
+    // ========== AI BUILDING PARAMETERS (OPTIONAL) ==========
+    // If these are provided, AI model will be used for predictions
+    // Otherwise, traditional SimulationEngine is used
+    
+    private Double numFloors;
+    private Double floorHeight;
+    private Integer numBeams;
+    private Integer numColumns;
+    private Double beamSection;
+    private Double columnSection;
+    private Double concreteStrength;
+    private Double steelGrade;
+    private Double windLoad;
+    private Double liveLoad;
+    private Double deadLoad;
+    
+    /**
+     * Check if AI parameters are provided
+     * @return true if all AI parameters are present
+     */
+    public boolean hasAIParameters() {
+        return numFloors != null && floorHeight != null && 
+               numBeams != null && numColumns != null &&
+               beamSection != null && columnSection != null &&
+               concreteStrength != null && steelGrade != null &&
+               windLoad != null && liveLoad != null && deadLoad != null;
+    }
+    
+    /**
+     * Convert to BuildingPredictionRequest for AI API
+     */
+    public BuildingPredictionRequest toAIRequest() {
+        return BuildingPredictionRequest.builder()
+                .numFloors(this.numFloors)
+                .floorHeight(this.floorHeight)
+                .numBeams(this.numBeams)
+                .numColumns(this.numColumns)
+                .beamSection(this.beamSection)
+                .columnSection(this.columnSection)
+                .concreteStrength(this.concreteStrength)
+                .steelGrade(this.steelGrade)
+                .windLoad(this.windLoad)
+                .liveLoad(this.liveLoad)
+                .deadLoad(this.deadLoad)
+                .build();
+    }
 }

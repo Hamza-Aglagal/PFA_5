@@ -1,5 +1,6 @@
 package com.simstruct.backend.service;
 
+import com.simstruct.backend.dto.AIPredictionResponse;
 import com.simstruct.backend.dto.SimulationRequest;
 import com.simstruct.backend.dto.SimulationResponse;
 import com.simstruct.backend.entity.Simulation;
@@ -23,15 +24,18 @@ public class SimulationService {
     private final UserRepository userRepository;
     private final SimulationEngine simulationEngine;
     private final NotificationService notificationService;
+    private final AIModelService aiModelService;
 
     public SimulationService(SimulationRepository simulationRepository,
                             UserRepository userRepository,
                             SimulationEngine simulationEngine,
-                            NotificationService notificationService) {
+                            NotificationService notificationService,
+                            AIModelService aiModelService) {
         this.simulationRepository = simulationRepository;
         this.userRepository = userRepository;
         this.simulationEngine = simulationEngine;
         this.notificationService = notificationService;
+        this.aiModelService = aiModelService;
     }
 
     /**
@@ -68,12 +72,39 @@ public class SimulationService {
                 .build();
 
         try {
-            // Run simulation
-            System.out.println("SimulationService: Running simulation engine...");
-            SimulationResult results = simulationEngine.analyze(simulation);
-            simulation.setResults(results);
-            simulation.setStatus(Simulation.SimulationStatus.COMPLETED);
-            System.out.println("SimulationService: Simulation completed successfully");
+            // Check if AI parameters are provided
+            if (request.hasAIParameters()) {
+                System.out.println("SimulationService: AI parameters detected, calling AI model...");
+                
+                try {
+                    // Try AI prediction first
+                    AIPredictionResponse aiPrediction = aiModelService.predict(request.toAIRequest());
+                    System.out.println("SimulationService: AI prediction successful");
+                    
+                    // Run traditional engine for additional metrics
+                    SimulationResult engineResults = simulationEngine.analyze(simulation);
+                    
+                    // Merge AI predictions with engine results
+                    SimulationResult results = mergeResults(aiPrediction, engineResults);
+                    simulation.setResults(results);
+                    simulation.setStatus(Simulation.SimulationStatus.COMPLETED);
+                    System.out.println("SimulationService: Hybrid analysis (AI + Engine) completed");
+                    
+                } catch (Exception aiError) {
+                    System.err.println("SimulationService: AI failed, falling back to engine - " + aiError.getMessage());
+                    // Fallback to traditional engine if AI fails
+                    SimulationResult results = simulationEngine.analyze(simulation);
+                    simulation.setResults(results);
+                    simulation.setStatus(Simulation.SimulationStatus.COMPLETED);
+                }
+            } else {
+                // Use traditional simulation engine
+                System.out.println("SimulationService: Running traditional simulation engine...");
+                SimulationResult results = simulationEngine.analyze(simulation);
+                simulation.setResults(results);
+                simulation.setStatus(Simulation.SimulationStatus.COMPLETED);
+                System.out.println("SimulationService: Simulation completed successfully");
+            }
         } catch (Exception e) {
             System.out.println("SimulationService: Simulation failed - " + e.getMessage());
             simulation.setStatus(Simulation.SimulationStatus.FAILED);
@@ -321,5 +352,47 @@ public class SimulationService {
         return simulations.stream()
                 .map(SimulationResponse::fromEntity)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Merge AI predictions with traditional engine results
+     * AI provides: maxDeflection, maxStress, stabilityIndex, seismicResistance
+     * Engine provides: maxBendingMoment, maxShearForce, safetyFactor, naturalFrequency, etc.
+     */
+    private SimulationResult mergeResults(AIPredictionResponse aiPrediction, SimulationResult engineResults) {
+        System.out.println("SimulationService: Merging AI predictions with engine results");
+        
+        // Use AI predictions for deflection and stress (more accurate from ML)
+        // Use engine results for other mechanical properties
+        return SimulationResult.builder()
+                .maxDeflection(aiPrediction.getMaxDeflection()) // From AI
+                .maxStress(aiPrediction.getMaxStress())         // From AI
+                .maxBendingMoment(engineResults.getMaxBendingMoment())
+                .maxShearForce(engineResults.getMaxShearForce())
+                .safetyFactor(engineResults.getSafetyFactor())
+                .isSafe(aiPrediction.isSafe() && engineResults.getIsSafe())
+                .recommendations(generateHybridRecommendations(aiPrediction, engineResults))
+                .naturalFrequency(engineResults.getNaturalFrequency())
+                .criticalLoad(engineResults.getCriticalLoad())
+                .weight(engineResults.getWeight())
+                .build();
+    }
+
+    /**
+     * Generate recommendations from both AI and engine analysis
+     */
+    private String generateHybridRecommendations(AIPredictionResponse aiPrediction, SimulationResult engineResults) {
+        StringBuilder recommendations = new StringBuilder();
+        
+        recommendations.append("AI Analysis Status: ").append(aiPrediction.getStatus()).append("\n");
+        recommendations.append("Stability Index: ").append(String.format("%.1f%%", aiPrediction.getStabilityIndex())).append("\n");
+        recommendations.append("Seismic Resistance: ").append(String.format("%.1f%%", aiPrediction.getSeismicResistance())).append("\n\n");
+        
+        if (engineResults.getRecommendations() != null) {
+            recommendations.append("Structural Analysis:\n");
+            recommendations.append(engineResults.getRecommendations());
+        }
+        
+        return recommendations.toString();
     }
 }

@@ -13,6 +13,7 @@ import '../widgets/step_indicator.dart';
 import '../widgets/structure_step.dart';
 import '../widgets/dimensions_step.dart';
 import '../widgets/material_step.dart';
+import '../widgets/ai_parameters_step.dart';
 import '../widgets/review_step.dart';
 
 class SimulationScreen extends StatefulWidget {
@@ -25,6 +26,19 @@ class SimulationScreen extends StatefulWidget {
 class _SimulationScreenState extends State<SimulationScreen> {
   final _nameController = TextEditingController();
   final _pageController = PageController();
+  
+  // AI Parameters controllers (optional)
+  final _numFloorsController = TextEditingController();
+  final _floorHeightController = TextEditingController();
+  final _numBeamsController = TextEditingController();
+  final _numColumnsController = TextEditingController();
+  final _beamSectionController = TextEditingController();
+  final _columnSectionController = TextEditingController();
+  final _concreteStrengthController = TextEditingController();
+  final _steelGradeController = TextEditingController();
+  final _windLoadController = TextEditingController();
+  final _liveLoadController = TextEditingController();
+  final _deadLoadController = TextEditingController();
 
   @override
   void initState() {
@@ -39,6 +53,17 @@ class _SimulationScreenState extends State<SimulationScreen> {
   void dispose() {
     _nameController.dispose();
     _pageController.dispose();
+    _numFloorsController.dispose();
+    _floorHeightController.dispose();
+    _numBeamsController.dispose();
+    _numColumnsController.dispose();
+    _beamSectionController.dispose();
+    _columnSectionController.dispose();
+    _concreteStrengthController.dispose();
+    _steelGradeController.dispose();
+    _windLoadController.dispose();
+    _liveLoadController.dispose();
+    _deadLoadController.dispose();
     super.dispose();
   }
 
@@ -54,7 +79,7 @@ class _SimulationScreenState extends State<SimulationScreen> {
 
   void _onNext() {
     final simulationService = context.read<SimulationService>();
-    if (simulationService.currentStep < 3) {
+    if (simulationService.currentStep < 4) {
       _onStepChanged(simulationService.currentStep + 1);
     } else {
       _runSimulation();
@@ -83,31 +108,126 @@ class _SimulationScreenState extends State<SimulationScreen> {
 
     notificationService.notifySimulationStarted(name);
 
-    // Run local simulation for instant results
-    final result = await simulationService.runSimulation(
+    // Parse AI parameters (if provided)
+    int? numFloors = _numFloorsController.text.isEmpty 
+        ? null 
+        : int.tryParse(_numFloorsController.text);
+    double? floorHeight = _floorHeightController.text.isEmpty
+        ? null
+        : double.tryParse(_floorHeightController.text);
+    int? numBeams = _numBeamsController.text.isEmpty
+        ? null
+        : int.tryParse(_numBeamsController.text);
+    int? numColumns = _numColumnsController.text.isEmpty
+        ? null
+        : int.tryParse(_numColumnsController.text);
+    double? beamSection = _beamSectionController.text.isEmpty
+        ? null
+        : double.tryParse(_beamSectionController.text);
+    double? columnSection = _columnSectionController.text.isEmpty
+        ? null
+        : double.tryParse(_columnSectionController.text);
+    double? concreteStrength = _concreteStrengthController.text.isEmpty
+        ? null
+        : double.tryParse(_concreteStrengthController.text);
+    double? steelGrade = _steelGradeController.text.isEmpty
+        ? null
+        : double.tryParse(_steelGradeController.text);
+    double? windLoad = _windLoadController.text.isEmpty
+        ? null
+        : double.tryParse(_windLoadController.text);
+    double? liveLoad = _liveLoadController.text.isEmpty
+        ? null
+        : double.tryParse(_liveLoadController.text);
+    double? deadLoad = _deadLoadController.text.isEmpty
+        ? null
+        : double.tryParse(_deadLoadController.text);
+
+    // Show loading dialog
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => WillPopScope(
+          onWillPop: () async => false,
+          child: Dialog(
+            backgroundColor: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.cardDark
+                    : AppColors.cardLight,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(color: AppColors.primary),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Processing Simulation',
+                    style: AppTextStyles.titleMedium.copyWith(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'AI model is analyzing your structure...\nThis may take a few seconds',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Call REAL backend + AI model with parameters
+    final simulation = await simulationService.runSimulationOnBackend(
       userId: authService.user!.id,
       name: name,
+      description: 'Created from mobile app',
+      numFloors: numFloors,
+      floorHeight: floorHeight,
+      numBeams: numBeams,
+      numColumns: numColumns,
+      beamSection: beamSection,
+      columnSection: columnSection,
+      concreteStrength: concreteStrength,
+      steelGrade: steelGrade,
+      windLoad: windLoad,
+      liveLoad: liveLoad,
+      deadLoad: deadLoad,
     );
 
-    if (result != null && mounted) {
+    // Close loading dialog
+    if (mounted) {
+      Navigator.of(context, rootNavigator: true).pop();
+    }
+
+    if (simulation != null && mounted) {
       notificationService.notifySimulationCompleted(
         name,
-        resultStatus: result.status.name,
+        resultStatus: simulation.status.name,
       );
       
-      // Also save to backend (non-blocking)
-      simulationService.createSimulationOnBackend(
-        name: name,
-        description: 'Created from mobile app',
-        params: simulationService.currentParams,
-        isPublic: false,
-      ).then((_) {
-        debugPrint('Simulation saved to backend');
-      }).catchError((e) {
-        debugPrint('Failed to save to backend: $e');
-      });
+      // Reload simulations to update lists
+      await simulationService.loadSimulations(authService.user!.id);
       
-      context.go('/results/${simulationService.currentSimulation!.id}');
+      // Wait a bit for data to settle
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      context.go('/results/${simulation.id}');
     } else if (mounted) {
       notificationService.notifySimulationFailed(
         name,
@@ -152,7 +272,7 @@ class _SimulationScreenState extends State<SimulationScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               child: StepIndicator(
                 currentStep: simulationService.currentStep,
-                steps: const ['Structure', 'Dimensions', 'Material', 'Review'],
+                steps: const ['Structure', 'Dimensions', 'Material', 'AI Params', 'Review'],
                 onStepTap: _onStepChanged,
               ),
             ).animate().fadeIn().slideY(begin: -0.2),
@@ -186,6 +306,19 @@ class _SimulationScreenState extends State<SimulationScreen> {
                   MaterialStep(
                     params: simulationService.currentParams,
                     onChanged: simulationService.updateParams,
+                  ),
+                  AIParametersStep(
+                    numFloorsController: _numFloorsController,
+                    floorHeightController: _floorHeightController,
+                    numBeamsController: _numBeamsController,
+                    numColumnsController: _numColumnsController,
+                    beamSectionController: _beamSectionController,
+                    columnSectionController: _columnSectionController,
+                    concreteStrengthController: _concreteStrengthController,
+                    steelGradeController: _steelGradeController,
+                    windLoadController: _windLoadController,
+                    liveLoadController: _liveLoadController,
+                    deadLoadController: _deadLoadController,
                   ),
                   ReviewStep(
                     params: simulationService.currentParams,
@@ -225,11 +358,11 @@ class _SimulationScreenState extends State<SimulationScreen> {
                     Expanded(
                       flex: simulationService.currentStep == 0 ? 1 : 1,
                       child: CustomButton(
-                        text: simulationService.currentStep == 3
+                        text: simulationService.currentStep == 4
                             ? 'Run Analysis'
                             : 'Continue',
                         onPressed: _onNext,
-                        icon: simulationService.currentStep == 3
+                        icon: simulationService.currentStep == 4
                             ? Icons.play_arrow_rounded
                             : Icons.arrow_forward_rounded,
                         iconRight: true,

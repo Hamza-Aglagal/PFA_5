@@ -451,37 +451,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   void _shareSimulation(Simulation simulation) async {
-    final simulationService = context.read<SimulationService>();
+    final communityService = context.read<CommunityService>();
     
-    // If not already public, make it public first
-    if (!simulation.isPublic) {
-      await simulationService.togglePublicOnBackend(simulation.id);
+    // Load friends if not already loaded
+    if (communityService.friends.isEmpty) {
+      await communityService.loadFriends(null);
     }
     
-    // Show share dialog
-    if (mounted) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Share Simulation'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Your simulation "${simulation.name}" is now public.'),
-              const SizedBox(height: 12),
-              const Text('Other users can view it in the Community section.'),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
-    }
+    // Show share options dialog
+    if (!mounted) return;
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _ShareSimulationDialog(simulation: simulation),
+    );
   }
 }
 
@@ -1014,5 +999,293 @@ class _StatusChip extends StatelessWidget {
       default:
         return 'Pending';
     }
+  }
+}
+
+/// Share Simulation Dialog
+class _ShareSimulationDialog extends StatefulWidget {
+  final Simulation simulation;
+
+  const _ShareSimulationDialog({required this.simulation});
+
+  @override
+  State<_ShareSimulationDialog> createState() => _ShareSimulationDialogState();
+}
+
+class _ShareSimulationDialogState extends State<_ShareSimulationDialog> {
+  bool _isSharing = false;
+  String? _selectedFriendId;
+
+  Future<void> _shareWithFriend(Friend friend) async {
+    setState(() => _isSharing = true);
+
+    try {
+      final communityService = context.read<CommunityService>();
+      final notificationService = context.read<NotificationService>();
+
+      final success = await communityService.shareSimulation(
+        simulation: widget.simulation,
+        friendId: friend.id,
+      );
+
+      if (!mounted) return;
+
+      Navigator.pop(context);
+
+      if (success) {
+        notificationService.showSuccess(
+          'Simulation shared with ${friend.name}!',
+        );
+      } else {
+        notificationService.showError(
+          communityService.error ?? 'Failed to share simulation',
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        context.read<NotificationService>().showError(
+          'Failed to share simulation',
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSharing = false);
+      }
+    }
+  }
+
+  Future<void> _makePublic() async {
+    setState(() => _isSharing = true);
+
+    try {
+      final simulationService = context.read<SimulationService>();
+      final notificationService = context.read<NotificationService>();
+
+      await simulationService.togglePublicOnBackend(widget.simulation.id);
+
+      if (!mounted) return;
+
+      Navigator.pop(context);
+      notificationService.showSuccess(
+        'Simulation is now public and visible in Community!',
+      );
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        context.read<NotificationService>().showError(
+          'Failed to make simulation public',
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSharing = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final communityService = context.watch<CommunityService>();
+    final friends = communityService.friends;
+
+    return DraggableScrollableSheet(
+      initialChildSize: 0.6,
+      minChildSize: 0.4,
+      maxChildSize: 0.9,
+      builder: (context, scrollController) => Container(
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.cardDark : AppColors.cardLight,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          children: [
+            // Handle
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+
+            // Title
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Iconsax.share,
+                      color: AppColors.primary,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Share Simulation',
+                          style: AppTextStyles.titleMedium.copyWith(
+                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          widget.simulation.name,
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const Divider(height: 1),
+
+            // Make Public Option
+            ListTile(
+              onTap: _isSharing ? null : _makePublic,
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.success.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Iconsax.global,
+                  color: AppColors.success,
+                  size: 20,
+                ),
+              ),
+              title: const Text('Make Public'),
+              subtitle: const Text('Anyone can view in Community'),
+              trailing: widget.simulation.isPublic
+                  ? const Icon(Icons.check_circle, color: AppColors.success)
+                  : const Icon(Iconsax.arrow_right_3),
+            ),
+
+            const Divider(height: 1),
+
+            // Share with Friends Section
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Text(
+                    'Share with Friends',
+                    style: AppTextStyles.labelMedium.copyWith(
+                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${friends.length}',
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Friends List
+            Expanded(
+              child: _isSharing
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const CircularProgressIndicator(color: AppColors.primary),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Sharing simulation...',
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : friends.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Iconsax.user,
+                                size: 48,
+                                color: isDark ? AppColors.textTertiaryDark : AppColors.textTertiaryLight,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No friends yet',
+                                style: AppTextStyles.titleMedium.copyWith(
+                                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Add friends to share simulations',
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  color: isDark ? AppColors.textTertiaryDark : AppColors.textTertiaryLight,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.separated(
+                          controller: scrollController,
+                          padding: const EdgeInsets.only(bottom: 20),
+                          itemCount: friends.length,
+                          separatorBuilder: (_, __) => const Divider(height: 1, indent: 72),
+                          itemBuilder: (context, index) {
+                            final friend = friends[index];
+                            return ListTile(
+                              onTap: () => _shareWithFriend(friend),
+                              leading: CircleAvatar(
+                                backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                                child: Text(
+                                  friend.name.isNotEmpty ? friend.name[0].toUpperCase() : 'U',
+                                  style: const TextStyle(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              title: Text(friend.name),
+                              subtitle: Text(friend.email),
+                              trailing: const Icon(Iconsax.arrow_right_3, size: 18),
+                            );
+                          },
+                        ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

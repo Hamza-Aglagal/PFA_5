@@ -64,32 +64,67 @@ class SimulationService extends ChangeNotifier {
     notifyListeners();
     
     try {
+      debugPrint('Loading simulations from backend...');
       final response = await _apiService.get(ApiConfig.simulations);
+      
+      debugPrint('Response success: ${response.success}');
+      debugPrint('Response statusCode: ${response.statusCode}');
+      debugPrint('Response data type: ${response.data?.runtimeType}');
+      debugPrint('Response data: ${response.data}');
       
       _simulations.clear();
       
-      if (response.success && response.data != null) {
-        // Backend returns list directly
-        final List<dynamic> data = response.data is List 
-            ? response.data 
-            : (response.data['data'] ?? []);
+      if (response.success) {
+        if (response.data == null) {
+          debugPrint('⚠️ Success but data is null');
+          _isLoading = false;
+          notifyListeners();
+          return;
+        }
         
-        _simulations.addAll(
-          data.map((json) => _parseSimulationFromBackend(json)).toList()
-        );
-        debugPrint('Loaded ${_simulations.length} simulations from backend');
-      } else if (!response.success) {
-        debugPrint('Failed to load simulations: ${response.message}');
-        // No mock data - show empty list
+        // Handle different response formats
+        List<dynamic> simulationsList = [];
+        
+        if (response.data is List) {
+          // Direct array response
+          simulationsList = response.data as List<dynamic>;
+          debugPrint('✓ Direct array format: ${simulationsList.length} items');
+        } else if (response.data is Map) {
+          // Wrapped response with 'data' field
+          final map = response.data as Map<String, dynamic>;
+          if (map.containsKey('data')) {
+            if (map['data'] is List) {
+              simulationsList = map['data'] as List<dynamic>;
+              debugPrint('✓ Wrapped format: ${simulationsList.length} items');
+            } else {
+              debugPrint('⚠️ data field is not a list: ${map['data']?.runtimeType}');
+            }
+          } else {
+            debugPrint('⚠️ Map response but no data field. Keys: ${map.keys}');
+          }
+        } else {
+          debugPrint('⚠️ Unknown response format: ${response.data.runtimeType}');
+        }
+        
+        if (simulationsList.isNotEmpty) {
+          _simulations.addAll(
+            simulationsList.map((json) => _parseSimulationFromBackend(json)).toList()
+          );
+          debugPrint('✅ Loaded ${_simulations.length} simulations from backend');
+        } else {
+          debugPrint('ℹ️ No simulations found in response');
+        }
       } else {
-        debugPrint('Simulations loaded successfully but no data returned');
+        debugPrint('❌ Failed to load simulations: ${response.message}');
+        _error = response.message ?? 'Failed to load simulations';
       }
       
       _isLoading = false;
       notifyListeners();
-    } catch (e) {
-      debugPrint('Error loading simulations: $e');
-      _error = 'Failed to load simulations';
+    } catch (e, stackTrace) {
+      debugPrint('❌ Error loading simulations: $e');
+      debugPrint('Stack trace: $stackTrace');
+      _error = 'Failed to load simulations: $e';
       _isLoading = false;
       notifyListeners();
     }
@@ -98,45 +133,79 @@ class SimulationService extends ChangeNotifier {
   /// Load favorite simulations from backend
   Future<void> loadFavoriteSimulations() async {
     try {
+      debugPrint('Loading favorite simulations...');
       final response = await _apiService.get('${ApiConfig.simulations}/favorites');
       
       if (response.success && response.data != null) {
-        final List<dynamic> data = response.data is List 
-            ? response.data 
-            : (response.data['data'] ?? []);
+        List<dynamic> simulationsList = [];
         
-        _favoriteSimulations = data.map((json) => _parseSimulationFromBackend(json)).toList();
+        if (response.data is List) {
+          simulationsList = response.data as List<dynamic>;
+        } else if (response.data is Map) {
+          final map = response.data as Map<String, dynamic>;
+          if (map.containsKey('data') && map['data'] is List) {
+            simulationsList = map['data'] as List<dynamic>;
+          }
+        }
+        
+        _favoriteSimulations = simulationsList.map((json) => _parseSimulationFromBackend(json)).toList();
+        debugPrint('✅ Loaded ${_favoriteSimulations.length} favorite simulations');
         notifyListeners();
+      } else {
+        debugPrint('⚠️ Failed to load favorites: ${response.message}');
       }
     } catch (e) {
-      debugPrint('Error loading favorites: $e');
+      debugPrint('❌ Error loading favorites: $e');
     }
   }
 
   /// Load public simulations (community)
   Future<void> loadPublicSimulations() async {
     try {
+      debugPrint('Loading public simulations...');
       final response = await _apiService.get('${ApiConfig.simulations}/public');
       
       if (response.success && response.data != null) {
-        final List<dynamic> data = response.data is List 
-            ? response.data 
-            : (response.data['data'] ?? []);
+        List<dynamic> simulationsList = [];
         
-        _publicSimulations = data.map((json) => _parseSimulationFromBackend(json)).toList();
+        if (response.data is List) {
+          simulationsList = response.data as List<dynamic>;
+        } else if (response.data is Map) {
+          final map = response.data as Map<String, dynamic>;
+          if (map.containsKey('data') && map['data'] is List) {
+            simulationsList = map['data'] as List<dynamic>;
+          }
+        }
+        
+        _publicSimulations = simulationsList.map((json) => _parseSimulationFromBackend(json)).toList();
+        debugPrint('✅ Loaded ${_publicSimulations.length} public simulations');
         notifyListeners();
+      } else {
+        debugPrint('⚠️ Failed to load public simulations: ${response.message}');
       }
     } catch (e) {
-      debugPrint('Error loading public simulations: $e');
+      debugPrint('❌ Error loading public simulations: $e');
     }
   }
 
-  /// Create a new simulation - CALLS REAL BACKEND
+  /// Create a new simulation - CALLS REAL BACKEND (WITH AI SUPPORT)
   Future<Simulation?> createSimulationOnBackend({
     required String name,
     String? description,
     required SimulationParams params,
     bool isPublic = false,
+    // Optional AI building parameters
+    int? numFloors,
+    double? floorHeight,
+    int? numBeams,
+    int? numColumns,
+    double? beamSection,
+    double? columnSection,
+    double? concreteStrength,
+    double? steelGrade,
+    double? windLoad,
+    double? liveLoad,
+    double? deadLoad,
   }) async {
     _isLoading = true;
     _error = null;
@@ -160,6 +229,19 @@ class SimulationService extends ChangeNotifier {
         'supportType': _mapSupportType(params.supportType),
         'isPublic': isPublic,
       };
+
+      // Add AI parameters if provided
+      if (numFloors != null) body['numFloors'] = numFloors;
+      if (floorHeight != null) body['floorHeight'] = floorHeight;
+      if (numBeams != null) body['numBeams'] = numBeams;
+      if (numColumns != null) body['numColumns'] = numColumns;
+      if (beamSection != null) body['beamSection'] = beamSection;
+      if (columnSection != null) body['columnSection'] = columnSection;
+      if (concreteStrength != null) body['concreteStrength'] = concreteStrength;
+      if (steelGrade != null) body['steelGrade'] = steelGrade;
+      if (windLoad != null) body['windLoad'] = windLoad;
+      if (liveLoad != null) body['liveLoad'] = liveLoad;
+      if (deadLoad != null) body['deadLoad'] = deadLoad;
 
       debugPrint('Creating simulation on backend: $body');
 
@@ -230,13 +312,13 @@ class SimulationService extends ChangeNotifier {
 
   /// Set current step
   void setStep(int step) {
-    _currentStep = step.clamp(0, 3);
+    _currentStep = step.clamp(0, 4);
     notifyListeners();
   }
 
   /// Go to next step
   void nextStep() {
-    if (_currentStep < 3) {
+    if (_currentStep < 4) {
       _currentStep++;
       notifyListeners();
     }
@@ -258,10 +340,23 @@ class SimulationService extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Run simulation analysis
-  Future<AnalysisResult?> runSimulation({
+  /// Run simulation analysis - NOW CALLS REAL BACKEND + AI
+  Future<Simulation?> runSimulationOnBackend({
     required String userId,
-    String? name,
+    required String name,
+    String? description,
+    // Optional AI building parameters
+    int? numFloors,
+    double? floorHeight,
+    int? numBeams,
+    int? numColumns,
+    double? beamSection,
+    double? columnSection,
+    double? concreteStrength,
+    double? steelGrade,
+    double? windLoad,
+    double? liveLoad,
+    double? deadLoad,
   }) async {
     _isRunning = true;
     _progress = 0.0;
@@ -269,146 +364,52 @@ class SimulationService extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Create simulation if not exists
-      if (_currentSimulation == null) {
-        createSimulation(userId: userId, name: name);
-      }
-
+      debugPrint('🚀 Running simulation on backend with AI...');
+      
       // Update status to running
-      _updateSimulationStatus(SimulationStatus.running);
-
-      // Simulate analysis progress
-      for (var i = 0; i <= 100; i += 5) {
-        await Future.delayed(const Duration(milliseconds: 100));
-        _progress = i / 100;
-        notifyListeners();
+      if (_currentSimulation != null) {
+        _updateSimulationStatus(SimulationStatus.running);
       }
 
-      // Generate results
-      final result = _calculateResults(_currentParams);
-
-      // Update simulation with results
-      _currentSimulation = _currentSimulation!.copyWith(
-        status: SimulationStatus.completed,
-        result: result,
-        updatedAt: DateTime.now(),
+      // Call backend to create and process simulation
+      final simulation = await createSimulationOnBackend(
+        name: name,
+        description: description ?? 'Created from mobile app',
+        params: _currentParams,
+        isPublic: false,
+        numFloors: numFloors,
+        floorHeight: floorHeight,
+        numBeams: numBeams,
+        numColumns: numColumns,
+        beamSection: beamSection,
+        columnSection: columnSection,
+        concreteStrength: concreteStrength,
+        steelGrade: steelGrade,
+        windLoad: windLoad,
+        liveLoad: liveLoad,
+        deadLoad: deadLoad,
       );
 
-      final index = _simulations.indexWhere((s) => s.id == _currentSimulation!.id);
-      if (index != -1) {
-        _simulations[index] = _currentSimulation!;
+      if (simulation != null) {
+        _currentSimulation = simulation;
+        _isRunning = false;
+        _progress = 1.0;
+        notifyListeners();
+        debugPrint('✅ Simulation completed: ${simulation.id}');
+        return simulation;
+      } else {
+        throw Exception('Backend returned null simulation');
       }
-
-      _isRunning = false;
-      notifyListeners();
-      return result;
     } catch (e) {
+      debugPrint('❌ Error running simulation: $e');
       _error = e.toString();
-      _updateSimulationStatus(SimulationStatus.failed);
+      if (_currentSimulation != null) {
+        _updateSimulationStatus(SimulationStatus.failed);
+      }
       _isRunning = false;
       notifyListeners();
       return null;
     }
-  }
-
-  /// Calculate simulation results
-  AnalysisResult _calculateResults(SimulationParams params) {
-    final random = Random();
-    
-    // Simplified structural analysis calculations
-    final momentOfInertia = (params.width * pow(params.height, 3)) / 12;
-    final crossSectionArea = params.width * params.height;
-    
-    // Max deflection calculation (simplified)
-    final maxDeflection = (params.loadMagnitude * pow(params.length, 3)) / 
-        (48 * params.elasticModulus * 1e9 * momentOfInertia) * 1000; // in mm
-    
-    // Max stress calculation
-    final maxStress = (params.loadMagnitude * params.length * params.height / 2) / 
-        (4 * momentOfInertia) / 1e6; // in MPa
-    
-    // Safety factor
-    final safetyFactor = params.yieldStrength / maxStress;
-    
-    // Buckling load (simplified Euler's formula)
-    final bucklingLoad = (pow(pi, 2) * params.elasticModulus * 1e9 * momentOfInertia) / 
-        pow(params.length, 2) / 1000; // in kN
-    
-    // Natural frequency (simplified)
-    final naturalFrequency = (pi / 2) * sqrt((params.elasticModulus * 1e9 * momentOfInertia) / 
-        (params.density * crossSectionArea * pow(params.length, 4))) / (2 * pi);
-
-    // Determine status
-    final status = AnalysisResult.calculateStatus(safetyFactor);
-
-    // Generate stress distribution
-    final stressDistribution = List.generate(20, (i) {
-      final pos = i / 19.0 * params.length;
-      final stress = maxStress * sin(pi * pos / params.length);
-      return StressPoint(
-        position: pos,
-        stress: stress,
-        normalizedStress: stress / maxStress,
-      );
-    });
-
-    // Generate deflection curve
-    final deflectionCurve = List.generate(20, (i) {
-      final pos = i / 19.0 * params.length;
-      final x = pos / params.length;
-      final deflection = maxDeflection * 16 * pow(x, 2) * pow(1 - x, 2);
-      return DeflectionPoint(
-        position: pos,
-        deflection: deflection,
-      );
-    });
-
-    // Generate recommendations
-    final recommendations = <String>[];
-    if (safetyFactor < 2.0) {
-      recommendations.add('Consider increasing cross-section dimensions for better safety margin');
-    }
-    if (safetyFactor < 1.5) {
-      recommendations.add('Structure is at risk - immediate redesign recommended');
-      recommendations.add('Use a stronger material or reduce applied load');
-    }
-    if (maxDeflection > params.length / 250) {
-      recommendations.add('Deflection exceeds L/250 serviceability limit - consider stiffening');
-    }
-    if (recommendations.isEmpty) {
-      recommendations.add('Structure meets all safety and serviceability requirements');
-      recommendations.add('Design is optimized for the given loading conditions');
-    }
-
-    // AI Insight
-    final aiInsight = AIInsight(
-      summary: safetyFactor >= 2.0
-          ? 'The structure demonstrates excellent stability under the specified loading conditions.'
-          : safetyFactor >= 1.5
-              ? 'The structure is stable but operating near safety margins. Consider optimization.'
-              : 'Critical: The structure requires immediate attention to prevent failure.',
-      keyFindings: [
-        'Maximum stress occurs at ${(params.loadPosition / 100 * params.length).toStringAsFixed(2)}m from support',
-        'Peak deflection is ${maxDeflection.toStringAsFixed(2)}mm at mid-span',
-        '${params.material.displayName} provides ${safetyFactor >= 2.0 ? "adequate" : "marginal"} strength margin',
-      ],
-      improvements: recommendations,
-      confidenceScore: 0.85 + random.nextDouble() * 0.1,
-      generatedAt: DateTime.now(),
-    );
-
-    return AnalysisResult(
-      safetyFactor: safetyFactor,
-      maxDeflection: maxDeflection,
-      maxStress: maxStress,
-      bucklingLoad: bucklingLoad,
-      naturalFrequency: naturalFrequency,
-      status: status,
-      recommendations: recommendations,
-      stressDistribution: stressDistribution,
-      deflectionCurve: deflectionCurve,
-      aiInsight: aiInsight,
-    );
   }
 
   /// Update simulation status
@@ -777,6 +778,21 @@ class SimulationService extends ChangeNotifier {
     AnalysisResult? result;
     if (json['results'] != null) {
       final r = json['results'];
+      
+      // Parse AI predictions if present
+      double? stabilityIndex;
+      double? seismicResistance;
+      double? crackRisk;
+      double? foundationStability;
+      
+      if (r['aiPredictions'] != null) {
+        final ai = r['aiPredictions'];
+        stabilityIndex = (ai['stabilityIndex'] as num?)?.toDouble();
+        seismicResistance = (ai['seismicResistance'] as num?)?.toDouble();
+        crackRisk = (ai['crackRisk'] as num?)?.toDouble();
+        foundationStability = (ai['foundationStability'] as num?)?.toDouble();
+      }
+      
       result = AnalysisResult(
         safetyFactor: (r['safetyFactor'] as num?)?.toDouble() ?? 0.0,
         maxDeflection: (r['maxDeflection'] as num?)?.toDouble() ?? 0.0,
@@ -787,6 +803,10 @@ class SimulationService extends ChangeNotifier {
         recommendations: r['recommendations'] != null 
             ? [r['recommendations'].toString()] 
             : [],
+        stabilityIndex: stabilityIndex,
+        seismicResistance: seismicResistance,
+        crackRisk: crackRisk,
+        foundationStability: foundationStability,
       );
     }
 

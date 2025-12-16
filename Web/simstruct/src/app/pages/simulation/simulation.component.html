@@ -260,8 +260,207 @@
           </div>
         }
 
-        <!-- Step 4: Review -->
+        <!-- Step 4: AI Analysis Parameters (Optional) -->
         @if (currentStep() === 4) {
+          <div class="form-step animate-fade-in">
+            <h3 class="step-heading">🤖 AI-Powered Analysis</h3>
+            <p class="step-description">Enable advanced AI predictions for structural stability, seismic resistance, and foundation analysis</p>
+            
+            <!-- AI Toggle -->
+            <div class="ai-toggle-section">
+              <div class="toggle-card">
+                <div class="toggle-header">
+                  <div class="toggle-info">
+                    <h4 class="toggle-title">Enable AI Analysis</h4>
+                    <p class="toggle-desc">Get advanced predictions using deep learning models</p>
+                  </div>
+                  <label class="switch">
+                    <input 
+                      type="checkbox" 
+                      [checked]="params().useAI"
+                      (change)="updateParam('useAI', $any($event.target).checked)"
+                    >
+                    <span class="slider"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- AI Parameters Form (shown when AI is enabled) -->
+            @if (params().useAI) {
+              <div class="ai-parameters-form animate-fade-in">
+                <div class="parameters-grid">
+                  <!-- Building Structure Section -->
+                  <div class="param-section">
+                    <h4 class="param-section-title">
+                      <span class="section-icon">🏢</span>
+                      Building Structure
+                    </h4>
+                    <div class="input-grid">
+                      <div class="form-group">
+                        <label class="form-label">Number of Floors</label>
+                        <input 
+                          type="number" 
+                          class="form-input"
+                          [value]="params().numFloors"
+                          min="1" max="100" step="1"
+                          (input)="updateParam('numFloors', +$any($event.target).value)"
+                        >
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label">Floor Height (m)</label>
+                        <input 
+                          type="number" 
+                          class="form-input"
+                          [value]="params().floorHeight"
+                          min="2" max="10" step="0.1"
+                          (input)="updateParam('floorHeight', +$any($event.target).value)"
+                        >
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label">Number of Beams</label>
+                        <input 
+                          type="number" 
+                          class="form-input"
+                          [value]="params().numBeams"
+                          min="1" max="1000" step="1"
+                          (input)="updateParam('numBeams', +$any($event.target).value)"
+                        >
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label">Number of Columns</label>
+                        <input 
+                          type="number" 
+                          class="form-input"
+                          [value]="params().numColumns"
+                          min="1" max="1000" step="1"
+                          (input)="updateParam('numColumns', +$any($event.target).value)"
+                        >
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Cross Sections Section -->
+                  <div class="param-section">
+                    <h4 class="param-section-title">
+                      <span class="section-icon">📐</span>
+                      Cross Sections
+                    </h4>
+                    <div class="input-grid">
+                      <div class="form-group">
+                        <label class="form-label">Beam Section (m²)</label>
+                        <input 
+                          type="number" 
+                          class="form-input"
+                          [value]="params().beamSection"
+                          min="0.1" max="10" step="0.1"
+                          (input)="updateParam('beamSection', +$any($event.target).value)"
+                        >
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label">Column Section (m²)</label>
+                        <input 
+                          type="number" 
+                          class="form-input"
+                          [value]="params().columnSection"
+                          min="0.1" max="10" step="0.1"
+                          (input)="updateParam('columnSection', +$any($event.target).value)"
+                        >
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Material Properties Section -->
+                  <div class="param-section">
+                    <h4 class="param-section-title">
+                      <span class="section-icon">🧱</span>
+                      Material Properties
+                    </h4>
+                    <div class="input-grid">
+                      <div class="form-group">
+                        <label class="form-label">Concrete Strength (MPa)</label>
+                        <input 
+                          type="number" 
+                          class="form-input"
+                          [value]="params().concreteStrength"
+                          min="10" max="100" step="5"
+                          (input)="updateParam('concreteStrength', +$any($event.target).value)"
+                        >
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label">Steel Grade (MPa)</label>
+                        <input 
+                          type="number" 
+                          class="form-input"
+                          [value]="params().steelGrade"
+                          min="200" max="600" step="50"
+                          (input)="updateParam('steelGrade', +$any($event.target).value)"
+                        >
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Loading Conditions Section -->
+                  <div class="param-section">
+                    <h4 class="param-section-title">
+                      <span class="section-icon">💨</span>
+                      Loading Conditions
+                    </h4>
+                    <div class="input-grid">
+                      <div class="form-group">
+                        <label class="form-label">Wind Load (kN/m²)</label>
+                        <input 
+                          type="number" 
+                          class="form-input"
+                          [value]="params().windLoad"
+                          min="0" max="10" step="0.1"
+                          (input)="updateParam('windLoad', +$any($event.target).value)"
+                        >
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label">Live Load (kN/m²)</label>
+                        <input 
+                          type="number" 
+                          class="form-input"
+                          [value]="params().liveLoad"
+                          min="0" max="20" step="0.5"
+                          (input)="updateParam('liveLoad', +$any($event.target).value)"
+                        >
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label">Dead Load (kN/m²)</label>
+                        <input 
+                          type="number" 
+                          class="form-input"
+                          [value]="params().deadLoad"
+                          min="0" max="50" step="0.5"
+                          (input)="updateParam('deadLoad', +$any($event.target).value)"
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- AI Info Card -->
+                <div class="ai-info-card">
+                  <div class="info-icon">ℹ️</div>
+                  <div class="info-content">
+                    <p class="info-title">AI Model Information</p>
+                    <p class="info-text">Our deep learning model analyzes your building parameters to predict stability index, seismic resistance, crack risk, and foundation stability with high accuracy.</p>
+                  </div>
+                </div>
+              </div>
+            } @else {
+              <div class="ai-disabled-message">
+                <div class="disabled-icon">🔒</div>
+                <p>AI analysis is currently disabled. Enable it above to access advanced predictions.</p>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Step 5: Review -->
+        @if (currentStep() === 5) {
           <div class="form-step animate-fade-in">
             <h3 class="step-heading">Review & Analyze</h3>
             
@@ -370,6 +569,33 @@
                   </div>
                 </div>
               </div>
+
+              <!-- AI Analysis Section (if enabled) -->
+              @if (params().useAI) {
+                <div class="summary-section ai-section">
+                  <h5 class="summary-title">
+                    <span class="summary-icon">🤖</span>
+                    AI Analysis
+                  </h5>
+                  <div class="summary-items">
+                    <div class="summary-item">
+                      <span class="item-label">Status</span>
+                      <span class="item-value ai-enabled">
+                        <span class="status-dot"></span>
+                        Enabled
+                      </span>
+                    </div>
+                    <div class="summary-item">
+                      <span class="item-label">Building</span>
+                      <span class="item-value">{{ params().numFloors }} floors, {{ params().numBeams }} beams, {{ params().numColumns }} columns</span>
+                    </div>
+                    <div class="summary-item">
+                      <span class="item-label">Loads</span>
+                      <span class="item-value">Wind: {{ params().windLoad }}, Live: {{ params().liveLoad }}, Dead: {{ params().deadLoad }} kN/m²</span>
+                    </div>
+                  </div>
+                </div>
+              }
             </div>
           </div>
         }

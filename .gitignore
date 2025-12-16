@@ -49,6 +49,24 @@ temp/
 # Angular cache
 .angular/
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# AI Model files
+Model_AI/models/*.pt
+Model_AI/data/*.csv
+Model_AI/venv/
+
 # Maven
 .mvn/repository/
 

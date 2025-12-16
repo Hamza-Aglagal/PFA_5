@@ -44,18 +44,9 @@ export class ResultsComponent implements OnInit, AfterViewInit, OnDestroy {
   safetyFactor = signal(2.5);
   aiConfidence = signal(95);
   
-  results = signal<AnalysisResult[]>([
-    { id: '1', category: 'Stress Analysis', metric: 'Maximum Stress', value: 125, unit: 'MPa', status: 'safe', threshold: 250 },
-    { id: '2', category: 'Deformation', metric: 'Maximum Deflection', value: 8.5, unit: 'mm', status: 'safe', threshold: 20 },
-    { id: '3', category: 'Forces', metric: 'Maximum Bending Moment', value: 125, unit: 'kNm', status: 'safe', threshold: 500 },
-    { id: '4', category: 'Forces', metric: 'Maximum Shear Force', value: 25, unit: 'kN', status: 'safe', threshold: 200 },
-    { id: '5', category: 'Stability', metric: 'Safety Factor', value: 2.5, unit: '', status: 'safe', threshold: 1.5 }
-  ]);
+  results = signal<AnalysisResult[]>([]);
   
-  recommendations = signal<{ type: string; title: string; description: string }[]>([
-    { type: 'success', title: 'Structure is Safe', description: 'All stress values are within acceptable limits with good safety margins.' },
-    { type: 'info', title: 'Optimization Opportunity', description: 'Consider reducing cross-section for cost savings while maintaining safety.' }
-  ]);
+  recommendations = signal<{ type: string; title: string; description: string }[]>([]);
   
   activeTab = signal<'stress' | 'deformation' | '3d'>('3d');
   showStressVisualization = signal(true);
@@ -113,14 +104,81 @@ export class ResultsComponent implements OnInit, AfterViewInit, OnDestroy {
       this.safetyFactor.set(sf);
       this.overallStatus.set(sf >= 2.0 ? 'safe' : sf >= 1.0 ? 'warning' : 'critical');
       
-      this.results.set([
+      const baseResults = [
         { id: '1', category: 'Stress', metric: 'Max Stress', value: sim.results.maxStress / 1e6, unit: 'MPa', status: this.getStatus(sim.results.maxStress / 1e6, 250), threshold: 250 },
         { id: '2', category: 'Deformation', metric: 'Max Deflection', value: sim.results.maxDeflection * 1000, unit: 'mm', status: this.getStatus(sim.results.maxDeflection * 1000, 20), threshold: 20 },
         { id: '3', category: 'Forces', metric: 'Max Bending', value: sim.results.maxBendingMoment / 1000, unit: 'kNm', status: 'safe', threshold: 500 },
         { id: '4', category: 'Forces', metric: 'Max Shear', value: sim.results.maxShearForce / 1000, unit: 'kN', status: 'safe', threshold: 200 },
         { id: '5', category: 'Stability', metric: 'Safety Factor', value: sf, unit: '', status: this.getStatus(sf, 1.5, true), threshold: 1.5 }
-      ]);
+      ];
+      
+      // Add AI predictions if available
+      if (sim.results.aiPredictions) {
+        console.log('AI Predictions found:', sim.results.aiPredictions);
+        const ai = sim.results.aiPredictions;
+        baseResults.push(
+          { id: '6', category: 'AI Analysis', metric: 'Stability Index', value: ai.stabilityIndex * 100, unit: '%', status: this.getStatus(ai.stabilityIndex * 100, 70, true), threshold: 70 },
+          { id: '7', category: 'AI Analysis', metric: 'Seismic Resistance', value: ai.seismicResistance * 100, unit: '%', status: this.getStatus(ai.seismicResistance * 100, 70, true), threshold: 70 },
+          { id: '8', category: 'AI Analysis', metric: 'Crack Risk', value: ai.crackRisk * 100, unit: '%', status: this.getStatus(ai.crackRisk * 100, 30, false), threshold: 30 },
+          { id: '9', category: 'AI Analysis', metric: 'Foundation Stability', value: ai.foundationStability * 100, unit: '%', status: this.getStatus(ai.foundationStability * 100, 70, true), threshold: 70 }
+        );
+        // Update AI confidence based on average of AI predictions
+        const avgConfidence = ((ai.stabilityIndex + ai.seismicResistance + ai.foundationStability + (1 - ai.crackRisk)) / 4) * 100;
+        this.aiConfidence.set(Math.round(avgConfidence));
+        
+        // Generate AI-specific recommendations
+        this.generateAIRecommendations(ai, sf);
+      } else {
+        // Traditional recommendations when no AI
+        this.recommendations.set([
+          { type: sim.results.isSafe ? 'success' : 'warning', title: sim.results.isSafe ? 'Structure is Safe' : 'Safety Concerns Detected', description: sim.results.recommendations },
+          { type: 'info', title: 'Traditional Analysis', description: 'This simulation used classical beam theory. Enable AI for advanced predictions including seismic resistance and crack risk analysis.' }
+        ]);
+      }
+      
+      this.results.set(baseResults);
     }
+  }
+  
+  private generateAIRecommendations(ai: any, safetyFactor: number): void {
+    const recs: { type: string; title: string; description: string }[] = [];
+    
+    // Overall safety
+    if (safetyFactor >= 2.0 && ai.stabilityIndex >= 0.8) {
+      recs.push({ type: 'success', title: 'Excellent Structural Performance', description: 'AI analysis confirms high stability and safety margins. Structure exceeds all safety requirements.' });
+    } else if (safetyFactor >= 1.5) {
+      recs.push({ type: 'success', title: 'Structure is Safe', description: 'Traditional and AI analysis both indicate acceptable performance within safety limits.' });
+    } else {
+      recs.push({ type: 'warning', title: 'Safety Review Recommended', description: 'Consider structural reinforcement to improve safety factors and stability indices.' });
+    }
+    
+    // Seismic resistance
+    if (ai.seismicResistance < 0.6) {
+      recs.push({ type: 'warning', title: 'Seismic Vulnerability Detected', description: 'AI predicts low earthquake resistance. Consider seismic reinforcement or base isolation for high-risk zones.' });
+    } else if (ai.seismicResistance >= 0.8) {
+      recs.push({ type: 'success', title: 'Excellent Seismic Performance', description: 'Structure demonstrates high resistance to seismic loads based on AI analysis.' });
+    }
+    
+    // Crack risk
+    if (ai.crackRisk > 0.5) {
+      recs.push({ type: 'warning', title: 'High Crack Risk Detected', description: 'AI predicts significant cracking potential. Review concrete mix design, reinforcement spacing, and consider crack control measures.' });
+    } else if (ai.crackRisk < 0.2) {
+      recs.push({ type: 'success', title: 'Low Crack Risk', description: 'AI analysis indicates minimal cracking potential with current design parameters.' });
+    }
+    
+    // Foundation stability
+    if (ai.foundationStability < 0.7) {
+      recs.push({ type: 'warning', title: 'Foundation Concerns', description: 'AI suggests potential foundation stability issues. Consider soil investigation and foundation reinforcement.' });
+    } else if (ai.foundationStability >= 0.85) {
+      recs.push({ type: 'success', title: 'Stable Foundation Design', description: 'Foundation system shows excellent stability characteristics per AI predictions.' });
+    }
+    
+    // General optimization
+    if (safetyFactor > 3.0 && ai.stabilityIndex > 0.9) {
+      recs.push({ type: 'info', title: 'Over-Design Detected', description: 'Structure is significantly over-designed. Material optimization could reduce costs while maintaining safety.' });
+    }
+    
+    this.recommendations.set(recs);
   }
   
   private getStatus(value: number, threshold: number, inverse = false): 'safe' | 'warning' | 'critical' {
