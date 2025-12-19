@@ -189,23 +189,12 @@ class SimulationService extends ChangeNotifier {
   }
 
   /// Create a new simulation - CALLS REAL BACKEND (WITH AI SUPPORT)
+  /// All parameters including AI params sent from mobile to backend
   Future<Simulation?> createSimulationOnBackend({
     required String name,
     String? description,
     required SimulationParams params,
     bool isPublic = false,
-    // Optional AI building parameters
-    int? numFloors,
-    double? floorHeight,
-    int? numBeams,
-    int? numColumns,
-    double? beamSection,
-    double? columnSection,
-    double? concreteStrength,
-    double? steelGrade,
-    double? windLoad,
-    double? liveLoad,
-    double? deadLoad,
   }) async {
     _isLoading = true;
     _error = null;
@@ -213,9 +202,10 @@ class SimulationService extends ChangeNotifier {
 
     try {
       // Build request body matching backend SimulationRequest
+      // Includes all AI parameters for backend AI predictions
       final body = {
         'name': name,
-        'description': description,
+        'description': description ?? 'Created from mobile app',
         'beamLength': params.length,
         'beamWidth': params.width,
         'beamHeight': params.height,
@@ -228,27 +218,32 @@ class SimulationService extends ChangeNotifier {
         'loadPosition': params.loadPosition,
         'supportType': _mapSupportType(params.supportType),
         'isPublic': isPublic,
+        'numFloors': params.numFloors,
+        'floorHeight': params.floorHeight,
+        'numBeams': params.numBeams,
+        'numColumns': params.numColumns,
+        'beamSection': params.beamSection,
+        'columnSection': params.columnSection,
+        'concreteStrength': params.concreteStrength,
+        'steelGrade': params.steelGrade,
+        'windLoad': params.windLoad,
+        'liveLoad': params.liveLoad,
+        'deadLoad': params.deadLoad,
       };
 
-      // Add AI parameters if provided
-      if (numFloors != null) body['numFloors'] = numFloors;
-      if (floorHeight != null) body['floorHeight'] = floorHeight;
-      if (numBeams != null) body['numBeams'] = numBeams;
-      if (numColumns != null) body['numColumns'] = numColumns;
-      if (beamSection != null) body['beamSection'] = beamSection;
-      if (columnSection != null) body['columnSection'] = columnSection;
-      if (concreteStrength != null) body['concreteStrength'] = concreteStrength;
-      if (steelGrade != null) body['steelGrade'] = steelGrade;
-      if (windLoad != null) body['windLoad'] = windLoad;
-      if (liveLoad != null) body['liveLoad'] = liveLoad;
-      if (deadLoad != null) body['deadLoad'] = deadLoad;
-
-      debugPrint('Creating simulation on backend: $body');
+      debugPrint('📤 Creating simulation on backend');
+      debugPrint('📋 Request body: $body');
 
       final response = await _apiService.post(
         ApiConfig.simulations,
         body: body,
       );
+
+      debugPrint('📥 Backend response - Success: ${response.success}, Status: ${response.statusCode}');
+      if (!response.success) {
+        debugPrint('❌ Error message: ${response.message}');
+        debugPrint('❌ Error data: ${response.data}');
+      }
 
       if (response.success && response.data != null) {
         final data = response.data['data'] ?? response.data;
@@ -258,19 +253,21 @@ class SimulationService extends ChangeNotifier {
         _simulations.insert(0, simulation);
         _currentSimulation = simulation;
         
-        debugPrint('Simulation created: ${simulation.id}');
+        debugPrint('✅ Simulation created: ${simulation.id}');
         _isLoading = false;
         notifyListeners();
         return simulation;
       } else {
-        _error = response.message;
+        final errorMsg = response.message ?? 'Unknown error';
+        debugPrint('❌ Failed to create simulation: $errorMsg');
+        _error = errorMsg;
         _isLoading = false;
         notifyListeners();
         return null;
       }
     } catch (e) {
-      debugPrint('Error creating simulation: $e');
-      _error = 'Failed to create simulation';
+      debugPrint('❌ Exception creating simulation: $e');
+      _error = 'Failed to create simulation: $e';
       _isLoading = false;
       notifyListeners();
       return null;
@@ -337,26 +334,22 @@ class SimulationService extends ChangeNotifier {
     _currentStep = 0;
     _currentParams = const SimulationParams();
     _currentSimulation = null;
+    debugPrint('🔄 Wizard reset with default params:');
+    debugPrint('  - numFloors: ${_currentParams.numFloors}');
+    debugPrint('  - floorHeight: ${_currentParams.floorHeight}');
+    debugPrint('  - numBeams: ${_currentParams.numBeams}');
+    debugPrint('  - numColumns: ${_currentParams.numColumns}');
+    debugPrint('  - beamSection: ${_currentParams.beamSection}');
+    debugPrint('  - columnSection: ${_currentParams.columnSection}');
     notifyListeners();
   }
 
-  /// Run simulation analysis - NOW CALLS REAL BACKEND + AI
+  /// Run simulation analysis - CALLS REAL BACKEND + AI
+  /// All parameters including AI params sent from mobile to backend
   Future<Simulation?> runSimulationOnBackend({
     required String userId,
     required String name,
     String? description,
-    // Optional AI building parameters
-    int? numFloors,
-    double? floorHeight,
-    int? numBeams,
-    int? numColumns,
-    double? beamSection,
-    double? columnSection,
-    double? concreteStrength,
-    double? steelGrade,
-    double? windLoad,
-    double? liveLoad,
-    double? deadLoad,
   }) async {
     _isRunning = true;
     _progress = 0.0;
@@ -372,22 +365,12 @@ class SimulationService extends ChangeNotifier {
       }
 
       // Call backend to create and process simulation
+      // AI parameters auto-generated from beam params
       final simulation = await createSimulationOnBackend(
         name: name,
         description: description ?? 'Created from mobile app',
         params: _currentParams,
         isPublic: false,
-        numFloors: numFloors,
-        floorHeight: floorHeight,
-        numBeams: numBeams,
-        numColumns: numColumns,
-        beamSection: beamSection,
-        columnSection: columnSection,
-        concreteStrength: concreteStrength,
-        steelGrade: steelGrade,
-        windLoad: windLoad,
-        liveLoad: liveLoad,
-        deadLoad: deadLoad,
       );
 
       if (simulation != null) {
@@ -671,11 +654,29 @@ class SimulationService extends ChangeNotifier {
   /// Get simulation from backend by ID
   Future<Simulation?> getSimulationFromBackend(String id) async {
     try {
+      debugPrint('📥 Fetching simulation from backend: $id');
       final response = await _apiService.get('${ApiConfig.simulations}/$id');
+      
+      debugPrint('📦 Response status: ${response.success}, statusCode: ${response.statusCode}');
+      debugPrint('📦 Response data type: ${response.data?.runtimeType}');
       
       if (response.success && response.data != null) {
         final data = response.data['data'] ?? response.data;
+        debugPrint('📦 Simulation data: $data');
+        debugPrint('📦 Results field: ${data['results']}');
+        
         final simulation = _parseSimulationFromBackend(data);
+        
+        debugPrint('✅ Parsed simulation: ${simulation.name}');
+        debugPrint('✅ Result: ${simulation.result != null ? "Available" : "NULL"}');
+        if (simulation.result != null) {
+          debugPrint('   - maxStress: ${simulation.result!.maxStress}');
+          debugPrint('   - maxDeflection: ${simulation.result!.maxDeflection}');
+          debugPrint('   - maxBendingMoment: ${simulation.result!.maxBendingMoment}');
+          debugPrint('   - maxShearForce: ${simulation.result!.maxShearForce}');
+          debugPrint('   - safetyFactor: ${simulation.result!.safetyFactor}');
+          debugPrint('   - weight: ${simulation.result!.weight}');
+        }
         
         // Add to local list if not exists
         final existingIndex = _simulations.indexWhere((s) => s.id == id);
@@ -688,9 +689,11 @@ class SimulationService extends ChangeNotifier {
         notifyListeners();
         return simulation;
       }
+      
+      debugPrint('❌ Failed to fetch simulation');
       return null;
     } catch (e) {
-      debugPrint('Error loading simulation from backend: $e');
+      debugPrint('❌ Error loading simulation from backend: $e');
       return null;
     }
   }
@@ -774,10 +777,13 @@ class SimulationService extends ChangeNotifier {
   // ========== HELPER: PARSE SIMULATION FROM BACKEND ==========
   /// Parse backend response to Simulation model
   Simulation _parseSimulationFromBackend(Map<String, dynamic> json) {
+    debugPrint('🔍 Parsing simulation from backend...');
+    
     // Parse results if present
     AnalysisResult? result;
     if (json['results'] != null) {
       final r = json['results'];
+      debugPrint('📊 Results data found: $r');
       
       // Parse AI predictions if present
       double? stabilityIndex;
@@ -793,6 +799,13 @@ class SimulationService extends ChangeNotifier {
         foundationStability = (ai['foundationStability'] as num?)?.toDouble();
       }
       
+      debugPrint('   Raw maxStress: ${r['maxStress']} (type: ${r['maxStress']?.runtimeType})');
+      debugPrint('   Raw maxDeflection: ${r['maxDeflection']} (type: ${r['maxDeflection']?.runtimeType})');
+      debugPrint('   Raw maxBendingMoment: ${r['maxBendingMoment']} (type: ${r['maxBendingMoment']?.runtimeType})');
+      debugPrint('   Raw maxShearForce: ${r['maxShearForce']} (type: ${r['maxShearForce']?.runtimeType})');
+      debugPrint('   Raw safetyFactor: ${r['safetyFactor']} (type: ${r['safetyFactor']?.runtimeType})');
+      debugPrint('   Raw weight: ${r['weight']} (type: ${r['weight']?.runtimeType})');
+      
       result = AnalysisResult(
         safetyFactor: (r['safetyFactor'] as num?)?.toDouble() ?? 0.0,
         maxDeflection: (r['maxDeflection'] as num?)?.toDouble() ?? 0.0,
@@ -803,6 +816,9 @@ class SimulationService extends ChangeNotifier {
         recommendations: r['recommendations'] != null 
             ? [r['recommendations'].toString()] 
             : [],
+        maxBendingMoment: (r['maxBendingMoment'] as num?)?.toDouble(),
+        maxShearForce: (r['maxShearForce'] as num?)?.toDouble(),
+        weight: (r['weight'] as num?)?.toDouble(),
         stabilityIndex: stabilityIndex,
         seismicResistance: seismicResistance,
         crackRisk: crackRisk,

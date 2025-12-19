@@ -26,7 +26,8 @@ public interface SharedSimulationRepository extends JpaRepository<SharedSimulati
     List<SharedSimulation> findReceivedFromFriend(@Param("userId") String userId, @Param("friendId") String friendId);
 
     // Check if simulation is already shared with user
-    Optional<SharedSimulation> findBySimulationIdAndSharedWithId(String simulationId, String sharedWithId);
+    @Query("SELECT ss FROM SharedSimulation ss WHERE ss.simulation.id = :simulationId AND ss.sharedWith.id = :sharedWithId")
+    Optional<SharedSimulation> findBySimulationIdAndSharedWithId(@Param("simulationId") String simulationId, @Param("sharedWithId") String sharedWithId);
 
     // Count shares by user
     long countBySharedById(String userId);

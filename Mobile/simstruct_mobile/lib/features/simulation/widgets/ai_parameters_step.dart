@@ -51,7 +51,7 @@ class AIParametersStep extends StatelessWidget {
           ).animate().fadeIn().slideX(begin: -0.1),
           const SizedBox(height: 8),
           Text(
-            'Optional: Provide building details for AI-powered stability analysis',
+            'Required: Provide building details for AI-powered stability analysis',
             style: AppTextStyles.bodyMedium.copyWith(
               color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
             ),
@@ -227,7 +227,7 @@ class AIParametersStep extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'These parameters enable AI-powered structural analysis. Leave empty to skip AI analysis.',
+                    'These parameters are required for AI-powered structural analysis. Our Deep Learning model provides accurate predictions.',
                     style: AppTextStyles.bodySmall.copyWith(
                       color: isDark
                           ? AppColors.textSecondaryDark

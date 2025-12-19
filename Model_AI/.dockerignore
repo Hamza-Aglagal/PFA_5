@@ -17,8 +17,8 @@ ENV/
 .ipynb_checkpoints/
 *.ipynb
 
-# Data (if too large)
-data/fem_simulations.csv
+# Data (keep the dataset)
+# data/fem_simulations.csv
 
 # Logs
 logs/*.log

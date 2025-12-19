@@ -104,12 +104,12 @@ export class ResultsComponent implements OnInit, AfterViewInit, OnDestroy {
       this.safetyFactor.set(sf);
       this.overallStatus.set(sf >= 2.0 ? 'safe' : sf >= 1.0 ? 'warning' : 'critical');
       
-      const baseResults = [
-        { id: '1', category: 'Stress', metric: 'Max Stress', value: sim.results.maxStress / 1e6, unit: 'MPa', status: this.getStatus(sim.results.maxStress / 1e6, 250), threshold: 250 },
-        { id: '2', category: 'Deformation', metric: 'Max Deflection', value: sim.results.maxDeflection * 1000, unit: 'mm', status: this.getStatus(sim.results.maxDeflection * 1000, 20), threshold: 20 },
-        { id: '3', category: 'Forces', metric: 'Max Bending', value: sim.results.maxBendingMoment / 1000, unit: 'kNm', status: 'safe', threshold: 500 },
-        { id: '4', category: 'Forces', metric: 'Max Shear', value: sim.results.maxShearForce / 1000, unit: 'kN', status: 'safe', threshold: 200 },
-        { id: '5', category: 'Stability', metric: 'Safety Factor', value: sf, unit: '', status: this.getStatus(sf, 1.5, true), threshold: 1.5 }
+      const baseResults: AnalysisResult[] = [
+        { id: '1', category: 'Stress', metric: 'Max Stress', value: sim.results.maxStress / 1e6, unit: 'MPa', status: this.getStatus(sim.results.maxStress / 1e6, 250) as 'safe' | 'warning' | 'critical', threshold: 250 },
+        { id: '2', category: 'Deformation', metric: 'Max Deflection', value: sim.results.maxDeflection * 1000, unit: 'mm', status: this.getStatus(sim.results.maxDeflection * 1000, 20) as 'safe' | 'warning' | 'critical', threshold: 20 },
+        { id: '3', category: 'Forces', metric: 'Max Bending', value: sim.results.maxBendingMoment / 1000, unit: 'kNm', status: 'safe' as const, threshold: 500 },
+        { id: '4', category: 'Forces', metric: 'Max Shear', value: sim.results.maxShearForce / 1000, unit: 'kN', status: 'safe' as const, threshold: 200 },
+        { id: '5', category: 'Stability', metric: 'Safety Factor', value: sf, unit: '', status: this.getStatus(sf, 1.5, true) as 'safe' | 'warning' | 'critical', threshold: 1.5 }
       ];
       
       // Add AI predictions if available
@@ -117,10 +117,10 @@ export class ResultsComponent implements OnInit, AfterViewInit, OnDestroy {
         console.log('AI Predictions found:', sim.results.aiPredictions);
         const ai = sim.results.aiPredictions;
         baseResults.push(
-          { id: '6', category: 'AI Analysis', metric: 'Stability Index', value: ai.stabilityIndex * 100, unit: '%', status: this.getStatus(ai.stabilityIndex * 100, 70, true), threshold: 70 },
-          { id: '7', category: 'AI Analysis', metric: 'Seismic Resistance', value: ai.seismicResistance * 100, unit: '%', status: this.getStatus(ai.seismicResistance * 100, 70, true), threshold: 70 },
-          { id: '8', category: 'AI Analysis', metric: 'Crack Risk', value: ai.crackRisk * 100, unit: '%', status: this.getStatus(ai.crackRisk * 100, 30, false), threshold: 30 },
-          { id: '9', category: 'AI Analysis', metric: 'Foundation Stability', value: ai.foundationStability * 100, unit: '%', status: this.getStatus(ai.foundationStability * 100, 70, true), threshold: 70 }
+          { id: '6', category: 'AI Analysis', metric: 'Stability Index', value: ai.stabilityIndex * 100, unit: '%', status: this.getStatus(ai.stabilityIndex * 100, 70, true) as 'safe' | 'warning' | 'critical', threshold: 70 },
+          { id: '7', category: 'AI Analysis', metric: 'Seismic Resistance', value: ai.seismicResistance * 100, unit: '%', status: this.getStatus(ai.seismicResistance * 100, 70, true) as 'safe' | 'warning' | 'critical', threshold: 70 },
+          { id: '8', category: 'AI Analysis', metric: 'Crack Risk', value: ai.crackRisk * 100, unit: '%', status: this.getStatus(ai.crackRisk * 100, 30, false) as 'safe' | 'warning' | 'critical', threshold: 30 },
+          { id: '9', category: 'AI Analysis', metric: 'Foundation Stability', value: ai.foundationStability * 100, unit: '%', status: this.getStatus(ai.foundationStability * 100, 70, true) as 'safe' | 'warning' | 'critical', threshold: 70 }
         );
         // Update AI confidence based on average of AI predictions
         const avgConfidence = ((ai.stabilityIndex + ai.seismicResistance + ai.foundationStability + (1 - ai.crackRisk)) / 4) * 100;

@@ -1,0 +1,14 @@
+Execute the Scanner for Maven
+Running a SonarQube analysis with Maven is straightforward. You just need to run the following command in your project's folder.
+
+mvn clean verify sonar:sonar \
+  -Dsonar.projectKey=simstruct-backend \
+  -Dsonar.projectName='SimStruct Backend (Spring Boot)' \
+  -Dsonar.host.url=http://localhost:9000 \
+  -Dsonar.token=sqp_2123718fa820f7467110ec2f014973c9c006a7bc
+
+  ==========================================================
+
+sonar-scanner "-Dsonar.token=sqp_0270554af57bc67be25d48e0196f0ec95c958121"
+
+  

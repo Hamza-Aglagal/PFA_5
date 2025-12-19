@@ -192,6 +192,38 @@ class _MaterialStepState extends State<MaterialStep> {
               ],
             ),
           ).animate(delay: 300.ms).fadeIn().scale(begin: const Offset(0.95, 0.95)),
+
+          const SizedBox(height: 24),
+
+          // Additional Material Properties for AI
+          Text(
+            'AI Material Parameters',
+            style: AppTextStyles.titleMedium.copyWith(
+              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+            ),
+          ).animate(delay: 350.ms).fadeIn(),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _AINumberInput(
+                  label: 'Concrete (MPa)',
+                  value: widget.params.concreteStrength,
+                  min: 20, max: 90,
+                  onChanged: (v) => widget.onChanged(widget.params.copyWith(concreteStrength: v)),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _AINumberInput(
+                  label: 'Steel Grade (MPa)',
+                  value: widget.params.steelGrade,
+                  min: 235, max: 460, step: 5,
+                  onChanged: (v) => widget.onChanged(widget.params.copyWith(steelGrade: v)),
+                ),
+              ),
+            ],
+          ).animate(delay: 400.ms).fadeIn(),
         ],
       ),
     );
@@ -585,6 +617,68 @@ class _MaterialProperty extends StatelessWidget {
           style: AppTextStyles.bodyMedium.copyWith(
             color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
             fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// Simple number input for AI params
+class _AINumberInput extends StatelessWidget {
+  final String label;
+  final double value;
+  final double min;
+  final double max;
+  final double step;
+  final Function(double) onChanged;
+
+  const _AINumberInput({
+    required this.label,
+    required this.value,
+    required this.min,
+    required this.max,
+    this.step = 1.0,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: AppTextStyles.labelMedium.copyWith(
+          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+        )),
+        const SizedBox(height: 4),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.cardDark : AppColors.cardLight,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: isDark ? AppColors.dividerDark : AppColors.dividerLight),
+          ),
+          child: Row(
+            children: [
+              GestureDetector(
+                onTap: value > min ? () => onChanged((value - step).clamp(min, max)) : null,
+                child: Icon(Icons.remove, size: 18, color: AppColors.primary),
+              ),
+              Expanded(
+                child: Text(
+                  step < 1 ? value.toStringAsFixed(1) : value.toInt().toString(),
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  ),
+                ),
+              ),
+              GestureDetector(
+                onTap: value < max ? () => onChanged((value + step).clamp(min, max)) : null,
+                child: Icon(Icons.add, size: 18, color: AppColors.primary),
+              ),
+            ],
           ),
         ),
       ],

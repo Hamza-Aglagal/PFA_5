@@ -237,8 +237,112 @@ class _DimensionsStepState extends State<DimensionsStep> {
               ),
             ),
           ).animate(delay: 300.ms).fadeIn().scale(begin: const Offset(0.95, 0.95)),
+
+          const SizedBox(height: 24),
+
+          // Environmental Loads for AI
+          Text(
+            'Environmental Loads',
+            style: AppTextStyles.titleMedium.copyWith(
+              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+            ),
+          ).animate(delay: 350.ms).fadeIn(),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _LoadNumberInput(
+                  label: 'Wind (kN/m²)',
+                  value: widget.params.windLoad,
+                  min: 0.5, max: 3.0, step: 0.1,
+                  onChanged: (v) => widget.onChanged(widget.params.copyWith(windLoad: v)),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _LoadNumberInput(
+                  label: 'Live (kN/m²)',
+                  value: widget.params.liveLoad,
+                  min: 1.5, max: 5.0, step: 0.1,
+                  onChanged: (v) => widget.onChanged(widget.params.copyWith(liveLoad: v)),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _LoadNumberInput(
+                  label: 'Dead (kN/m²)',
+                  value: widget.params.deadLoad,
+                  min: 3.0, max: 8.0, step: 0.1,
+                  onChanged: (v) => widget.onChanged(widget.params.copyWith(deadLoad: v)),
+                ),
+              ),
+            ],
+          ).animate(delay: 400.ms).fadeIn(),
         ],
       ),
+    );
+  }
+}
+
+// Simple number input for load params
+class _LoadNumberInput extends StatelessWidget {
+  final String label;
+  final double value;
+  final double min;
+  final double max;
+  final double step;
+  final Function(double) onChanged;
+
+  const _LoadNumberInput({
+    required this.label,
+    required this.value,
+    required this.min,
+    required this.max,
+    this.step = 1.0,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: AppTextStyles.labelSmall.copyWith(
+          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+        )),
+        const SizedBox(height: 4),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.cardDark : AppColors.cardLight,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: isDark ? AppColors.dividerDark : AppColors.dividerLight),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              GestureDetector(
+                onTap: value > min ? () => onChanged(double.parse(((value - step).clamp(min, max)).toStringAsFixed(1))) : null,
+                child: Icon(Icons.remove, size: 16, color: AppColors.primary),
+              ),
+              Expanded(
+                child: Text(
+                  value.toStringAsFixed(1),
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  ),
+                ),
+              ),
+              GestureDetector(
+                onTap: value < max ? () => onChanged(double.parse(((value + step).clamp(min, max)).toStringAsFixed(1))) : null,
+                child: Icon(Icons.add, size: 16, color: AppColors.primary),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

@@ -81,8 +81,152 @@ class StructureStep extends StatelessWidget {
               );
             }).toList(),
           ).animate(delay: 200.ms).fadeIn(),
+
+          const SizedBox(height: 32),
+
+          // Building Configuration for AI
+          Text(
+            'Building Configuration',
+            style: AppTextStyles.titleLarge.copyWith(
+              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+            ),
+          ).animate(delay: 250.ms).fadeIn().slideX(begin: -0.1),
+          const SizedBox(height: 16),
+
+          // Number of Floors & Floor Height
+          Row(
+            children: [
+              Expanded(
+                child: _NumberInput(
+                  label: 'Floors',
+                  value: params.numFloors,
+                  min: 1, max: 50,
+                  onChanged: (v) => onChanged(params.copyWith(numFloors: v)),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _NumberInput(
+                  label: 'Floor Height (m)',
+                  value: params.floorHeight,
+                  min: 2.5, max: 6.0, step: 0.1,
+                  onChanged: (v) => onChanged(params.copyWith(floorHeight: v)),
+                ),
+              ),
+            ],
+          ).animate(delay: 300.ms).fadeIn(),
+          const SizedBox(height: 16),
+
+          // Beams & Columns
+          Row(
+            children: [
+              Expanded(
+                child: _NumberInput(
+                  label: 'Beams',
+                  value: params.numBeams.toDouble(),
+                  min: 10, max: 500,
+                  onChanged: (v) => onChanged(params.copyWith(numBeams: v.toInt())),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _NumberInput(
+                  label: 'Columns',
+                  value: params.numColumns.toDouble(),
+                  min: 4, max: 200,
+                  onChanged: (v) => onChanged(params.copyWith(numColumns: v.toInt())),
+                ),
+              ),
+            ],
+          ).animate(delay: 350.ms).fadeIn(),
+          const SizedBox(height: 16),
+
+          // Section Dimensions
+          Row(
+            children: [
+              Expanded(
+                child: _NumberInput(
+                  label: 'Beam Section (cm)',
+                  value: params.beamSection,
+                  min: 20, max: 100,
+                  onChanged: (v) => onChanged(params.copyWith(beamSection: v)),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _NumberInput(
+                  label: 'Column Section (cm)',
+                  value: params.columnSection,
+                  min: 30, max: 150,
+                  onChanged: (v) => onChanged(params.copyWith(columnSection: v)),
+                ),
+              ),
+            ],
+          ).animate(delay: 400.ms).fadeIn(),
         ],
       ),
+    );
+  }
+}
+
+// Simple number input widget
+class _NumberInput extends StatelessWidget {
+  final String label;
+  final double value;
+  final double min;
+  final double max;
+  final double step;
+  final Function(double) onChanged;
+
+  const _NumberInput({
+    required this.label,
+    required this.value,
+    required this.min,
+    required this.max,
+    this.step = 1.0,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: AppTextStyles.labelMedium.copyWith(
+          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+        )),
+        const SizedBox(height: 4),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.cardDark : AppColors.cardLight,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: isDark ? AppColors.dividerDark : AppColors.dividerLight),
+          ),
+          child: Row(
+            children: [
+              GestureDetector(
+                onTap: value > min ? () => onChanged((value - step).clamp(min, max)) : null,
+                child: Icon(Icons.remove, size: 18, color: AppColors.primary),
+              ),
+              Expanded(
+                child: Text(
+                  step < 1 ? value.toStringAsFixed(1) : value.toInt().toString(),
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  ),
+                ),
+              ),
+              GestureDetector(
+                onTap: value < max ? () => onChanged((value + step).clamp(min, max)) : null,
+                child: Icon(Icons.add, size: 18, color: AppColors.primary),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

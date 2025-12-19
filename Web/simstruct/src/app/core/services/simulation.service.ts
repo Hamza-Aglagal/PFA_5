@@ -25,18 +25,18 @@ export interface SimulationRequest {
   loadPosition?: number;
   supportType: SupportType;
   isPublic?: boolean;
-  // AI Building Parameters (Optional)
-  numFloors?: number;
-  floorHeight?: number;
-  numBeams?: number;
-  numColumns?: number;
-  beamSection?: number;
-  columnSection?: number;
-  concreteStrength?: number;
-  steelGrade?: number;
-  windLoad?: number;
-  liveLoad?: number;
-  deadLoad?: number;
+  // AI Building Parameters (Required for AI predictions)
+  numFloors: number;
+  floorHeight: number;
+  numBeams: number;
+  numColumns: number;
+  beamSection: number;
+  columnSection: number;
+  concreteStrength: number;
+  steelGrade: number;
+  windLoad: number;
+  liveLoad: number;
+  deadLoad: number;
 }
 
 export interface AIPredictions {

@@ -113,6 +113,11 @@ class AnalysisResult {
   final List<DeflectionPoint> deflectionCurve;
   final AIInsight? aiInsight;
   
+  // Additional metrics from backend
+  final double? maxBendingMoment;
+  final double? maxShearForce;
+  final double? weight;
+  
   // AI Model Predictions
   final double? stabilityIndex;
   final double? seismicResistance;
@@ -130,6 +135,9 @@ class AnalysisResult {
     this.stressDistribution = const [],
     this.deflectionCurve = const [],
     this.aiInsight,
+    this.maxBendingMoment,
+    this.maxShearForce,
+    this.weight,
     this.stabilityIndex,
     this.seismicResistance,
     this.crackRisk,
@@ -163,16 +171,18 @@ class AnalysisResult {
 
   factory AnalysisResult.fromJson(Map<String, dynamic> json) {
     return AnalysisResult(
-      safetyFactor: (json['safetyFactor'] as num).toDouble(),
-      maxDeflection: (json['maxDeflection'] as num).toDouble(),
-      maxStress: (json['maxStress'] as num).toDouble(),
-      bucklingLoad: (json['bucklingLoad'] as num).toDouble(),
-      naturalFrequency: (json['naturalFrequency'] as num).toDouble(),
+      safetyFactor: (json['safetyFactor'] as num?)?.toDouble() ?? 0.0,
+      maxDeflection: (json['maxDeflection'] as num?)?.toDouble() ?? 0.0,
+      maxStress: (json['maxStress'] as num?)?.toDouble() ?? 0.0,
+      bucklingLoad: (json['bucklingLoad'] ?? json['criticalLoad'] as num?)?.toDouble() ?? 0.0,
+      naturalFrequency: (json['naturalFrequency'] as num?)?.toDouble() ?? 0.0,
       status: ResultStatus.values.firstWhere(
         (e) => e.name == json['status'],
         orElse: () => ResultStatus.warning,
       ),
-      recommendations: List<String>.from(json['recommendations'] ?? []),
+      recommendations: json['recommendations'] is String 
+          ? [json['recommendations']] 
+          : List<String>.from(json['recommendations'] ?? []),
       stressDistribution: (json['stressDistribution'] as List?)
               ?.map((e) => StressPoint.fromJson(e))
               .toList() ??
@@ -184,6 +194,13 @@ class AnalysisResult {
       aiInsight: json['aiInsight'] != null
           ? AIInsight.fromJson(json['aiInsight'])
           : null,
+      maxBendingMoment: (json['maxBendingMoment'] as num?)?.toDouble(),
+      maxShearForce: (json['maxShearForce'] as num?)?.toDouble(),
+      weight: (json['weight'] as num?)?.toDouble(),
+      stabilityIndex: (json['stabilityIndex'] as num?)?.toDouble(),
+      seismicResistance: (json['seismicResistance'] as num?)?.toDouble(),
+      crackRisk: (json['crackRisk'] as num?)?.toDouble(),
+      foundationStability: (json['foundationStability'] as num?)?.toDouble(),
     );
   }
 }

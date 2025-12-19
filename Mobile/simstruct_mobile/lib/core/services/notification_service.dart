@@ -6,7 +6,6 @@ import '../models/notification.dart';
 import 'api_service.dart';
 
 /// Notification Service - Manages app notifications and toasts
-/// NOW WITH REAL BACKEND INTEGRATION
 class NotificationService extends ChangeNotifier {
   final ApiService _apiService = ApiService();
   

@@ -4,7 +4,6 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/api_config.dart';
 
-/// Simple API Service for making HTTP requests
 /// This handles GET, POST, PUT, DELETE with JWT token
 class ApiService {
   // Secure storage for JWT token

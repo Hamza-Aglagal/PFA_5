@@ -37,22 +37,58 @@ class _ResultsScreenState extends State<ResultsScreen>
   }
 
   Future<void> _loadSimulation() async {
-    final simulationService = context.read<SimulationService>();
-    
-    // First try to get by ID locally
-    _simulation = simulationService.getSimulationById(widget.simulationId);
-    
-    // If not found locally, try to get the current simulation (useful after running a new simulation)
-    _simulation ??= simulationService.currentSimulation;
-    
-    // If still not found, try loading from backend
-    if (_simulation == null) {
-      await simulationService.getSimulationFromBackend(widget.simulationId);
+    try {
+      final simulationService = context.read<SimulationService>();
+      
+      // ALWAYS fetch from backend to get latest data
+      debugPrint('========================================');
+      debugPrint('🔄 ResultsScreen: Loading simulation ${widget.simulationId}');
+      debugPrint('========================================');
+      
+      final fetchedSim = await simulationService.getSimulationFromBackend(widget.simulationId);
+      
+      if (fetchedSim != null) {
+        debugPrint('✅ Successfully fetched simulation from backend');
+        debugPrint('   Name: ${fetchedSim.name}');
+        debugPrint('   Has result: ${fetchedSim.result != null}');
+        if (fetchedSim.result != null) {
+          debugPrint('   Result details:');
+          debugPrint('      maxStress: ${fetchedSim.result!.maxStress}');
+          debugPrint('      maxDeflection: ${fetchedSim.result!.maxDeflection}');
+          debugPrint('      safetyFactor: ${fetchedSim.result!.safetyFactor}');
+          debugPrint('      maxBendingMoment: ${fetchedSim.result!.maxBendingMoment}');
+          debugPrint('      maxShearForce: ${fetchedSim.result!.maxShearForce}');
+          debugPrint('      weight: ${fetchedSim.result!.weight}');
+        }
+      } else {
+        debugPrint('❌ getSimulationFromBackend returned NULL');
+      }
+      
+      // Get the freshly loaded simulation
       _simulation = simulationService.getSimulationById(widget.simulationId);
-    }
-    
-    if (mounted) {
-      setState(() => _isLoading = false);
+      
+      // Fallback to current simulation if not found
+      _simulation ??= simulationService.currentSimulation;
+      
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+      
+      if (_simulation != null) {
+        debugPrint('Final simulation check:');
+        debugPrint('   Name: ${_simulation!.name}');
+        debugPrint('   Has result: ${_simulation!.result != null}');
+        debugPrint('========================================');
+      } else {
+        debugPrint('❌ CRITICAL: Simulation is NULL after loading!');
+        debugPrint('========================================');
+      }
+    } catch (e, stackTrace) {
+      debugPrint('❌ EXCEPTION in _loadSimulation: $e');
+      debugPrint('Stack trace: $stackTrace');
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -570,27 +606,39 @@ class _OverviewTab extends StatelessWidget {
             children: [
               _MetricCard(
                 title: 'Max Stress',
-                value: '${result?.maxStress.toStringAsFixed(1) ?? '0'} MPa',
+                value: '${((result?.maxStress ?? 0) / 1e6).toStringAsFixed(2)} MPa',
                 icon: Iconsax.chart_21,
                 color: AppColors.secondary,
               ),
               _MetricCard(
                 title: 'Max Deflection',
-                value: '${result?.maxDeflection.toStringAsFixed(2) ?? '0'} mm',
+                value: '${((result?.maxDeflection ?? 0) * 1000).toStringAsFixed(4)} mm',
                 icon: Iconsax.chart_1,
                 color: AppColors.accent,
               ),
               _MetricCard(
-                title: 'Buckling Load',
-                value: '${result?.bucklingLoad.toStringAsFixed(1) ?? '0'} kN',
+                title: 'Max Bending',
+                value: '${((result?.maxBendingMoment ?? 0) / 1000).toStringAsFixed(2)} kNm',
                 icon: Iconsax.diagram,
                 color: AppColors.info,
               ),
               _MetricCard(
-                title: 'Nat. Frequency',
-                value: '${result?.naturalFrequency.toStringAsFixed(2) ?? '0'} Hz',
-                icon: Iconsax.clock,
+                title: 'Max Shear',
+                value: '${((result?.maxShearForce ?? 0) / 1000).toStringAsFixed(2)} kN',
+                icon: Iconsax.flash,
+                color: AppColors.warning,
+              ),
+              _MetricCard(
+                title: 'Safety Factor',
+                value: '${(result?.safetyFactor ?? 0).toStringAsFixed(2)}',
+                icon: Iconsax.shield_tick,
                 color: AppColors.success,
+              ),
+              _MetricCard(
+                title: 'Weight',
+                value: '${(result?.weight ?? 0).toStringAsFixed(1)} kg',
+                icon: Iconsax.weight,
+                color: AppColors.primary,
               ),
             ],
           ).animate().fadeIn().slideY(begin: 0.1),
@@ -834,27 +882,27 @@ class _DetailsTab extends StatelessWidget {
             icon: Iconsax.building,
             items: [
               _DetailItem(label: 'Type', value: params.structureType.displayName),
-              _DetailItem(label: 'Support', value: params.supportType.displayName),
-              _DetailItem(
-                label: 'Dimensions',
-                value: '${params.length} × ${params.width} × ${params.height} ${params.dimensionUnits.symbol}',
-              ),
+              _DetailItem(label: 'Support Type', value: params.supportType.displayName),
+              _DetailItem(label: 'Length', value: '${params.length} m'),
+              _DetailItem(label: 'Width', value: '${params.width} m'),
+              _DetailItem(label: 'Height', value: '${params.height} m'),
+              _DetailItem(label: 'Elastic Modulus', value: '${(params.elasticModulus).toStringAsFixed(0)} GPa'),
             ],
           ).animate().fadeIn().slideY(begin: 0.1),
 
           const SizedBox(height: 20),
 
-          // Material Properties
+          // Material & Loading
           _DetailSection(
-            title: 'Material Properties',
+            title: 'Material & Loading',
             icon: Iconsax.layer,
             items: [
               _DetailItem(label: 'Material', value: params.material.displayName),
+              _DetailItem(label: 'Density', value: '${params.density.toStringAsFixed(0)} kg/m³'),
+              _DetailItem(label: 'Yield Strength', value: '${params.yieldStrength.toStringAsFixed(0)} MPa'),
               _DetailItem(label: 'Load Type', value: params.loadType.displayName),
-              _DetailItem(
-                label: 'Load Value',
-                value: '${params.loadValue} ${params.loadUnits.symbol}',
-              ),
+              _DetailItem(label: 'Load Magnitude', value: '${(params.loadValue).toStringAsFixed(1)} kN'),
+              _DetailItem(label: 'Load Position', value: '${params.loadPosition.toStringAsFixed(1)} m'),
             ],
           ).animate(delay: 100.ms).fadeIn().slideY(begin: 0.1),
 

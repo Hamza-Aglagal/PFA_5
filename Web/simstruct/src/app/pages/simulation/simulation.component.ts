@@ -22,19 +22,18 @@ interface SimulationParams {
   loadMagnitude: number;
   loadPosition: number;
   supportType: string;
-  // AI Building Parameters (Optional)
-  useAI: boolean;
-  numFloors?: number;
-  floorHeight?: number;
-  numBeams?: number;
-  numColumns?: number;
-  beamSection?: number;
-  columnSection?: number;
-  concreteStrength?: number;
-  steelGrade?: number;
-  windLoad?: number;
-  liveLoad?: number;
-  deadLoad?: number;
+  // AI Building Parameters (Required)
+  numFloors: number;
+  floorHeight: number;
+  numBeams: number;
+  numColumns: number;
+  beamSection: number;
+  columnSection: number;
+  concreteStrength: number;
+  steelGrade: number;
+  windLoad: number;
+  liveLoad: number;
+  deadLoad: number;
 }
 
 @Component({
@@ -62,7 +61,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   private autoRotate = signal(true);
 
   currentStep = signal(1);
-  totalSteps = 5; // Increased to 5 steps (added AI parameters)
+  totalSteps = 4; // 4 steps: Structure, Material, Loading, Review
   isAnalyzing = signal(false);
   analysisProgress = signal(0);
   analysisStage = signal<'preprocessing' | 'inference' | 'postprocessing' | 'complete'>('preprocessing');
@@ -89,16 +88,15 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     loadMagnitude: 50,
     loadPosition: 50,
     supportType: 'simply-supported',
-    // AI Parameters
-    useAI: false,
+    // AI Building Parameters (default values within valid ranges)
     numFloors: 5,
     floorHeight: 3.0,
-    numBeams: 40,
-    numColumns: 30,
-    beamSection: 0.3,
-    columnSection: 0.4,
-    concreteStrength: 25.0,
-    steelGrade: 400.0,
+    numBeams: 50,
+    numColumns: 20,
+    beamSection: 40,
+    columnSection: 50,
+    concreteStrength: 30,
+    steelGrade: 355,
     windLoad: 1.5,
     liveLoad: 3.0,
     deadLoad: 5.0
@@ -121,8 +119,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   loadTypes = [
     { id: 'point', name: 'Point Load', icon: '↓' },
     { id: 'distributed', name: 'Distributed', icon: '↓↓↓' },
-    { id: 'moment', name:AI Analysis', icon: '🤖' },
-    { number: 5, title: ' 'Moment', icon: '↻' }
+    { id: 'moment', name: 'Moment', icon: '↻' }
   ];
 
   supportTypes = [
@@ -442,7 +439,28 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  // AI parameter validation ranges (must match backend)
+  private aiParamLimits: Record<string, { min: number; max: number }> = {
+    numFloors: { min: 1, max: 50 },
+    floorHeight: { min: 2.5, max: 6.0 },
+    numBeams: { min: 10, max: 500 },
+    numColumns: { min: 4, max: 200 },
+    beamSection: { min: 20, max: 100 },
+    columnSection: { min: 30, max: 150 },
+    concreteStrength: { min: 20, max: 90 },
+    steelGrade: { min: 235, max: 460 },
+    windLoad: { min: 0.5, max: 3.0 },
+    liveLoad: { min: 1.5, max: 5.0 },
+    deadLoad: { min: 3.0, max: 8.0 }
+  };
+
   updateParam<K extends keyof SimulationParams>(key: K, value: SimulationParams[K]): void {
+    // Clamp AI parameters to valid ranges
+    const keyStr = key as string;
+    if (this.aiParamLimits[keyStr] && typeof value === 'number') {
+      const limits = this.aiParamLimits[keyStr];
+      value = Math.max(limits.min, Math.min(limits.max, value)) as SimulationParams[K];
+    }
     this.params.update(p => ({ ...p, [key]: value }));
     this.updateStructurePreview();
   }
@@ -547,7 +565,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     this.analysisStage.set('preprocessing');
     this.errorMessage.set(null);
 
-    // Prepare simulation request for backend
+    // Prepare simulation request for backend with all AI parameters
     const p = this.params();
     const request: SimulationRequest = {
       name: p.name || `${p.structureType} Simulation`,
@@ -561,24 +579,22 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
       loadMagnitude: p.loadMagnitude * 1000, // Convert kN to N
       loadPosition: p.loadPosition / 100 * p.length, // Convert percentage to meters
       supportType: this.mapSupportType(p.supportType),
-      // Add AI parameters if enabled
-      ...(p.useAI && {
-        numFloors: p.numFloors,
-        floorHeight: p.floorHeight,
-        numBeams: p.numBeams,
-        numColumns: p.numColumns,
-        beamSection: p.beamSection,
-        columnSection: p.columnSection,
-        concreteStrength: p.concreteStrength,
-        steelGrade: p.steelGrade,
-        windLoad: p.windLoad,
-        liveLoad: p.liveLoad,
-        deadLoad: p.deadLoad
-      })
+      // AI Building Parameters (sent to backend → AI model)
+      numFloors: p.numFloors,
+      floorHeight: p.floorHeight,
+      numBeams: p.numBeams,
+      numColumns: p.numColumns,
+      beamSection: p.beamSection,
+      columnSection: p.columnSection,
+      concreteStrength: p.concreteStrength,
+      steelGrade: p.steelGrade,
+      windLoad: p.windLoad,
+      liveLoad: p.liveLoad,
+      deadLoad: p.deadLoad
     };
 
     console.log('SimulationComponent: Starting analysis with request:', request);
-    console.log('SimulationComponent: AI Mode:', p.useAI ? 'ENABLED' : 'DISABLED');
+    console.log('SimulationComponent: AI Mode: ENABLED with user parameters');
 
     // Simulate preprocessing stage
     await this.simulateProgress('preprocessing', 30, 800);
@@ -656,15 +672,6 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
       'fixed-free': 'FIXED_FREE',
       'cantilever': 'FIXED_FREE',
       'fixed-pinned': 'FIXED_PINNED'
-    };
-    return map[supportType] || 'SIMPLY_SUPPORTED';
-  }
-
-  private mapSupportType(supportType: string): 'SIMPLY_SUPPORTED' | 'FIXED_FIXED' | 'FIXED_FREE' | 'FIXED_PINNED' {
-    const map: Record<string, 'SIMPLY_SUPPORTED' | 'FIXED_FIXED' | 'FIXED_FREE' | 'FIXED_PINNED'> = {
-      'simply-supported': 'SIMPLY_SUPPORTED',
-      'cantilever': 'FIXED_FREE',
-      'fixed-fixed': 'FIXED_FIXED'
     };
     return map[supportType] || 'SIMPLY_SUPPORTED';
   }

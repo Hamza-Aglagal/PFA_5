@@ -349,6 +349,18 @@ class SimulationParams {
   final SupportType supportType;
   final DimensionUnits dimensionUnits;
   final LoadUnits loadUnits;
+  // AI Building Parameters (Required for backend AI predictions)
+  final double numFloors;
+  final double floorHeight;
+  final int numBeams;
+  final int numColumns;
+  final double beamSection;
+  final double columnSection;
+  final double concreteStrength;
+  final double steelGrade;
+  final double windLoad;
+  final double liveLoad;
+  final double deadLoad;
 
   const SimulationParams({
     this.structureType = StructureType.beam,
@@ -366,6 +378,18 @@ class SimulationParams {
     this.supportType = SupportType.simplySupported,
     this.dimensionUnits = DimensionUnits.meters,
     this.loadUnits = LoadUnits.kN,
+    // AI params with sensible defaults
+    this.numFloors = 5,
+    this.floorHeight = 3.0,
+    this.numBeams = 50,
+    this.numColumns = 20,
+    this.beamSection = 40,
+    this.columnSection = 50,
+    this.concreteStrength = 30,
+    this.steelGrade = 355,
+    this.windLoad = 1.5,
+    this.liveLoad = 3.0,
+    this.deadLoad = 5.0,
   });
 
   /// Create default params for a material
@@ -394,7 +418,26 @@ class SimulationParams {
     SupportType? supportType,
     DimensionUnits? dimensionUnits,
     LoadUnits? loadUnits,
+    double? numFloors,
+    double? floorHeight,
+    int? numBeams,
+    int? numColumns,
+    double? beamSection,
+    double? columnSection,
+    double? concreteStrength,
+    double? steelGrade,
+    double? windLoad,
+    double? liveLoad,
+    double? deadLoad,
   }) {
+    // Clamp AI parameters to valid backend ranges
+    double clampDouble(double? newVal, double current, double min, double max) {
+      return (newVal ?? current).clamp(min, max);
+    }
+    int clampInt(int? newVal, int current, int min, int max) {
+      return (newVal ?? current).clamp(min, max);
+    }
+    
     final newMaterial = material ?? this.material;
     return SimulationParams(
       structureType: structureType ?? this.structureType,
@@ -412,6 +455,18 @@ class SimulationParams {
       supportType: supportType ?? this.supportType,
       dimensionUnits: dimensionUnits ?? this.dimensionUnits,
       loadUnits: loadUnits ?? this.loadUnits,
+      // AI parameters with validation ranges (must match backend)
+      numFloors: clampDouble(numFloors, this.numFloors, 1, 50),
+      floorHeight: clampDouble(floorHeight, this.floorHeight, 2.5, 6.0),
+      numBeams: clampInt(numBeams, this.numBeams, 10, 500),
+      numColumns: clampInt(numColumns, this.numColumns, 4, 200),
+      beamSection: clampDouble(beamSection, this.beamSection, 20, 100),
+      columnSection: clampDouble(columnSection, this.columnSection, 30, 150),
+      concreteStrength: clampDouble(concreteStrength, this.concreteStrength, 20, 90),
+      steelGrade: clampDouble(steelGrade, this.steelGrade, 235, 460),
+      windLoad: clampDouble(windLoad, this.windLoad, 0.5, 3.0),
+      liveLoad: clampDouble(liveLoad, this.liveLoad, 1.5, 5.0),
+      deadLoad: clampDouble(deadLoad, this.deadLoad, 3.0, 8.0),
     );
   }
 
@@ -432,6 +487,18 @@ class SimulationParams {
       'supportType': supportType.name,
       'dimensionUnits': dimensionUnits.name,
       'loadUnits': loadUnits.name,
+      // AI params
+      'numFloors': numFloors,
+      'floorHeight': floorHeight,
+      'numBeams': numBeams,
+      'numColumns': numColumns,
+      'beamSection': beamSection,
+      'columnSection': columnSection,
+      'concreteStrength': concreteStrength,
+      'steelGrade': steelGrade,
+      'windLoad': windLoad,
+      'liveLoad': liveLoad,
+      'deadLoad': deadLoad,
     };
   }
 
@@ -470,6 +537,18 @@ class SimulationParams {
         (e) => e.name == json['loadUnits'],
         orElse: () => LoadUnits.kN,
       ),
+      // AI params
+      numFloors: (json['numFloors'] as num?)?.toDouble() ?? 5,
+      floorHeight: (json['floorHeight'] as num?)?.toDouble() ?? 3.0,
+      numBeams: (json['numBeams'] as num?)?.toInt() ?? 50,
+      numColumns: (json['numColumns'] as num?)?.toInt() ?? 20,
+      beamSection: (json['beamSection'] as num?)?.toDouble() ?? 40,
+      columnSection: (json['columnSection'] as num?)?.toDouble() ?? 50,
+      concreteStrength: (json['concreteStrength'] as num?)?.toDouble() ?? 30,
+      steelGrade: (json['steelGrade'] as num?)?.toDouble() ?? 355,
+      windLoad: (json['windLoad'] as num?)?.toDouble() ?? 1.5,
+      liveLoad: (json['liveLoad'] as num?)?.toDouble() ?? 3.0,
+      deadLoad: (json['deadLoad'] as num?)?.toDouble() ?? 5.0,
     );
   }
 }

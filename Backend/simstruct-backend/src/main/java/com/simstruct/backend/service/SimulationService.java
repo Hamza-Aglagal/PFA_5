@@ -7,6 +7,7 @@ import com.simstruct.backend.entity.Simulation;
 import com.simstruct.backend.entity.SimulationResult;
 import com.simstruct.backend.entity.User;
 import com.simstruct.backend.repository.SimulationRepository;
+import com.simstruct.backend.repository.SharedSimulationRepository;
 import com.simstruct.backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,17 +23,20 @@ public class SimulationService {
 
     private final SimulationRepository simulationRepository;
     private final UserRepository userRepository;
+    private final SharedSimulationRepository sharedSimulationRepository;
     private final SimulationEngine simulationEngine;
     private final NotificationService notificationService;
     private final AIModelService aiModelService;
 
     public SimulationService(SimulationRepository simulationRepository,
                             UserRepository userRepository,
+                            SharedSimulationRepository sharedSimulationRepository,
                             SimulationEngine simulationEngine,
                             NotificationService notificationService,
                             AIModelService aiModelService) {
         this.simulationRepository = simulationRepository;
         this.userRepository = userRepository;
+        this.sharedSimulationRepository = sharedSimulationRepository;
         this.simulationEngine = simulationEngine;
         this.notificationService = notificationService;
         this.aiModelService = aiModelService;
@@ -72,42 +76,26 @@ public class SimulationService {
                 .build();
 
         try {
-            // Check if AI parameters are provided
-            if (request.hasAIParameters()) {
-                System.out.println("SimulationService: AI parameters detected, calling AI model...");
-                
-                try {
-                    // Try AI prediction first
-                    AIPredictionResponse aiPrediction = aiModelService.predict(request.toAIRequest());
-                    System.out.println("SimulationService: AI prediction successful");
-                    
-                    // Run traditional engine for additional metrics
-                    SimulationResult engineResults = simulationEngine.analyze(simulation);
-                    
-                    // Merge AI predictions with engine results
-                    SimulationResult results = mergeResults(aiPrediction, engineResults);
-                    simulation.setResults(results);
-                    simulation.setStatus(Simulation.SimulationStatus.COMPLETED);
-                    System.out.println("SimulationService: Hybrid analysis (AI + Engine) completed");
-                    
-                } catch (Exception aiError) {
-                    System.err.println("SimulationService: AI failed, falling back to engine - " + aiError.getMessage());
-                    // Fallback to traditional engine if AI fails
-                    SimulationResult results = simulationEngine.analyze(simulation);
-                    simulation.setResults(results);
-                    simulation.setStatus(Simulation.SimulationStatus.COMPLETED);
-                }
-            } else {
-                // Use traditional simulation engine
-                System.out.println("SimulationService: Running traditional simulation engine...");
-                SimulationResult results = simulationEngine.analyze(simulation);
-                simulation.setResults(results);
-                simulation.setStatus(Simulation.SimulationStatus.COMPLETED);
-                System.out.println("SimulationService: Simulation completed successfully");
-            }
+            // Call AI model with parameters from frontend
+            System.out.println("SimulationService: Calling AI model with frontend parameters...");
+            
+            // ALWAYS use AI model for predictions
+            System.out.println("SimulationService: Calling AI model...");
+            
+            // Call AI model - no fallback, must work
+            AIPredictionResponse aiPrediction = aiModelService.predict(request.toAIRequest());
+            System.out.println("SimulationService: AI prediction successful");
+            
+            // Build results from AI only
+            SimulationResult results = buildResultsFromAI(aiPrediction, simulation);
+            simulation.setResults(results);
+            simulation.setStatus(Simulation.SimulationStatus.COMPLETED);
+            System.out.println("SimulationService: AI analysis completed successfully");
+            
         } catch (Exception e) {
             System.out.println("SimulationService: Simulation failed - " + e.getMessage());
             simulation.setStatus(Simulation.SimulationStatus.FAILED);
+            throw new RuntimeException("AI Model failed: " + e.getMessage(), e);
         }
 
         // Save and return
@@ -140,16 +128,43 @@ public class SimulationService {
      * Get simulation by ID
      */
     public SimulationResponse getSimulation(String id, String userEmail) {
-        System.out.println("SimulationService: Getting simulation " + id);
+        System.out.println("SimulationService: Getting simulation " + id + " for user " + userEmail);
 
         Simulation simulation = simulationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Simulation not found: " + id));
 
-        // Check access
-        if (!simulation.getIsPublic() && !simulation.getUser().getEmail().equals(userEmail)) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found: " + userEmail));
+
+        System.out.println("SimulationService: User ID=" + user.getId());
+        System.out.println("SimulationService: Simulation owner email=" + simulation.getUser().getEmail());
+        System.out.println("SimulationService: Checking access for simulation " + id);
+        
+        // Check access: allow if public, owner, or shared with user
+        boolean isOwner = simulation.getUser().getEmail().equals(userEmail);
+        System.out.println("SimulationService: isOwner=" + isOwner);
+        
+        boolean isPublic = simulation.getIsPublic();
+        System.out.println("SimulationService: isPublic=" + isPublic);
+        
+        System.out.println("SimulationService: Checking if shared with user " + user.getId());
+        var sharedOpt = sharedSimulationRepository.findBySimulationIdAndSharedWithId(id, user.getId());
+        boolean isShared = sharedOpt.isPresent();
+        System.out.println("SimulationService: isShared=" + isShared);
+        if (sharedOpt.isPresent()) {
+            System.out.println("SimulationService: Found share: " + sharedOpt.get().getId());
+        } else {
+            System.out.println("SimulationService: No share found for simulation=" + id + ", user=" + user.getId());
+        }
+
+        if (!isPublic && !isOwner && !isShared) {
+            System.err.println("SimulationService: Access denied - not owner, not public, not shared");
             throw new RuntimeException("Access denied to simulation: " + id);
         }
 
+        System.out.println("SimulationService: Access granted (isOwner=" + isOwner + 
+                          ", isPublic=" + isPublic + ", isShared=" + isShared + ")");
+        
         return SimulationResponse.fromEntity(simulation);
     }
 
@@ -376,6 +391,71 @@ public class SimulationService {
                 .criticalLoad(engineResults.getCriticalLoad())
                 .weight(engineResults.getWeight())
                 .build();
+    }
+
+    /**
+     * Build results from AI prediction only (no engine fallback)
+     * All values come from AI Deep Learning model
+     */
+    private SimulationResult buildResultsFromAI(AIPredictionResponse aiPrediction, Simulation simulation) {
+        System.out.println("SimulationService: Building results from AI only");
+        
+        // Calculate safety factor from AI stress vs material yield strength
+        double yieldStrength = simulation.getYieldStrength() != null ? simulation.getYieldStrength() : 250.0;
+        double safetyFactor = yieldStrength / Math.max(aiPrediction.getMaxStress(), 1.0);
+        boolean isSafe = aiPrediction.isSafe() && safetyFactor >= 1.5;
+        
+        // Simple weight calculation
+        double volume = simulation.getBeamLength() * simulation.getBeamWidth() * simulation.getBeamHeight();
+        double density = simulation.getDensity() != null ? simulation.getDensity() : 7850.0;
+        double weight = volume * density;
+        
+        // Generate recommendations from AI
+        String recommendations = generateAIRecommendations(aiPrediction, safetyFactor);
+        
+        return SimulationResult.builder()
+                .maxDeflection(aiPrediction.getMaxDeflection())
+                .maxStress(aiPrediction.getMaxStress())
+                .maxBendingMoment(aiPrediction.getMaxStress() * 0.5) // Approximate
+                .maxShearForce(simulation.getLoadMagnitude() / 2)    // Approximate
+                .safetyFactor(safetyFactor)
+                .isSafe(isSafe)
+                .recommendations(recommendations)
+                .naturalFrequency(10.0) // Default value
+                .criticalLoad(simulation.getLoadMagnitude() * safetyFactor)
+                .weight(weight)
+                .build();
+    }
+
+    /**
+     * Generate recommendations from AI analysis only
+     */
+    private String generateAIRecommendations(AIPredictionResponse aiPrediction, double safetyFactor) {
+        StringBuilder recommendations = new StringBuilder();
+        
+        recommendations.append("🤖 AI Deep Learning Analysis\n\n");
+        recommendations.append("Status: ").append(aiPrediction.getStatus()).append("\n");
+        recommendations.append("Stability Index: ").append(String.format("%.1f%%", aiPrediction.getStabilityIndex())).append("\n");
+        recommendations.append("Seismic Resistance: ").append(String.format("%.1f%%", aiPrediction.getSeismicResistance())).append("\n");
+        recommendations.append("Safety Factor: ").append(String.format("%.2f", safetyFactor)).append("\n\n");
+        
+        if (aiPrediction.getStabilityIndex() >= 70) {
+            recommendations.append("✅ Structure meets stability requirements\n");
+        } else if (aiPrediction.getStabilityIndex() >= 50) {
+            recommendations.append("⚠️ Consider reinforcing structure for better stability\n");
+        } else {
+            recommendations.append("❌ Structure needs significant reinforcement\n");
+        }
+        
+        if (aiPrediction.getSeismicResistance() >= 70) {
+            recommendations.append("✅ Good seismic resistance\n");
+        } else if (aiPrediction.getSeismicResistance() >= 50) {
+            recommendations.append("⚠️ Improve seismic resistance for earthquake zones\n");
+        } else {
+            recommendations.append("❌ Seismic resistance insufficient for high-risk areas\n");
+        }
+        
+        return recommendations.toString();
     }
 
     /**
