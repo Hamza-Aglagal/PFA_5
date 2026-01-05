@@ -1,0 +1,134 @@
+%==============================================================================
+% SLIDE 05 - OBJECTIFS
+%==============================================================================
+
+% Slide de transition
+\sectionSlide{03}{Objectifs}
+
+% Slide de contenu
+\begin{frame}
+\frametitle{Objectifs du Projet}
+\framesubtitle{Ce que nous voulons accomplir}
+\customFooter
+
+\vspace{0.2cm}
+
+\begin{columns}[T]
+%----------------------------------------------------------------------
+% COLONNE GAUCHE - OBJECTIFS PRINCIPAUX
+%----------------------------------------------------------------------
+\begin{column}{0.48\textwidth}
+
+    % Titre
+    \begin{tikzpicture}
+        \node[
+            rectangle,
+            rounded corners=4pt,
+            fill=primary,
+            text=white,
+            inner xsep=10pt,inner ysep=6pt,
+            font=\small\bfseries
+        ] {\faIcon{bullseye}\ \ Objectifs Principaux};
+    \end{tikzpicture}
+    
+    \vspace{0.5cm}
+    
+    % Liste d'objectifs
+    \begin{tikzpicture}[node distance=0.5cm]
+        \node[anchor=west] (o1) at (0,0) {
+            \textcolor{secondary}{\faIcon{check-circle}}\ \ 
+            Développer une plateforme \textbf{multi-plateforme}
+        };
+        
+        \node[anchor=west,below=of o1.west,anchor=west] (o2) {
+            \textcolor{secondary}{\faIcon{check-circle}}\ \ 
+            Intégrer un modèle d'\textbf{Intelligence Artificielle}
+        };
+        
+        \node[anchor=west,below=of o2.west,anchor=west] (o3) {
+            \textcolor{secondary}{\faIcon{check-circle}}\ \ 
+            Créer une \textbf{communauté} de partage
+        };
+        
+        \node[anchor=west,below=of o3.west,anchor=west] (o4) {
+            \textcolor{secondary}{\faIcon{check-circle}}\ \ 
+            Offrir une interface \textbf{intuitive} et moderne
+        };
+        
+        \node[anchor=west,below=of o4.west,anchor=west] (o5) {
+            \textcolor{secondary}{\faIcon{check-circle}}\ \ 
+            Assurer la \textbf{sécurité} des données
+        };
+    \end{tikzpicture}
+
+\end{column}
+
+%----------------------------------------------------------------------
+% COLONNE DROITE - FONCTIONNALITÉS
+%----------------------------------------------------------------------
+\begin{column}{0.48\textwidth}
+
+    % Titre
+    \begin{tikzpicture}
+        \node[
+            rectangle,
+            rounded corners=4pt,
+            fill=secondary,
+            text=white,
+            inner xsep=10pt,inner ysep=6pt,
+            font=\small\bfseries
+        ] {\faIcon{tasks}\ \ Fonctionnalités Cibles};
+    \end{tikzpicture}
+    
+    \vspace{0.5cm}
+    
+    % Grille de fonctionnalités
+    \begin{tikzpicture}[
+        feat/.style={
+            rectangle,
+            rounded corners=6pt,
+            fill=secondary,
+            fill opacity=0.1,
+            text opacity=1,
+            minimum width=6cm,
+            minimum height=0.7cm,
+            inner sep=6pt,
+            font=\small
+        }
+    ]
+        \node[feat] (f1) at (0,0) {
+            \textcolor{secondary}{\faIcon{lock}}\ \ 
+            Authentification sécurisée JWT
+        };
+        
+        \node[feat,below=0.2cm of f1] (f2) {
+            \textcolor{secondary}{\faIcon{calculator}}\ \ 
+            Simulations de poutres
+        };
+        
+        \node[feat,below=0.2cm of f2] (f3) {
+            \textcolor{secondary}{\faIcon{bolt}}\ \ 
+            Calculs IA en temps réel
+        };
+        
+        \node[feat,below=0.2cm of f3] (f4) {
+            \textcolor{secondary}{\faIcon{history}}\ \ 
+            Historique des simulations
+        };
+        
+        \node[feat,below=0.2cm of f4] (f5) {
+            \textcolor{secondary}{\faIcon{share-alt}}\ \ 
+            Partage communautaire
+        };
+        
+        \node[feat,below=0.2cm of f5] (f6) {
+            \textcolor{secondary}{\faIcon{cube}}\ \ 
+            Visualisation 3D interactive
+        };
+    \end{tikzpicture}
+
+\end{column}
+
+\end{columns}
+
+\end{frame}

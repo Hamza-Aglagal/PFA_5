@@ -1,0 +1,76 @@
+%==============================================================================
+% SLIDE 18 - REMERCIEMENTS
+%==============================================================================
+
+{
+\setbeamertemplate{footline}{}
+\begin{frame}[plain]
+\begin{tikzpicture}[remember picture,overlay]
+    %----------------------------------------------------------------------
+    % FOND
+    %----------------------------------------------------------------------
+    \fill[primary] (current page.south west) rectangle (current page.north east);
+    
+    % Cercles décoratifs
+    \fill[primaryDark,opacity=0.5] 
+        ([xshift=5cm,yshift=3cm]current page.south west) circle (7cm);
+    \fill[primaryLight,opacity=0.15] 
+        ([xshift=-3cm,yshift=-2cm]current page.north east) circle (6cm);
+    \fill[white,opacity=0.05] 
+        ([xshift=8cm,yshift=2cm]current page.south east) circle (4cm);
+    
+    %----------------------------------------------------------------------
+    % CONTENU
+    %----------------------------------------------------------------------
+    % Titre principal
+    \node[white,font=\fontsize{40}{48}\selectfont\bfseries] 
+        at ([yshift=2cm]current page.center) {Merci de votre attention};
+    
+    % Sous-titre questions
+    \node[white,font=\Large,opacity=0.9] 
+        at ([yshift=0.5cm]current page.center) {
+            \faIcon{question-circle}\ \ Des questions ?
+        };
+    
+    % Ligne séparatrice
+    \draw[white,opacity=0.3,line width=1pt] 
+        ([yshift=-0.5cm]current page.center) ++(-4cm,0) -- ++(8cm,0);
+    
+    % Contact
+    \node[white,font=\normalsize,opacity=0.8] 
+        at ([yshift=-1.5cm]current page.center) {Contact};
+    
+    % Email
+    \node[white,font=\normalsize] 
+        at ([yshift=-2.3cm]current page.center) {
+            \faIcon{envelope}\ \ hamza.aglagal@emsi.ma
+        };
+    
+    % GitHub
+    \node[white,font=\normalsize] 
+        at ([yshift=-3cm]current page.center) {
+            \faIcon[brands]{github}\ \ github.com/HamzaAglagal
+        };
+    
+    % LinkedIn (optionnel)
+    \node[white,font=\normalsize] 
+        at ([yshift=-3.7cm]current page.center) {
+            \faIcon[brands]{linkedin}\ \ linkedin.com/in/hamza-aglagal
+        };
+    
+    %----------------------------------------------------------------------
+    % FOOTER
+    %----------------------------------------------------------------------
+    \node[white,font=\small,opacity=0.7] 
+        at ([yshift=1.2cm]current page.south) {
+            \textbf{SIMSTRUCT} — Projet de Fin d'Année 2024-2025
+        };
+    
+    \node[white,font=\small,opacity=0.5] 
+        at ([yshift=0.6cm]current page.south) {
+            École Marocaine des Sciences de l'Ingénieur (EMSI)
+        };
+    
+\end{tikzpicture}
+\end{frame}
+}

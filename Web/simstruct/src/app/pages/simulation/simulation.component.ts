@@ -46,11 +46,11 @@ interface SimulationParams {
 export class SimulationComponent implements AfterViewInit, OnDestroy {
   @ViewChild('previewCanvas') previewCanvas!: ElementRef<HTMLCanvasElement>;
 
-  private router = inject(Router);
-  private domRenderer = inject(Renderer2);
-  private simulationService = inject(SimulationService);
-  private notificationService = inject(NotificationService);
-  
+  private readonly router = inject(Router);
+  private readonly domRenderer = inject(Renderer2);
+  private readonly simulationService = inject(SimulationService);
+  private readonly notificationService = inject(NotificationService);
+
   private scene!: THREE.Scene;
   private camera!: THREE.PerspectiveCamera;
   private threeRenderer!: THREE.WebGLRenderer;
@@ -58,7 +58,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   private animationId!: number;
   private structureMesh!: THREE.Group;
   private resizeObserver!: ResizeObserver;
-  private autoRotate = signal(true);
+  private readonly autoRotate = signal(true);
 
   currentStep = signal(1);
   totalSteps = 4; // 4 steps: Structure, Material, Loading, Review
@@ -67,7 +67,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   analysisStage = signal<'preprocessing' | 'inference' | 'postprocessing' | 'complete'>('preprocessing');
   isLightMode = signal(false);
   errorMessage = signal<string | null>(null);
-  
+
   // Form validation
   nameError = signal<string | null>(null);
   descriptionError = signal<string | null>(null);
@@ -90,7 +90,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     supportType: 'simply-supported',
     // AI Building Parameters (default values within valid ranges)
     numFloors: 5,
-    floorHeight: 3.0,
+    floorHeight: 3,
     numBeams: 50,
     numColumns: 20,
     beamSection: 40,
@@ -98,8 +98,8 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     concreteStrength: 30,
     steelGrade: 355,
     windLoad: 1.5,
-    liveLoad: 3.0,
-    deadLoad: 5.0
+    liveLoad: 3,
+    deadLoad: 5
   });
 
   structureTypes = [
@@ -137,7 +137,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
 
   progressPercent = computed(() => ((this.currentStep() - 1) / (this.totalSteps - 1)) * 100);
 
-  selectedMaterial = computed(() => 
+  selectedMaterial = computed(() =>
     this.materials.find(m => m.id === this.params().material) || this.materials[0]
   );
 
@@ -168,7 +168,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     const canvas = this.previewCanvas.nativeElement;
     const container = canvas.parentElement;
     if (!container) return;
-    
+
     const width = container.clientWidth;
     const height = container.clientHeight;
 
@@ -194,7 +194,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     this.controls.maxDistance = 50;
     this.controls.autoRotate = true;
     this.controls.autoRotateSpeed = 0.5;
-    
+
     // Stop auto-rotate when user interacts
     this.controls.addEventListener('start', () => {
       this.controls.autoRotate = false;
@@ -221,24 +221,24 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
 
     this.updateStructurePreview();
     this.animate();
-    
+
     // Setup resize observer
     this.resizeObserver = new ResizeObserver(() => {
       this.onResize();
     });
     this.resizeObserver.observe(container);
   }
-  
+
   private onResize(): void {
     const canvas = this.previewCanvas?.nativeElement;
     if (!canvas) return;
-    
+
     const container = canvas.parentElement;
     if (!container) return;
-    
+
     const width = container.clientWidth;
     const height = container.clientHeight;
-    
+
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     this.threeRenderer.setSize(width, height);
@@ -246,12 +246,12 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
 
   private animate(): void {
     this.animationId = requestAnimationFrame(() => this.animate());
-    
+
     // Update controls
     if (this.controls) {
       this.controls.update();
     }
-    
+
     this.threeRenderer.render(this.scene, this.camera);
   }
 
@@ -310,11 +310,11 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     // Supports
     if (p.supportType === 'simply-supported' || p.supportType === 'fixed-fixed') {
       const supportGeom = new THREE.ConeGeometry(0.4, 0.5, 4);
-      
+
       const leftSupport = new THREE.Mesh(supportGeom, supportMat);
       leftSupport.position.set(-p.length / 2 + 0.5, 0.25, 0);
       this.structureMesh.add(leftSupport);
-      
+
       const rightSupport = new THREE.Mesh(supportGeom, supportMat);
       rightSupport.position.set(p.length / 2 - 0.5, 0.25, 0);
       this.structureMesh.add(rightSupport);
@@ -331,17 +331,17 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   private createFrame(p: SimulationParams, mainMat: THREE.Material, supportMat: THREE.Material): void {
     const columnGeom = new THREE.BoxGeometry(0.5, p.height, 0.5);
     const beamGeom = new THREE.BoxGeometry(p.length, 0.5, 0.5);
-    
+
     // Left column
     const leftColumn = new THREE.Mesh(columnGeom, mainMat);
     leftColumn.position.set(-p.length / 2, p.height / 2, 0);
     this.structureMesh.add(leftColumn);
-    
+
     // Right column
     const rightColumn = new THREE.Mesh(columnGeom, mainMat);
     rightColumn.position.set(p.length / 2, p.height / 2, 0);
     this.structureMesh.add(rightColumn);
-    
+
     // Top beam
     const topBeam = new THREE.Mesh(beamGeom, mainMat);
     topBeam.position.set(0, p.height, 0);
@@ -349,18 +349,18 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
 
     // Supports
     const supportGeom = new THREE.BoxGeometry(0.8, 0.3, 0.8);
-    [-p.length / 2, p.length / 2].forEach(x => {
+    for (const x of [-p.length / 2, p.length / 2]) {
       const support = new THREE.Mesh(supportGeom, supportMat);
       support.position.set(x, 0.15, 0);
       this.structureMesh.add(support);
-    });
+    }
   }
 
   private createTruss(p: SimulationParams, mainMat: THREE.Material, supportMat: THREE.Material): void {
     const barRadius = 0.1;
     const segments = 4;
     const segmentLength = p.length / segments;
-    
+
     // Bottom chord
     const bottomGeom = new THREE.CylinderGeometry(barRadius, barRadius, p.length, 8);
     bottomGeom.rotateZ(Math.PI / 2);
@@ -376,19 +376,19 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     // Verticals and diagonals
     for (let i = 0; i <= segments; i++) {
       const x = -p.length / 2 + i * segmentLength;
-      
+
       // Vertical
       const vertGeom = new THREE.CylinderGeometry(barRadius, barRadius, p.height, 8);
       const vertical = new THREE.Mesh(vertGeom, mainMat);
       vertical.position.set(x, p.height / 2 + 0.5, 0);
       this.structureMesh.add(vertical);
-      
+
       // Diagonals
       if (i < segments) {
-        const diagLength = Math.sqrt(segmentLength ** 2 + p.height ** 2);
+        const diagLength = Math.hypot(segmentLength, p.height);
         const diagGeom = new THREE.CylinderGeometry(barRadius * 0.8, barRadius * 0.8, diagLength, 8);
         const angle = Math.atan2(p.height, segmentLength);
-        
+
         const diag = new THREE.Mesh(diagGeom, mainMat);
         diag.rotation.z = i % 2 === 0 ? -angle : angle;
         diag.position.set(x + segmentLength / 2, p.height / 2 + 0.5, 0);
@@ -413,16 +413,16 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   private addLoadIndicator(p: SimulationParams): void {
     const arrowMat = new THREE.MeshStandardMaterial({ color: 0xef4444 });
     const arrowGeom = new THREE.ConeGeometry(0.2, 0.6, 8);
-    
+
     const loadX = (p.loadPosition / 100 - 0.5) * p.length;
-    const loadY = p.structureType === 'frame' ? p.height + 1 : p.height + 1;
+    const loadY = p.height + 1;
 
     if (p.loadType === 'point') {
       const arrow = new THREE.Mesh(arrowGeom, arrowMat);
       arrow.rotation.x = Math.PI;
       arrow.position.set(loadX, loadY, 0);
       this.structureMesh.add(arrow);
-      
+
       // Arrow stem
       const stemGeom = new THREE.CylinderGeometry(0.05, 0.05, 0.8, 8);
       const stem = new THREE.Mesh(stemGeom, arrowMat);
@@ -440,18 +440,18 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   }
 
   // AI parameter validation ranges (must match backend)
-  private aiParamLimits: Record<string, { min: number; max: number }> = {
+  private readonly aiParamLimits: Record<string, { min: number; max: number }> = {
     numFloors: { min: 1, max: 50 },
-    floorHeight: { min: 2.5, max: 6.0 },
+    floorHeight: { min: 2.5, max: 6 },
     numBeams: { min: 10, max: 500 },
     numColumns: { min: 4, max: 200 },
     beamSection: { min: 20, max: 100 },
     columnSection: { min: 30, max: 150 },
     concreteStrength: { min: 20, max: 90 },
     steelGrade: { min: 235, max: 460 },
-    windLoad: { min: 0.5, max: 3.0 },
-    liveLoad: { min: 1.5, max: 5.0 },
-    deadLoad: { min: 3.0, max: 8.0 }
+    windLoad: { min: 0.5, max: 3 },
+    liveLoad: { min: 1.5, max: 5 },
+    deadLoad: { min: 3, max: 8 }
   };
 
   updateParam<K extends keyof SimulationParams>(key: K, value: SimulationParams[K]): void {
@@ -508,7 +508,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     const p = this.params();
     this.validateName(p.name);
     this.validateDescription(p.description);
-    
+
     // Check if form is valid
     return !this.nameError() && !this.descriptionError();
   }
@@ -530,14 +530,14 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
       this.currentStep.set(step);
     }
   }
-  
+
   goBack(): void {
     this.router.navigate(['/dashboard']);
   }
-  
+
   toggleTheme(): void {
     this.isLightMode.update(v => !v);
-    
+
     if (this.isLightMode()) {
       this.domRenderer.addClass(document.body, 'light-mode');
       localStorage.setItem('simstruct-theme', 'light');
@@ -545,7 +545,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
       this.domRenderer.removeClass(document.body, 'light-mode');
       localStorage.setItem('simstruct-theme', 'dark');
     }
-    
+
     // Update Three.js scene background
     if (this.scene) {
       const bgColor = this.isLightMode() ? 0xe2e8f0 : 0x0f172a;
@@ -553,13 +553,19 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  async runAnalysis(): Promise<void> {
+  runAnalysis(): Promise<void> {
     // Validate form before submitting
     if (!this.validateForm()) {
       this.notificationService.error('Validation Error', 'Please fix the form errors before submitting.');
-      return;
+      return Promise.resolve();
     }
-    
+
+    // Call the async implementation and return the promise
+    return this.executeAnalysis();
+  }
+
+  private async executeAnalysis(): Promise<void> {
+
     this.isAnalyzing.set(true);
     this.analysisProgress.set(0);
     this.analysisStage.set('preprocessing');
@@ -601,25 +607,27 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
 
     // Call backend API
     this.analysisStage.set('inference');
-    
+
     this.simulationService.createSimulation(request).subscribe({
-      next: async (result) => {
+      next: (result) => {
         console.log('SimulationComponent: Simulation result:', result);
 
-        // Continue progress animation
-        await this.simulateProgress('inference', 70, 600);
-        await this.simulateProgress('postprocessing', 95, 400);
-        await this.simulateProgress('complete', 100, 200);
+        // Continue progress animation using promise chain
+        this.simulateProgress('inference', 70, 600).then(() => {
+          return this.simulateProgress('postprocessing', 95, 400);
+        }).then(() => {
+          return this.simulateProgress('complete', 100, 200);
+        }).then(() => {
+          // Store result and navigate
+          localStorage.setItem('lastSimulationResult', JSON.stringify(result));
 
-        // Store result and navigate
-        localStorage.setItem('lastSimulationResult', JSON.stringify(result));
-        
-        this.notificationService.success('Success', 'Simulation completed successfully!');
+          this.notificationService.success('Success', 'Simulation completed successfully!');
 
-        setTimeout(() => {
-          this.isAnalyzing.set(false);
-          this.router.navigate(['/results', result.id]);
-        }, 600);
+          setTimeout(() => {
+            this.isAnalyzing.set(false);
+            this.router.navigate(['/results', result.id]);
+          }, 600);
+        });
       },
       error: (error) => {
         console.error('SimulationComponent: Simulation failed:', error);
@@ -632,16 +640,16 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
 
   private async simulateProgress(stage: 'preprocessing' | 'inference' | 'postprocessing' | 'complete', target: number, duration: number): Promise<void> {
     this.analysisStage.set(stage);
-    
+
     const startProgress = this.analysisProgress();
     const steps = duration / 50;
     const increment = (target - startProgress) / steps;
-    
+
     for (let i = 0; i < steps; i++) {
       await new Promise(resolve => setTimeout(resolve, 50));
-      this.analysisProgress.update(p => Math.min(p + increment + (Math.random() - 0.5) * 2, target));
+      this.analysisProgress.update(p => Math.min(p + increment + (Math.random() - 0.5) * 2, target)); // NOSONAR - visual effect only
     }
-    
+
     this.analysisProgress.set(target);
     await new Promise(resolve => setTimeout(resolve, 100));
   }

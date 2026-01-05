@@ -31,7 +31,7 @@ export interface ChangePasswordRequest {
 export class UserService {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
-  
+
   private apiUrl = environment.apiUrl;
 
   /**
@@ -39,12 +39,12 @@ export class UserService {
    */
   async getProfile(): Promise<{ success: boolean; data?: User; message?: string }> {
     console.log('UserService: Getting profile');
-    
+
     try {
       const response = await this.http.get<ApiResponse<User>>(
         `${this.apiUrl}/users/me`
       ).toPromise();
-      
+
       if (response?.success && response.data) {
         console.log('UserService: Profile loaded');
         this.authService.updateUser(response.data);
@@ -62,13 +62,13 @@ export class UserService {
    */
   async updateProfile(data: UpdateProfileRequest): Promise<{ success: boolean; data?: User; message?: string }> {
     console.log('UserService: Updating profile');
-    
+
     try {
       const response = await this.http.put<ApiResponse<User>>(
         `${this.apiUrl}/users/me`,
         data
       ).toPromise();
-      
+
       if (response?.success && response.data) {
         console.log('UserService: Profile updated');
         this.authService.updateUser(response.data);
@@ -86,13 +86,13 @@ export class UserService {
    */
   async changePassword(data: ChangePasswordRequest): Promise<{ success: boolean; message: string }> {
     console.log('UserService: Changing password');
-    
+
     try {
       const response = await this.http.put<ApiResponse<string>>(
         `${this.apiUrl}/users/me/password`,
         data
       ).toPromise();
-      
+
       if (response?.success) {
         console.log('UserService: Password changed');
         return { success: true, message: 'Password changed successfully' };
@@ -109,12 +109,12 @@ export class UserService {
    */
   async deleteAccount(): Promise<{ success: boolean; message: string }> {
     console.log('UserService: Deleting account');
-    
+
     try {
       const response = await this.http.delete<ApiResponse<string>>(
         `${this.apiUrl}/users/me`
       ).toPromise();
-      
+
       if (response?.success) {
         console.log('UserService: Account deleted');
         this.authService.logout();

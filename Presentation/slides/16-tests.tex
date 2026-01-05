@@ -1,0 +1,177 @@
+%==============================================================================
+% SLIDE 16 - TESTS ET QUALITÉ
+%==============================================================================
+
+\begin{frame}
+\frametitle{Tests et Assurance Qualité}
+\framesubtitle{Stratégie de Test Complète}
+\customFooter
+
+\vspace{0.2cm}
+
+\begin{columns}[T]
+%----------------------------------------------------------------------
+% COLONNE GAUCHE - TYPES DE TESTS
+%----------------------------------------------------------------------
+\begin{column}{0.48\textwidth}
+
+    % Titre
+    \begin{tikzpicture}
+        \node[
+            rectangle,
+            rounded corners=4pt,
+            fill=primary,
+            text=white,
+            inner xsep=10pt,inner ysep=5pt,
+            font=\small\bfseries
+        ] {\faIcon{vial}\ \ Types de Tests};
+    \end{tikzpicture}
+    
+    \vspace{0.4cm}
+    
+    % Tests unitaires
+    \begin{tikzpicture}
+        \node[
+            rectangle,
+            rounded corners=6pt,
+            fill=primary!10,
+            draw=primary,
+            draw opacity=0.3,
+            minimum width=6cm,
+            inner sep=8pt
+        ] {
+            \begin{minipage}{5.4cm}
+                \textcolor{primary}{\faIcon{code}}\ \ \textbf{Tests Unitaires}\\
+                \textcolor{gray600}{\scriptsize JUnit 5, Jest, Pytest}
+            \end{minipage}
+        };
+    \end{tikzpicture}
+    
+    \vspace{0.2cm}
+    
+    % Tests d'intégration
+    \begin{tikzpicture}
+        \node[
+            rectangle,
+            rounded corners=6pt,
+            fill=secondary!10,
+            draw=secondary,
+            draw opacity=0.3,
+            minimum width=6cm,
+            inner sep=8pt
+        ] {
+            \begin{minipage}{5.4cm}
+                \textcolor{secondary}{\faIcon{layer-group}}\ \ \textbf{Tests d'Intégration}\\
+                \textcolor{gray600}{\scriptsize MockMvc, TestClient}
+            \end{minipage}
+        };
+    \end{tikzpicture}
+    
+    \vspace{0.2cm}
+    
+    % Tests E2E
+    \begin{tikzpicture}
+        \node[
+            rectangle,
+            rounded corners=6pt,
+            fill=accent!10,
+            draw=accent,
+            draw opacity=0.3,
+            minimum width=6cm,
+            inner sep=8pt
+        ] {
+            \begin{minipage}{5.4cm}
+                \textcolor{accent}{\faIcon{users}}\ \ \textbf{Tests End-to-End}\\
+                \textcolor{gray600}{\scriptsize Cypress, Playwright}
+            \end{minipage}
+        };
+    \end{tikzpicture}
+    
+    \vspace{0.2cm}
+    
+    % Tests de performance
+    \begin{tikzpicture}
+        \node[
+            rectangle,
+            rounded corners=6pt,
+            fill=danger!10,
+            draw=danger,
+            draw opacity=0.3,
+            minimum width=6cm,
+            inner sep=8pt
+        ] {
+            \begin{minipage}{5.4cm}
+                \textcolor{danger}{\faIcon{tachometer-alt}}\ \ \textbf{Tests de Performance}\\
+                \textcolor{gray600}{\scriptsize JMeter, Load Testing}
+            \end{minipage}
+        };
+    \end{tikzpicture}
+
+\end{column}
+
+%----------------------------------------------------------------------
+% COLONNE DROITE - OUTILS ET OBJECTIFS
+%----------------------------------------------------------------------
+\begin{column}{0.48\textwidth}
+
+    % Titre
+    \begin{tikzpicture}
+        \node[
+            rectangle,
+            rounded corners=4pt,
+            fill=secondary,
+            text=white,
+            inner xsep=10pt,inner ysep=5pt,
+            font=\small\bfseries
+        ] {\faIcon{tools}\ \ Outils de Qualité};
+    \end{tikzpicture}
+    
+    \vspace{0.4cm}
+    
+    % Liste outils
+    {\small
+    \begin{itemize}
+        \item[\textcolor{primary}{\faIcon{search}}] \textbf{SonarQube}\\
+        \textcolor{gray600}{\scriptsize Analyse statique du code}
+        \vspace{0.15cm}
+        
+        \item[\textcolor{secondary}{\faIcon{shield-alt}}] \textbf{Spring Security}\\
+        \textcolor{gray600}{\scriptsize Sécurité applicative}
+        \vspace{0.15cm}
+        
+        \item[\textcolor{accent}{\faIcon{chart-line}}] \textbf{JaCoCo}\\
+        \textcolor{gray600}{\scriptsize Couverture de code}
+        \vspace{0.15cm}
+        
+        \item[\textcolor{primaryLight}{\faIcon[brands]{docker}}] \textbf{Docker}\\
+        \textcolor{gray600}{\scriptsize Environnements isolés}
+    \end{itemize}
+    }
+    
+    \vspace{0.4cm}
+    
+    % Objectifs
+    \begin{tikzpicture}
+        \node[
+            rectangle,
+            rounded corners=8pt,
+            fill=gray100,
+            draw=gray400,
+            line width=1pt,
+            minimum width=6cm,
+            inner sep=10pt
+        ] {
+            \begin{minipage}{5.4cm}
+                \textcolor{dark}{\faIcon{bullseye}\ \ \textbf{Objectifs Qualité}}\\[0.2cm]
+                \textcolor{secondary}{\faIcon{check}}\ Couverture $>$ 60\%\\
+                \textcolor{secondary}{\faIcon{check}}\ 100\% hotspots sécurité\\
+                \textcolor{secondary}{\faIcon{check}}\ 0 vulnérabilités critiques
+            \end{minipage}
+        };
+    \end{tikzpicture}
+
+\end{column}
+
+\end{columns}
+
+\end{frame}

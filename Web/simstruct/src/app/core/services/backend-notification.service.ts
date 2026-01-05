@@ -6,7 +6,7 @@ import { AuthService } from './auth.service';
 import { NotificationService } from './notification.service';
 
 // Notification types enum matching backend
-export type NotificationType = 
+export type NotificationType =
   | 'SIMULATION_COMPLETE'
   | 'SIMULATION_FAILED'
   | 'SIMULATION_SHARED'
@@ -92,7 +92,7 @@ export class BackendNotificationService implements OnDestroy {
 
   constructor() {
     console.log('BackendNotificationService: Initialized');
-    
+
     // Watch auth state changes
     effect(() => {
       const user = this.authService.user();
@@ -124,7 +124,7 @@ export class BackendNotificationService implements OnDestroy {
    */
   loadNotifications(): void {
     this._loading.set(true);
-    
+
     this.http.get<ApiResponse<BackendNotification[]>>(this.API_URL).subscribe({
       next: (response) => {
         if (response.success) {
@@ -145,7 +145,7 @@ export class BackendNotificationService implements OnDestroy {
    */
   loadNotificationsPaged(page: number = 0, size: number = 20): void {
     this._loading.set(true);
-    
+
     this.http.get<ApiResponse<PageResponse<BackendNotification>>>(`${this.API_URL}/page?page=${page}&size=${size}`).subscribe({
       next: (response) => {
         if (response.success) {
@@ -185,7 +185,7 @@ export class BackendNotificationService implements OnDestroy {
    */
   loadUnreadNotifications(): void {
     this._loading.set(true);
-    
+
     this.http.get<ApiResponse<BackendNotification[]>>(`${this.API_URL}/unread`).subscribe({
       next: (response) => {
         if (response.success) {
@@ -211,7 +211,7 @@ export class BackendNotificationService implements OnDestroy {
       next: (response) => {
         if (response.success) {
           // Update local state
-          this._notifications.update(notifications => 
+          this._notifications.update(notifications =>
             notifications.map(n => n.id === notificationId ? { ...n, isRead: true } : n)
           );
           this._unreadCount.update(count => Math.max(0, count - 1));
@@ -232,7 +232,7 @@ export class BackendNotificationService implements OnDestroy {
       next: (response) => {
         if (response.success) {
           // Update local state
-          this._notifications.update(notifications => 
+          this._notifications.update(notifications =>
             notifications.map(n => ({ ...n, isRead: true }))
           );
           this._unreadCount.set(0);
@@ -253,7 +253,7 @@ export class BackendNotificationService implements OnDestroy {
       next: (response) => {
         if (response.success) {
           const notification = this._notifications().find(n => n.id === notificationId);
-          this._notifications.update(notifications => 
+          this._notifications.update(notifications =>
             notifications.filter(n => n.id !== notificationId)
           );
           if (notification && !notification.isRead) {
@@ -295,7 +295,7 @@ export class BackendNotificationService implements OnDestroy {
     if (!notification.isRead) {
       this.markAsRead(notification.id);
     }
-    
+
     if (notification.actionUrl) {
       this.router.navigateByUrl(notification.actionUrl);
     }
@@ -320,16 +320,12 @@ export class BackendNotificationService implements OnDestroy {
       return;
     }
 
-    try {
-      // Dynamic import for SockJS and STOMP
-      this.loadWebSocketLibraries().then(() => {
-        this.initializeWebSocket(token);
-      }).catch(err => {
-        console.error('BackendNotificationService: Failed to load WebSocket libraries', err);
-      });
-    } catch (err) {
-      console.error('BackendNotificationService: WebSocket connection error', err);
-    }
+    // Dynamic import for SockJS and STOMP
+    this.loadWebSocketLibraries().then(() => {
+      this.initializeWebSocket(token);
+    }).catch(err => {
+      console.error('BackendNotificationService: Failed to load WebSocket libraries', err);
+    });
   }
 
   /**
@@ -339,7 +335,7 @@ export class BackendNotificationService implements OnDestroy {
     // Using global SockJS and Stomp if available
     if (typeof (window as any).SockJS === 'undefined') {
       console.log('BackendNotificationService: SockJS not loaded, using fallback polling');
-      return Promise.reject('SockJS not available');
+      return Promise.reject(new Error('SockJS not available'));
     }
   }
 
@@ -367,7 +363,7 @@ export class BackendNotificationService implements OnDestroy {
         'Authorization': `Bearer ${token}`
       };
 
-      this.stompClient.connect(headers, 
+      this.stompClient.connect(headers,
         // On connect
         (frame: any) => {
           console.log('BackendNotificationService: WebSocket connected');
@@ -527,7 +523,7 @@ export class BackendNotificationService implements OnDestroy {
       this.subscriptions.forEach(sub => {
         try {
           sub.unsubscribe();
-        } catch (e) {}
+        } catch (e) { }
       });
       this.subscriptions = [];
 

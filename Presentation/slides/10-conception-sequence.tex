@@ -1,0 +1,48 @@
+%==============================================================================
+% SLIDE 10 - CONCEPTION : DIAGRAMME DE SÉQUENCE
+%==============================================================================
+
+\begin{frame}
+\frametitle{Conception}
+\framesubtitle{Diagramme de Séquence - Processus de Simulation}
+\customFooter
+
+\vspace{0.3cm}
+
+\begin{center}
+    \imagePlaceholder[12cm]{5.5cm}{
+        \textbf{[Diagramme de Séquence UML]}\\[0.2cm]
+        Insérer l'image du diagramme exporté depuis\\
+        \texttt{Conception/DIAGRAMMES\_DE\_SEQUENCE.md}
+    }
+\end{center}
+
+\vspace{0.2cm}
+
+% Flux simplifié
+\begin{center}
+\begin{tikzpicture}[
+    step/.style={
+        rectangle,
+        rounded corners=4pt,
+        fill=primary,
+        text=white,
+        inner xsep=10pt,inner ysep=5pt,
+        font=\scriptsize\bfseries
+    },
+    arrow/.style={->,>=stealth,primary,line width=1.5pt}
+]
+    \node[step] (s1) at (0,0) {1. Paramètres};
+    \node[step] (s2) at (3cm,0) {2. Backend};
+    \node[step] (s3) at (6cm,0) {3. Modèle IA};
+    \node[step] (s4) at (9cm,0) {4. Résultats};
+    \node[step] (s5) at (12cm,0) {5. Affichage};
+    
+    \draw[arrow] (s1) -- (s2);
+    \draw[arrow] (s2) -- (s3);
+    \draw[arrow] (s3) -- (s4);
+    \draw[arrow] (s4) -- (s5);
+\end{tikzpicture}
+\end{center}
+
+\end{frame}

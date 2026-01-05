@@ -2,5 +2,5 @@ projectKey=simstruct-mobile
 serverUrl=http://localhost:9000
 serverVersion=25.11.0.114957
 dashboardUrl=http://localhost:9000/dashboard?id=simstruct-mobile
-ceTaskId=bd28b59d-f851-498c-b01a-2f7fac6a19bf
-ceTaskUrl=http://localhost:9000/api/ce/task?id=bd28b59d-f851-498c-b01a-2f7fac6a19bf
+ceTaskId=934897dd-6420-471c-bc5e-9c3568d5777f
+ceTaskUrl=http://localhost:9000/api/ce/task?id=934897dd-6420-471c-bc5e-9c3568d5777f

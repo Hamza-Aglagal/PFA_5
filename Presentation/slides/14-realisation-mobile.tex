@@ -1,0 +1,129 @@
+%==============================================================================
+% SLIDE 14 - RÉALISATION MOBILE
+%==============================================================================
+
+\begin{frame}
+\frametitle{Réalisation}
+\framesubtitle{Application Mobile Flutter}
+\customFooter
+
+\vspace{0.3cm}
+
+\begin{center}
+\begin{tikzpicture}[
+    phone/.style={
+        rectangle,
+        rounded corners=15pt,
+        draw=dark,
+        line width=2pt,
+        minimum width=3.2cm,
+        minimum height=6cm,
+        fill=white
+    },
+    screen/.style={
+        rectangle,
+        rounded corners=10pt,
+        fill=gray100,
+        minimum width=2.8cm,
+        minimum height=5.2cm
+    }
+]
+
+%----------------------------------------------------------------------
+% ÉCRAN 1 - ACCUEIL
+%----------------------------------------------------------------------
+\node[phone] (p1) at (0,0) {};
+\node[screen] at (0,0.15) {};
+\node[text=gray400,font=\large] at (0,0.5) {\faIcon{home}};
+\node[text=gray600,font=\scriptsize,text width=2.5cm,align=center] at (0,-0.5) {
+    \textbf{[Écran Accueil]}\\
+    Capture Flutter
+};
+\node[
+    rectangle,
+    rounded corners=3pt,
+    fill=primary,
+    text=white,
+    font=\tiny\bfseries,
+    inner xsep=8pt,inner ysep=3pt
+] at (0,-2.5) {Accueil};
+
+% Notch
+\node[rectangle,rounded corners=2pt,fill=dark,minimum width=1cm,minimum height=0.15cm] at (0,2.7) {};
+
+%----------------------------------------------------------------------
+% ÉCRAN 2 - SIMULATION
+%----------------------------------------------------------------------
+\node[phone] (p2) at (4.5cm,0) {};
+\node[screen] at (4.5cm,0.15) {};
+\node[text=gray400,font=\large] at (4.5cm,0.5) {\faIcon{calculator}};
+\node[text=gray600,font=\scriptsize,text width=2.5cm,align=center] at (4.5cm,-0.5) {
+    \textbf{[Écran Simulation]}\\
+    Capture Flutter
+};
+\node[
+    rectangle,
+    rounded corners=3pt,
+    fill=secondary,
+    text=white,
+    font=\tiny\bfseries,
+    inner xsep=8pt,inner ysep=3pt
+] at (4.5cm,-2.5) {Simulation};
+
+% Notch
+\node[rectangle,rounded corners=2pt,fill=dark,minimum width=1cm,minimum height=0.15cm] at (4.5cm,2.7) {};
+
+%----------------------------------------------------------------------
+% ÉCRAN 3 - RÉSULTATS
+%----------------------------------------------------------------------
+\node[phone] (p3) at (9cm,0) {};
+\node[screen] at (9cm,0.15) {};
+\node[text=gray400,font=\large] at (9cm,0.5) {\faIcon{chart-pie}};
+\node[text=gray600,font=\scriptsize,text width=2.5cm,align=center] at (9cm,-0.5) {
+    \textbf{[Écran Résultats]}\\
+    Capture Flutter
+};
+\node[
+    rectangle,
+    rounded corners=3pt,
+    fill=accent,
+    text=white,
+    font=\tiny\bfseries,
+    inner xsep=8pt,inner ysep=3pt
+] at (9cm,-2.5) {Résultats};
+
+% Notch
+\node[rectangle,rounded corners=2pt,fill=dark,minimum width=1cm,minimum height=0.15cm] at (9cm,2.7) {};
+
+%----------------------------------------------------------------------
+% ÉCRAN 4 - PROFIL
+%----------------------------------------------------------------------
+\node[phone] (p4) at (13.5cm,0) {};
+\node[screen] at (13.5cm,0.15) {};
+\node[text=gray400,font=\large] at (13.5cm,0.5) {\faIcon{user}};
+\node[text=gray600,font=\scriptsize,text width=2.5cm,align=center] at (13.5cm,-0.5) {
+    \textbf{[Écran Profil]}\\
+    Capture Flutter
+};
+\node[
+    rectangle,
+    rounded corners=3pt,
+    fill=primaryLight,
+    text=white,
+    font=\tiny\bfseries,
+    inner xsep=8pt,inner ysep=3pt
+] at (13.5cm,-2.5) {Profil};
+
+% Notch
+\node[rectangle,rounded corners=2pt,fill=dark,minimum width=1cm,minimum height=0.15cm] at (13.5cm,2.7) {};
+
+\end{tikzpicture}
+\end{center}
+
+\vspace{0.2cm}
+
+\begin{center}
+    \textcolor{gray600}{\faIcon{mobile-alt}\ \ Application Flutter — Compatible iOS \& Android}
+\end{center}
+
+\end{frame}

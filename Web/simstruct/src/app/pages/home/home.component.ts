@@ -251,17 +251,18 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private createParticles(): void {
+    // Visual effect only - NOSONAR: Math.random used for non-security visual randomness
     const particleCount = 500;
     const positions = new Float32Array(particleCount * 3);
     const colors = new Float32Array(particleCount * 3);
 
     for (let i = 0; i < particleCount; i++) {
-      positions[i * 3] = (Math.random() - 0.5) * 100;
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 100;
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 100;
+      positions[i * 3] = (Math.random() - 0.5) * 100; // NOSONAR - visual effect only
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 100; // NOSONAR - visual effect only
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 100; // NOSONAR - visual effect only
 
       // Mix of blue and orange particles
-      if (Math.random() > 0.5) {
+      if (Math.random() > 0.5) { // NOSONAR - visual effect only
         colors[i * 3] = 0.23;     // R
         colors[i * 3 + 1] = 0.51; // G
         colors[i * 3 + 2] = 0.96; // B (blue)

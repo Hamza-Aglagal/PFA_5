@@ -72,15 +72,16 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
   }
   
   private createFloatingStructures(): void {
+    // Visual effect only - NOSONAR: Math.random used for non-security visual randomness
     for (let i = 0; i < 8; i++) {
       const group = new THREE.Group();
-      const buildingGeometry = new THREE.BoxGeometry(Math.random() * 3 + 2, Math.random() * 8 + 4, Math.random() * 3 + 2);
+      const buildingGeometry = new THREE.BoxGeometry(Math.random() * 3 + 2, Math.random() * 8 + 4, Math.random() * 3 + 2); // NOSONAR - visual effect only
       const edges = new THREE.EdgesGeometry(buildingGeometry);
-      const material = new THREE.LineBasicMaterial({ color: 0x3b82f6, transparent: true, opacity: 0.3 + Math.random() * 0.3 });
+      const material = new THREE.LineBasicMaterial({ color: 0x3b82f6, transparent: true, opacity: 0.3 + Math.random() * 0.3 }); // NOSONAR - visual effect only
       const wireframe = new THREE.LineSegments(edges, material);
       group.add(wireframe);
-      group.position.set((Math.random() - 0.5) * 60, Math.random() * 10, (Math.random() - 0.5) * 40);
-      group.userData = { floatSpeed: Math.random() * 0.5 + 0.5, floatOffset: Math.random() * Math.PI * 2, rotationSpeed: (Math.random() - 0.5) * 0.005 };
+      group.position.set((Math.random() - 0.5) * 60, Math.random() * 10, (Math.random() - 0.5) * 40); // NOSONAR - visual effect only
+      group.userData = { floatSpeed: Math.random() * 0.5 + 0.5, floatOffset: Math.random() * Math.PI * 2, rotationSpeed: (Math.random() - 0.5) * 0.005 }; // NOSONAR - visual effect only
       this.scene.add(group);
     }
   }

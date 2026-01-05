@@ -1,0 +1,33 @@
+# Dockerfile for running tests
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements.txt .
+
+# Install Python dependencies with CPU-only PyTorch
+RUN pip install --no-cache-dir torch==2.2.0 --index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy source code
+COPY src/ ./src/
+COPY models/ ./models/
+COPY data/ ./data/
+COPY pytest.ini .
+
+# Create empty scalers.pkl for testing (if not exists)
+RUN python -c "import pickle; import os; \
+    from sklearn.preprocessing import StandardScaler; \
+    scalers = {'scaler_X': StandardScaler(), 'scaler_Y': StandardScaler()}; \
+    os.makedirs('models', exist_ok=True); \
+    f = open('models/scalers.pkl', 'wb'); \
+    pickle.dump(scalers, f); f.close()" 2>/dev/null || true
+
+# Run tests with coverage
+CMD ["python", "-m", "pytest", "src/", "--cov=src", "--cov-report=term-missing", "-v"]

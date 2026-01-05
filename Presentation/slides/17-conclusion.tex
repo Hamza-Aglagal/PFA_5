@@ -1,0 +1,157 @@
+%==============================================================================
+% SLIDE 17 - CONCLUSION
+%==============================================================================
+
+% Slide de transition
+\sectionSlide{10}{Conclusion}
+
+% Slide de contenu
+\begin{frame}
+\frametitle{Conclusion}
+\framesubtitle{Bilan et Perspectives}
+\customFooter
+
+\vspace{0.2cm}
+
+\begin{columns}[T]
+%----------------------------------------------------------------------
+% COLONNE GAUCHE - RÉALISATIONS
+%----------------------------------------------------------------------
+\begin{column}{0.48\textwidth}
+
+    % Titre
+    \begin{tikzpicture}
+        \node[
+            rectangle,
+            rounded corners=4pt,
+            fill=secondary,
+            text=white,
+            inner xsep=10pt,inner ysep=5pt,
+            font=\small\bfseries
+        ] {\faIcon{trophy}\ \ Réalisations};
+    \end{tikzpicture}
+    
+    \vspace{0.4cm}
+    
+    % Liste des réalisations
+    \begin{tikzpicture}[node distance=0.35cm]
+        \node[anchor=west] (r1) at (0,0) {
+            \textcolor{secondary}{\faIcon{check-circle}}\ \ 
+            Plateforme Web complète (Angular 21)
+        };
+        
+        \node[anchor=west,below=of r1.west,anchor=west] (r2) {
+            \textcolor{secondary}{\faIcon{check-circle}}\ \ 
+            Application Mobile (Flutter)
+        };
+        
+        \node[anchor=west,below=of r2.west,anchor=west] (r3) {
+            \textcolor{secondary}{\faIcon{check-circle}}\ \ 
+            Backend robuste (Spring Boot)
+        };
+        
+        \node[anchor=west,below=of r3.west,anchor=west] (r4) {
+            \textcolor{secondary}{\faIcon{check-circle}}\ \ 
+            Modèle IA fonctionnel (PyTorch)
+        };
+        
+        \node[anchor=west,below=of r4.west,anchor=west] (r5) {
+            \textcolor{secondary}{\faIcon{check-circle}}\ \ 
+            Système de communauté
+        };
+        
+        \node[anchor=west,below=of r5.west,anchor=west] (r6) {
+            \textcolor{secondary}{\faIcon{check-circle}}\ \ 
+            Authentification sécurisée JWT
+        };
+        
+        \node[anchor=west,below=of r6.west,anchor=west] (r7) {
+            \textcolor{secondary}{\faIcon{check-circle}}\ \ 
+            Visualisation 3D interactive
+        };
+    \end{tikzpicture}
+
+\end{column}
+
+%----------------------------------------------------------------------
+% COLONNE DROITE - PERSPECTIVES
+%----------------------------------------------------------------------
+\begin{column}{0.48\textwidth}
+
+    % Titre
+    \begin{tikzpicture}
+        \node[
+            rectangle,
+            rounded corners=4pt,
+            fill=primary,
+            text=white,
+            inner xsep=10pt,inner ysep=5pt,
+            font=\small\bfseries
+        ] {\faIcon{rocket}\ \ Perspectives};
+    \end{tikzpicture}
+    
+    \vspace{0.4cm}
+    
+    % Liste des perspectives
+    \begin{tikzpicture}[node distance=0.35cm]
+        \node[anchor=west] (p1) at (0,0) {
+            \textcolor{primary}{\faIcon{expand-arrows-alt}}\ \ 
+            Extension à d'autres structures
+        };
+        
+        \node[anchor=west,below=of p1.west,anchor=west] (p2) {
+            \textcolor{primary}{\faIcon{brain}}\ \ 
+            Amélioration du modèle IA
+        };
+        
+        \node[anchor=west,below=of p2.west,anchor=west] (p3) {
+            \textcolor{primary}{\faIcon{vr-cardboard}}\ \ 
+            Intégration réalité augmentée
+        };
+        
+        \node[anchor=west,below=of p3.west,anchor=west] (p4) {
+            \textcolor{primary}{\faIcon{cloud}}\ \ 
+            Déploiement cloud (AWS/Azure)
+        };
+        
+        \node[anchor=west,below=of p4.west,anchor=west] (p5) {
+            \textcolor{primary}{\faIcon{graduation-cap}}\ \ 
+            Partenariats académiques
+        };
+        
+        \node[anchor=west,below=of p5.west,anchor=west] (p6) {
+            \textcolor{primary}{\faIcon{language}}\ \ 
+            Internationalisation (i18n)
+        };
+        
+        \node[anchor=west,below=of p6.west,anchor=west] (p7) {
+            \textcolor{primary}{\faIcon{file-pdf}}\ \ 
+            Export de rapports PDF
+        };
+    \end{tikzpicture}
+
+\end{column}
+
+\end{columns}
+
+\vspace{0.4cm}
+
+% Message final
+\begin{center}
+\begin{tikzpicture}
+    \node[
+        rectangle,
+        rounded corners=10pt,
+        fill=primary,
+        text=white,
+        minimum width=12cm,
+        inner sep=12pt,
+        font=\normalsize,
+        drop shadow={shadow xshift=1pt, shadow yshift=-2pt, opacity=0.15}
+    ] {
+        \faIcon{lightbulb}\ \ \textbf{SIMSTRUCT : L'ingénierie structurelle accessible à tous grâce à l'IA}
+    };
+\end{tikzpicture}
+\end{center}
+
+\end{frame}

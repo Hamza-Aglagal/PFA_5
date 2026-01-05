@@ -1,0 +1,100 @@
+%==============================================================================
+% SLIDE 01 - PAGE DE COUVERTURE
+%==============================================================================
+
+{
+\setbeamertemplate{footline}{}
+\begin{frame}[plain]
+\begin{tikzpicture}[remember picture,overlay]
+    %----------------------------------------------------------------------
+    % FOND ET DÉCORATION
+    %----------------------------------------------------------------------
+    % Fond principal bleu
+    \fill[primary] (current page.south west) rectangle (current page.north east);
+    
+    % Formes géométriques décoratives
+    \fill[primaryDark,opacity=0.6] 
+        ([xshift=-5cm,yshift=-3cm]current page.north east) circle (8cm);
+    \fill[primaryLight,opacity=0.15] 
+        ([xshift=3cm,yshift=4cm]current page.south west) circle (7cm);
+    \fill[white,opacity=0.05] 
+        ([xshift=-8cm,yshift=-2cm]current page.north west) circle (4cm);
+    
+    % Motif de lignes diagonales subtiles
+    \foreach \i in {0,1,...,20} {
+        \draw[white,opacity=0.03,line width=1pt] 
+            ([xshift=\i*1cm]current page.south west) -- 
+            ([xshift=\i*1cm,yshift=3cm]current page.north west);
+    }
+    
+    %----------------------------------------------------------------------
+    % HEADER - LOGOS ET INFOS
+    %----------------------------------------------------------------------
+    % Logo EMSI
+    \node[white,font=\large\bfseries,anchor=north west] 
+        at ([xshift=1.2cm,yshift=-1cm]current page.north west) {
+            \faIcon{university}\ \ EMSI
+        };
+    
+    % Année académique
+    \node[white,font=\small,anchor=north east,opacity=0.9] 
+        at ([xshift=-1.2cm,yshift=-1cm]current page.north east) {
+            Projet de Fin d'Année 2024-2025
+        };
+    
+    %----------------------------------------------------------------------
+    % CONTENU PRINCIPAL
+    %----------------------------------------------------------------------
+    % Titre SIMSTRUCT
+    \node[white,font=\fontsize{56}{64}\selectfont\bfseries,anchor=center] 
+        at ([yshift=2.5cm]current page.center) {SIMSTRUCT};
+    
+    % Ligne décorative sous le titre
+    \draw[white,line width=2pt] 
+        ([yshift=1.3cm]current page.center) ++(-4cm,0) -- ++(8cm,0);
+    
+    % Sous-titre
+    \node[white,font=\large,anchor=center,text width=12cm,align=center] 
+        at ([yshift=0.3cm]current page.center) {
+            Plateforme de Simulation Structurelle\\[0.2cm]
+            avec Intelligence Artificielle
+        };
+    
+    % Tags/badges
+    \node[anchor=center] at ([yshift=-1.2cm]current page.center) {
+        \begin{tikzpicture}
+            \node[fill=white,fill opacity=0.15,text opacity=1,rounded corners=15pt,
+                  inner xsep=15pt,inner ysep=8pt,font=\small] (t1) at (0,0) 
+                {\textcolor{white}{\faIcon{building}\ Génie Civil}};
+            \node[fill=white,fill opacity=0.15,text opacity=1,rounded corners=15pt,
+                  inner xsep=15pt,inner ysep=8pt,font=\small] (t2) at (4.5cm,0) 
+                {\textcolor{white}{\faIcon{brain}\ Deep Learning}};
+            \node[fill=white,fill opacity=0.15,text opacity=1,rounded corners=15pt,
+                  inner xsep=15pt,inner ysep=8pt,font=\small] (t3) at (9.5cm,0) 
+                {\textcolor{white}{\faIcon{mobile-alt}\ Multi-Plateforme}};
+        \end{tikzpicture}
+    };
+    
+    %----------------------------------------------------------------------
+    % FOOTER - AUTEUR ET ENCADRANT
+    %----------------------------------------------------------------------
+    % Présenté par
+    \node[white,opacity=0.8,font=\normalsize,anchor=center] 
+        at ([yshift=-2.8cm]current page.center) {Présenté par};
+    
+    % Nom de l'auteur
+    \node[white,font=\Large\bfseries,anchor=center] 
+        at ([yshift=-3.5cm]current page.center) {Hamza Aglagal};
+    
+    % Encadrant
+    \node[white,opacity=0.7,font=\small,anchor=center] 
+        at ([yshift=-4.3cm]current page.center) {Encadré par : \encadrant};
+    
+    % Barre décorative en bas
+    \fill[white,opacity=0.2] 
+        ([yshift=0.4cm]current page.south west) rectangle 
+        ([yshift=0.6cm]current page.south east);
+        
+\end{tikzpicture}
+\end{frame}
+}

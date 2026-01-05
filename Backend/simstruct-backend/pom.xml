@@ -103,6 +103,39 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webflux</artifactId>
 		</dependency>
+		
+		<!-- ==================== SELENIUM TESTING ==================== -->
+		<!-- Selenium WebDriver for E2E Browser Testing -->
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
+			<version>4.27.0</version>
+			<scope>test</scope>
+		</dependency>
+		
+		<!-- WebDriverManager - Auto-manages browser drivers (Chrome, Firefox, Edge) -->
+		<dependency>
+			<groupId>io.github.bonigarcia</groupId>
+			<artifactId>webdrivermanager</artifactId>
+			<version>5.9.2</version>
+			<scope>test</scope>
+		</dependency>
+		
+		<!-- Rest Assured for API Integration Testing -->
+		<dependency>
+			<groupId>io.rest-assured</groupId>
+			<artifactId>rest-assured</artifactId>
+			<version>5.5.0</version>
+			<scope>test</scope>
+		</dependency>
+		
+		<!-- Awaitility for async testing -->
+		<dependency>
+			<groupId>org.awaitility</groupId>
+			<artifactId>awaitility</artifactId>
+			<version>4.2.2</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -154,6 +187,72 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			
+			<!-- ==================== JMETER PERFORMANCE TESTING ==================== -->
+			<!-- JMeter Maven Plugin for API Load/Performance Testing -->
+			<plugin>
+				<groupId>com.lazerycode.jmeter</groupId>
+				<artifactId>jmeter-maven-plugin</artifactId>
+				<version>3.8.0</version>
+				<executions>
+					<!-- Configuration JMeter (requis avant jmeter:jmeter) -->
+					<execution>
+						<id>configuration</id>
+						<goals>
+							<goal>configure</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>jmeter-tests</id>
+						<goals>
+							<goal>jmeter</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>jmeter-check-results</id>
+						<goals>
+							<goal>results</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<testFilesDirectory>${project.basedir}/src/test/jmeter</testFilesDirectory>
+					<resultsDirectory>${project.build.directory}/jmeter/results</resultsDirectory>
+					<generateReports>true</generateReports>
+					<ignoreResultFailures>false</ignoreResultFailures>
+					<propertiesUser>
+						<threads>10</threads>
+						<duration>60</duration>
+						<rampup>5</rampup>
+					</propertiesUser>
+				</configuration>
+			</plugin>
+			
+			<!-- ==================== SELENIUM E2E TESTING ==================== -->
+			<!-- Maven Failsafe Plugin for Integration/E2E Tests -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>3.5.2</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<includes>
+						<include>**/*E2ETest.java</include>
+						<include>**/*IT.java</include>
+						<include>**/*IntegrationTest.java</include>
+					</includes>
+					<systemPropertyVariables>
+						<webdriver.chrome.driver>${webdriver.chrome.driver}</webdriver.chrome.driver>
+					</systemPropertyVariables>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

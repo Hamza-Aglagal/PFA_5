@@ -1,0 +1,87 @@
+%==============================================================================
+% SLIDE 03 - INTRODUCTION
+%==============================================================================
+
+% Slide de transition
+\sectionSlide{01}{Introduction}
+
+% Slide de contenu
+\begin{frame}
+\frametitle{Introduction}
+\framesubtitle{Contexte du Projet}
+\customFooter
+
+\vspace{0.2cm}
+
+\begin{columns}[T]
+%----------------------------------------------------------------------
+% COLONNE GAUCHE - CONTEXTE
+%----------------------------------------------------------------------
+\begin{column}{0.52\textwidth}
+
+    % Titre de section
+    \textcolor{primary}{\textbf{\large Le Génie Civil à l'Ère Numérique}}
+    
+    \vspace{0.5cm}
+    
+    % Points clés avec icônes
+    \begin{tikzpicture}[node distance=0.6cm]
+        \node[anchor=west] (p1) at (0,0) {
+            \iconCircle{$\boldsymbol{\%}$}\ \ 
+            L'industrie du BTP représente \textbf{13\% du PIB mondial}
+        };
+        
+        \node[anchor=west,below=of p1.west,anchor=west] (p2) {
+            \iconCircle{\faIcon{chart-line}}\ \ 
+            Demande croissante d'outils de simulation
+        };
+        
+        \node[anchor=west,below=of p2.west,anchor=west] (p3) {
+            \iconCircle{\faIcon{brain}}\ \ 
+            L'IA révolutionne l'analyse structurelle
+        };
+        
+        \node[anchor=west,below=of p3.west,anchor=west] (p4) {
+            \iconCircle{\faIcon{users}}\ \ 
+            Besoin d'accessibilité accrue
+        };
+    \end{tikzpicture}
+    
+    \vspace{0.6cm}
+    
+    % Encadré vision
+    \begin{tikzpicture}
+        \node[
+            rectangle,
+            rounded corners=8pt,
+            fill=primary,
+            text=white,
+            minimum width=7cm,
+            inner sep=12pt,
+            align=left
+        ] {
+            \faIcon{lightbulb}\ \ \textbf{Notre Vision}\\[0.2cm]
+            \small Démocratiser l'accès aux outils de\\
+            simulation structurelle grâce à l'IA.
+        };
+    \end{tikzpicture}
+
+\end{column}
+
+%----------------------------------------------------------------------
+% COLONNE DROITE - PLACEHOLDER IMAGE
+%----------------------------------------------------------------------
+\begin{column}{0.45\textwidth}
+    \vspace{0.5cm}
+    \begin{center}
+        \imagePlaceholder[6.5cm]{4.5cm}{
+            \textbf{[Image]}\\
+            Construction moderne /\\
+            Ingénierie structurelle
+        }
+    \end{center}
+\end{column}
+
+\end{columns}
+
+\end{frame}

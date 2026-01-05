@@ -1,0 +1,66 @@
+%==============================================================================
+% SLIDE 15 - DÉMONSTRATION
+%==============================================================================
+
+% Slide de transition
+\sectionSlide{09}{Démonstration}
+
+% Slide vidéo
+\begin{frame}
+\frametitle{Démonstration}
+\framesubtitle{Vidéo de Démonstration en Direct}
+\customFooter
+
+\vspace{0.3cm}
+
+\begin{center}
+\begin{tikzpicture}
+    % Cadre vidéo
+    \node[
+        rectangle,
+        rounded corners=15pt,
+        fill=dark,
+        minimum width=13cm,
+        minimum height=6.5cm,
+        drop shadow={shadow xshift=2pt, shadow yshift=-3pt, opacity=0.2}
+    ] (video) {};
+    
+    % Bouton play
+    \node[
+        circle,
+        fill=white,
+        fill opacity=0.9,
+        minimum size=2cm
+    ] (play) at (video.center) {};
+    
+    \node[text=primary,font=\fontsize{28}{32}\selectfont] at ([xshift=0.1cm]play.center) {\faIcon{play}};
+    
+    % Texte
+    \node[text=white,font=\large,opacity=0.8] at ([yshift=-1.8cm]video.center) {
+        \textbf{[Vidéo de Démonstration]}
+    };
+    
+    \node[text=white,font=\small,opacity=0.6] at ([yshift=-2.5cm]video.center) {
+        Cliquer pour lancer la démonstration en direct
+    };
+    
+    % Barre de progression simulée
+    \draw[white,opacity=0.3,line width=3pt,rounded corners=2pt] 
+        ([xshift=1cm,yshift=-2.8cm]video.west) -- ([xshift=-1cm,yshift=-2.8cm]video.east);
+    \draw[primary,line width=3pt,rounded corners=2pt] 
+        ([xshift=1cm,yshift=-2.8cm]video.west) -- ([xshift=-7cm,yshift=-2.8cm]video.east);
+        
+    % Durée
+    \node[text=white,font=\tiny,opacity=0.6] at ([xshift=-0.8cm,yshift=-2.8cm]video.east) {2:30};
+    
+\end{tikzpicture}
+\end{center}
+
+\vspace{0.2cm}
+
+\begin{center}
+    \textcolor{primary}{\faIcon{info-circle}}\ \ 
+    \textcolor{gray600}{\textit{Démonstration live des fonctionnalités principales de SIMSTRUCT}}
+\end{center}
+
+\end{frame}

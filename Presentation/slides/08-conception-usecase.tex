@@ -1,0 +1,54 @@
+%==============================================================================
+% SLIDE 08 - CONCEPTION : DIAGRAMME DE CAS D'UTILISATION
+%==============================================================================
+
+% Slide de transition
+\sectionSlide{06}{Conception}
+
+% Slide de contenu
+\begin{frame}
+\frametitle{Conception}
+\framesubtitle{Diagramme de Cas d'Utilisation}
+\customFooter
+
+\vspace{0.3cm}
+
+\begin{center}
+    \imagePlaceholder[12cm]{5.5cm}{
+        \textbf{[Diagramme de Cas d'Utilisation UML]}\\[0.2cm]
+        Insérer l'image du diagramme exporté depuis\\
+        \texttt{Conception/DIAGRAMME\_CAS\_UTILISATION.md}
+    }
+\end{center}
+
+\vspace{0.2cm}
+
+% Légende des acteurs
+\begin{center}
+\begin{tikzpicture}[
+    actor/.style={
+        rectangle,
+        rounded corners=4pt,
+        fill=#1,
+        fill opacity=0.15,
+        text opacity=1,
+        inner xsep=10pt,inner ysep=5pt,
+        font=\scriptsize
+    }
+]
+    \node[actor=primary] (a1) at (0,0) {
+        \textcolor{primary}{\faIcon{user}}\ Utilisateur
+    };
+    \node[actor=secondary] (a2) at (3cm,0) {
+        \textcolor{secondary}{\faIcon{user-tie}}\ Professionnel
+    };
+    \node[actor=accent] (a3) at (6.5cm,0) {
+        \textcolor{accent}{\faIcon{user-shield}}\ Administrateur
+    };
+    \node[actor=gray600] (a4) at (10cm,0) {
+        \textcolor{gray600}{\faIcon{robot}}\ Système IA
+    };
+\end{tikzpicture}
+\end{center}
+
+\end{frame}

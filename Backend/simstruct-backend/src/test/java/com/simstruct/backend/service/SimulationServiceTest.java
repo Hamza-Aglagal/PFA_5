@@ -6,6 +6,7 @@ import com.simstruct.backend.entity.Simulation;
 import com.simstruct.backend.entity.User;
 import com.simstruct.backend.repository.SimulationRepository;
 import com.simstruct.backend.repository.UserRepository;
+import com.simstruct.backend.repository.SharedSimulationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -38,6 +39,9 @@ class SimulationServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private SharedSimulationRepository sharedSimulationRepository;
 
     @Mock
     private SimulationEngine simulationEngine;
@@ -95,6 +99,10 @@ class SimulationServiceTest {
         // Configure le mock pour retourner notre simulation de test
         when(simulationRepository.findById(simulationId))
                 .thenReturn(Optional.of(testSimulation));
+        
+        // Configure le mock pour retourner notre utilisateur de test
+        when(userRepository.findByEmail(userEmail))
+                .thenReturn(Optional.of(testUser));
 
         // ACT: Exécute la méthode à tester
         SimulationResponse result = simulationService.getSimulation(simulationId, userEmail);

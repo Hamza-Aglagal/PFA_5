@@ -68,26 +68,26 @@ interface SimulationResponse {
 })
 export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   @ViewChild('messagesContainer') messagesContainer!: ElementRef;
-  
+
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private communityService = inject(CommunityService);
   private simulationService = inject(SimulationService);
   private destroy$ = new Subject<void>();
-  
+
   messageInput = signal('');
   private shouldScrollToBottom = true;
-  
+
   friendId = signal<string | null>(null);
   friendName = signal<string>('');
   isLoading = signal(false);
-  
+
   activePanel = signal<'chat' | 'simulations' | 'details'>('chat');
   simulationTab = signal<'sent' | 'received'>('sent');
   showSidebar = signal(true);
-  
+
   selectedSimulation = signal<SimulationResponse | null>(null);
-  
+
   showShareModal = signal(false);
   selectedShareSimulation = signal<SharedSimulation | null>(null);
   shareMessage = signal('');
@@ -115,19 +115,19 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       if (fId) this.loadMessages(fId);
     });
   }
-  
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
-  
+
   ngAfterViewChecked(): void {
     if (this.shouldScrollToBottom) {
       this.scrollToBottom();
       this.shouldScrollToBottom = false;
     }
   }
-  
+
   private scrollToBottom(): void {
     if (this.messagesContainer?.nativeElement) {
       this.messagesContainer.nativeElement.scrollTop = this.messagesContainer.nativeElement.scrollHeight;
@@ -137,12 +137,12 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   private loadChatData(): void {
     const fId = this.friendId();
     if (!fId) return;
-    
+
     this.isLoading.set(true);
-    
+
     // Load messages
     this.loadMessages(fId);
-    
+
     // Load shared simulations
     this.communityService.getSharesWithFriend(fId).subscribe({
       next: (response) => {
@@ -160,7 +160,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       },
       error: (err) => console.error('Error loading shares:', err)
     });
-    
+
     // Load my simulations for sharing
     this.simulationService.getUserSimulations().subscribe({
       next: (response: any) => {
@@ -179,7 +179,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       },
       error: (err) => console.error('Error loading simulations:', err)
     });
-    
+
     this.isLoading.set(false);
   }
 
@@ -198,12 +198,12 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       error: (err) => console.error('Error loading messages:', err)
     });
   }
-  
+
   goBack(): void { this.router.navigate(['/community']); }
   toggleSidebar(): void { this.showSidebar.update(v => !v); }
   setActivePanel(panel: 'chat' | 'simulations' | 'details'): void { this.activePanel.set(panel); }
   getInitials(name: string): string { return name ? name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : '?'; }
-  
+
   formatTime(date: Date): string {
     const d = new Date(date);
     const diff = Date.now() - d.getTime();
@@ -212,10 +212,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     if (diff < 86400000) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
   }
-  
+
   updateInput(event: Event): void { this.messageInput.set((event.target as HTMLInputElement).value); }
   handleKeyPress(event: KeyboardEvent): void { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); this.sendMessage(); } }
-  
+
   sendMessage(): void {
     const content = this.messageInput().trim();
     const fId = this.friendId();
@@ -235,15 +235,15 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       this.messageInput.set('');
     }
   }
-  
-  isOwnMessage(message: ChatMessageItem): boolean { 
+
+  isOwnMessage(message: ChatMessageItem): boolean {
     // Compare with current user - sender is current user if senderName is 'You' or senderId matches
     return message.senderName === 'You' || message.senderId !== this.friendId();
   }
-  
+
   getSafetyClass(sf: number): string { return sf >= 1.5 ? 'safe' : sf >= 1.0 ? 'warning' : 'critical'; }
   getSafetyDashArray(sf: number): string { const pct = Math.min(sf / 3.0, 1.0); const c = 2 * Math.PI * 45; return pct * c + ' ' + c; }
-  
+
   viewSimulationDetail(sim: SharedSimulation): void {
     this.selectedSimulation.set({
       id: sim.id, name: sim.name, description: sim.description,
@@ -254,24 +254,24 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     });
     this.setActivePanel('details');
   }
-  
-  viewReceivedSimulation(sim: SharedSimulationDTO): void { 
-    this.router.navigate(['/results', sim.simulationId]); 
+
+  viewReceivedSimulation(sim: SharedSimulationDTO): void {
+    this.router.navigate(['/results', sim.simulationId]);
   }
-  
+
   clearSelectedSimulation(): void { this.selectedSimulation.set(null); }
   viewFullResults(): void { const sim = this.selectedSimulation(); if (sim) this.router.navigate(['/results', sim.id]); }
-  
+
   openShareModal(): void { this.showShareModal.set(true); this.selectedShareSimulation.set(null); this.shareMessage.set(''); }
   closeShareModal(): void { this.showShareModal.set(false); this.selectedShareSimulation.set(null); this.shareMessage.set(''); }
   selectShareSimulation(sim: SharedSimulation): void { this.selectedShareSimulation.set(this.selectedShareSimulation()?.id === sim.id ? null : sim); }
   updateShareMessage(event: Event): void { this.shareMessage.set((event.target as HTMLTextAreaElement).value); }
-  
+
   shareSimulation(): void {
     const sim = this.selectedShareSimulation();
     const fId = this.friendId();
     if (!sim || !fId) return;
-    
+
     this.isSharingSimulation.set(true);
     this.communityService.shareSimulation(sim.id, fId, 'VIEW').subscribe({
       next: (response) => {

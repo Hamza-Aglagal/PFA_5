@@ -3,343 +3,325 @@
   <header class="detail-header">
     <button class="back-btn" (click)="goBack()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="19" y1="12" x2="5" y2="12"/>
-        <polyline points="12 19 5 12 12 5"/>
+        <line x1="19" y1="12" x2="5" y2="12" />
+        <polyline points="12 19 5 12 12 5" />
       </svg>
       Back to Community
     </button>
-    
+
     <div class="header-actions">
       @if (simulation()?.isOwner) {
-        <button class="btn btn-primary" (click)="openShareModal()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="18" cy="5" r="3"/>
-            <circle cx="6" cy="12" r="3"/>
-            <circle cx="18" cy="19" r="3"/>
-            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-          </svg>
-          Share
-        </button>
-        <button class="btn btn-outline" (click)="openInviteModal()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-            <circle cx="8.5" cy="7" r="4"/>
-            <line x1="20" y1="8" x2="20" y2="14"/>
-            <line x1="23" y1="11" x2="17" y2="11"/>
-          </svg>
-          Invite
-        </button>
+      <button class="btn btn-primary" (click)="openShareModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="18" cy="5" r="3" />
+          <circle cx="6" cy="12" r="3" />
+          <circle cx="18" cy="19" r="3" />
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+        </svg>
+        Share
+      </button>
+      <button class="btn btn-outline" (click)="openInviteModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="8.5" cy="7" r="4" />
+          <line x1="20" y1="8" x2="20" y2="14" />
+          <line x1="23" y1="11" x2="17" y2="11" />
+        </svg>
+        Invite
+      </button>
       } @else {
-        <button class="btn btn-outline" (click)="likeSimulation()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-          </svg>
-          Like ({{ simulation()?.likes }})
-        </button>
+      <button class="btn btn-outline" (click)="likeSimulation()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path
+            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+        </svg>
+        Like ({{ simulation()?.likes }})
+      </button>
       }
     </div>
   </header>
 
   @if (simulation()) {
-    <div class="detail-content">
-      <!-- Left Panel - Simulation Details -->
-      <section class="simulation-panel">
-        <!-- 3D Preview -->
-        <div class="preview-container">
-          <div class="preview-3d">
-            <div class="preview-placeholder">
-              <span class="structure-icon">
-                @switch (simulation()!.structureType.toLowerCase()) {
-                  @case ('beam') { ═══ }
-                  @case ('frame') { ╔═╗ }
-                  @case ('truss') { △△△ }
-                  @case ('column') { ║║║ }
-                  @default { 🏗️ }
-                }
-              </span>
-              <p>3D Model Preview</p>
-            </div>
-          </div>
-          
-          <div class="preview-tags">
-            @for (tag of simulation()!.tags; track tag) {
-              <span class="tag">{{ tag }}</span>
-            }
+  <div class="detail-content">
+    <!-- Left Panel - Simulation Details -->
+    <section class="simulation-panel">
+      <!-- 3D Preview -->
+      <div class="preview-container">
+        <div class="preview-3d">
+          <div class="preview-placeholder">
+            <span class="structure-icon">
+              @switch (simulation()!.structureType.toLowerCase()) {
+              @case ('beam') { ═══ }
+              @case ('frame') { ╔═╗ }
+              @case ('truss') { △△△ }
+              @case ('column') { ║║║ }
+              @default { 🏗️ }
+              }
+            </span>
+            <p>3D Model Preview</p>
           </div>
         </div>
 
-        <!-- Simulation Info -->
-        <div class="sim-info">
-          <h1>{{ simulation()!.name }}</h1>
-          
-          <div class="author-row">
-            <div class="author-avatar">{{ getInitials(simulation()!.owner.name) }}</div>
-            <div class="author-info">
-              <span class="author-name">{{ simulation()!.owner.name }}</span>
-              <span class="sim-date">Created {{ getTimeAgo(simulation()!.createdAt) }}</span>
-            </div>
-            @if (simulation()!.isOwner) {
-              <span class="owner-badge">Your Simulation</span>
-            }
-          </div>
-
-          <p class="description">{{ simulation()!.description }}</p>
-
-          <!-- Specifications -->
-          <div class="specifications">
-            <h3>Specifications</h3>
-            <div class="specs-grid">
-              <div class="spec-item">
-                <label>Structure Type</label>
-                <span>{{ simulation()!.structureType }}</span>
-              </div>
-              <div class="spec-item">
-                <label>Material</label>
-                <span>{{ simulation()!.material }}</span>
-              </div>
-              @if (simulation()!.dimensions?.length) {
-                <div class="spec-item">
-                  <label>Length</label>
-                  <span>{{ simulation()!.dimensions?.length }} m</span>
-                </div>
-              }
-              @if (simulation()!.dimensions?.width) {
-                <div class="spec-item">
-                  <label>Width</label>
-                  <span>{{ simulation()!.dimensions?.width }} m</span>
-                </div>
-              }
-              @if (simulation()!.dimensions?.height) {
-                <div class="spec-item">
-                  <label>Height</label>
-                  <span>{{ simulation()!.dimensions?.height }} m</span>
-                </div>
-              }
-              @if (simulation()!.load) {
-                <div class="spec-item">
-                  <label>Applied Load</label>
-                  <span>{{ simulation()!.load }} kN</span>
-                </div>
-              }
-            </div>
-          </div>
-
-          <!-- Stats -->
-          <div class="sim-stats">
-            <div class="stat">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-              </svg>
-              <span>{{ simulation()!.likes }} likes</span>
-            </div>
-            <div class="stat">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-              </svg>
-              <span>{{ simulation()!.comments }} comments</span>
-            </div>
-            <div class="stat">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
-              <span>{{ simulation()!.views }} views</span>
-            </div>
-          </div>
-
-          <!-- Shared With -->
-          @if (simulation()!.isOwner && simulation()!.sharedWith?.length) {
-            <div class="shared-with">
-              <h3>Shared With {{ simulation()!.sharedWith!.length }} friend{{ simulation()!.sharedWith!.length !== 1 ? 's' : '' }}</h3>
-            </div>
+        <div class="preview-tags">
+          @for (tag of simulation()!.tags; track tag) {
+          <span class="tag">{{ tag }}</span>
           }
         </div>
-      </section>
+      </div>
 
-      <!-- Right Panel - Chat -->
-      <section class="chat-panel">
-        <div class="chat-header">
-          <h2>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-            Discussion
-          </h2>
-          <span class="message-count">{{ messages().length }} messages</span>
-        </div>
+      <!-- Simulation Info -->
+      <div class="sim-info">
+        <h1>{{ simulation()!.name }}</h1>
 
-        <div class="chat-messages" #chatMessagesContainer>
-          @if (messages().length === 0) {
-            <div class="empty-chat">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-              </svg>
-              <p>No messages yet</p>
-              <span>Start the conversation about this simulation</span>
-            </div>
-          } @else {
-            @for (msg of messages(); track msg.id) {
-              <div class="message" [class.own]="isOwnMessage(msg)">
-                @if (!isOwnMessage(msg)) {
-                  <div class="msg-avatar">{{ getInitials(getSenderName(msg)) }}</div>
-                }
-                <div class="msg-content">
-                  @if (!isOwnMessage(msg)) {
-                    <span class="msg-sender">{{ getSenderName(msg) }}</span>
-                  }
-                  <p class="msg-text">{{ msg.content }}</p>
-                  <span class="msg-time">{{ getTimeAgo(msg.timestamp) }}</span>
-                </div>
-              </div>
-            }
+        <div class="author-row">
+          <div class="author-avatar">{{ getInitials(simulation()!.owner.name) }}</div>
+          <div class="author-info">
+            <span class="author-name">{{ simulation()!.owner.name }}</span>
+            <span class="sim-date">Created {{ getTimeAgo(simulation()!.createdAt) }}</span>
+          </div>
+          @if (simulation()!.isOwner) {
+          <span class="owner-badge">Your Simulation</span>
           }
         </div>
 
-        <div class="chat-input">
-          <textarea 
-            placeholder="Type a message..."
-            rows="2"
-            [value]="newMessage()"
-            (input)="newMessage.set($any($event.target).value)"
-            (keypress)="handleKeyPress($event)"
-          ></textarea>
-          <button class="send-btn" (click)="sendMessage()" [disabled]="!newMessage().trim()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="22" y1="2" x2="11" y2="13"/>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-            </svg>
-          </button>
+        <p class="description">{{ simulation()!.description }}</p>
+
+        <!-- Specifications -->
+        <div class="specifications">
+          <h3>Specifications</h3>
+          <div class="specs-grid">
+            <div class="spec-item">
+              <span class="spec-label">Structure Type</span>
+              <span>{{ simulation()!.structureType }}</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Material</span>
+              <span>{{ simulation()!.material }}</span>
+            </div>
+            @if (simulation()!.dimensions?.length) {
+            <div class="spec-item">
+              <span class="spec-label">Length</span>
+              <span>{{ simulation()!.dimensions?.length }} m</span>
+            </div>
+            }
+            @if (simulation()!.dimensions?.width) {
+            <div class="spec-item">
+              <span class="spec-label">Width</span>
+              <span>{{ simulation()!.dimensions?.width }} m</span>
+            </div>
+            }
+            @if (simulation()!.dimensions?.height) {
+            <div class="spec-item">
+              <span class="spec-label">Height</span>
+              <span>{{ simulation()!.dimensions?.height }} m</span>
+            </div>
+            }
+            @if (simulation()!.load) {
+            <div class="spec-item">
+              <span class="spec-label">Applied Load</span>
+              <span>{{ simulation()!.load }} kN</span>
+            </div>
+            }
+          </div>
         </div>
-      </section>
-    </div>
+
+        <!-- Stats -->
+        <div class="sim-stats">
+          <div class="stat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path
+                d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+            <span>{{ simulation()!.likes }} likes</span>
+          </div>
+          <div class="stat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            <span>{{ simulation()!.comments }} comments</span>
+          </div>
+          <div class="stat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            <span>{{ simulation()!.views }} views</span>
+          </div>
+        </div>
+
+        <!-- Shared With -->
+        @if (simulation()!.isOwner && simulation()!.sharedWith?.length) {
+        <div class="shared-with">
+          <h3>Shared With {{ simulation()!.sharedWith!.length }} friend{{ simulation()!.sharedWith!.length !== 1 ? 's' :
+            '' }}</h3>
+        </div>
+        }
+      </div>
+    </section>
+
+    <!-- Right Panel - Chat -->
+    <section class="chat-panel">
+      <div class="chat-header">
+        <h2>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+          Discussion
+        </h2>
+        <span class="message-count">{{ messages().length }} messages</span>
+      </div>
+
+      <div class="chat-messages" #chatMessagesContainer>
+        @if (messages().length === 0) {
+        <div class="empty-chat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+          <p>No messages yet</p>
+          <span>Start the conversation about this simulation</span>
+        </div>
+        } @else {
+        @for (msg of messages(); track msg.id) {
+        <div class="message" [class.own]="isOwnMessage(msg)">
+          @if (!isOwnMessage(msg)) {
+          <div class="msg-avatar">{{ getInitials(getSenderName(msg)) }}</div>
+          }
+          <div class="msg-content">
+            @if (!isOwnMessage(msg)) {
+            <span class="msg-sender">{{ getSenderName(msg) }}</span>
+            }
+            <p class="msg-text">{{ msg.content }}</p>
+            <span class="msg-time">{{ getTimeAgo(msg.timestamp) }}</span>
+          </div>
+        </div>
+        }
+        }
+      </div>
+
+      <div class="chat-input">
+        <textarea placeholder="Type a message..." rows="2" [value]="newMessage()"
+          (input)="newMessage.set($any($event.target).value)" (keypress)="handleKeyPress($event)"></textarea>
+        <button class="send-btn" (click)="sendMessage()" [disabled]="!newMessage().trim()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="22" y1="2" x2="11" y2="13" />
+            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+          </svg>
+        </button>
+      </div>
+    </section>
+  </div>
   }
 </div>
 
 <!-- Share Modal -->
 @if (showShareModal()) {
-  <div class="modal-overlay" (click)="closeShareModal()">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>Share Simulation</h3>
-        <button class="close-btn" (click)="closeShareModal()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </button>
-      </div>
-      
-      <div class="modal-body">
-        <!-- Search Friends -->
-        <div class="search-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input 
-            type="text" 
-            placeholder="Search friends..."
-            [value]="searchFriendQuery()"
-            (input)="searchFriendQuery.set($any($event.target).value)"
-          >
-        </div>
+<div class="modal-overlay" (click)="closeShareModal()" (keydown.enter)="closeShareModal()" tabindex="0" role="button"
+  aria-label="Close modal" aria-modal="true">
+  <div class="modal" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Share Simulation</h3>
+      <button class="close-btn" (click)="closeShareModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
 
-        <!-- Friends List -->
-        <div class="friends-select-list">
-          @for (friend of filteredFriends(); track friend.id) {
-            <div 
-              class="friend-select-item" 
-              [class.selected]="isFriendSelected(friend.id)"
-              (click)="toggleFriendSelection(friend.id)"
-            >
-              <div class="friend-avatar">
-                @if (friend.avatarUrl) {
-                  <img [src]="friend.avatarUrl" alt="">
-                } @else {
-                  <span>{{ getInitials(friend.name) }}</span>
-                }
-                <span class="status-dot" [style.background]="getStatusColor(friend.status)"></span>
-              </div>
-              <div class="friend-info">
-                <h4>{{ friend.name }}</h4>
-                <span>{{ friend.email }}</span>
-              </div>
-              <div class="select-check">
-                @if (isFriendSelected(friend.id)) {
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                }
-              </div>
-            </div>
-          } @empty {
-            <p class="no-friends">No friends found</p>
-          }
-        </div>
-
-        <!-- Message -->
-        <div class="form-group">
-          <label>Add a message (optional)</label>
-          <textarea 
-            placeholder="Check out my simulation..."
-            rows="2"
-            [value]="shareMessage()"
-            (input)="shareMessage.set($any($event.target).value)"
-          ></textarea>
-        </div>
+    <div class="modal-body">
+      <!-- Search Friends -->
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input type="text" placeholder="Search friends..." [value]="searchFriendQuery()"
+          (input)="searchFriendQuery.set($any($event.target).value)">
       </div>
-      
-      <div class="modal-footer">
-        <button class="btn btn-ghost" (click)="closeShareModal()">Cancel</button>
-        <button 
-          class="btn btn-primary" 
-          (click)="shareWithFriends()" 
-          [disabled]="selectedFriends().size === 0"
-        >
-          Share with {{ selectedFriends().size }} friend{{ selectedFriends().size !== 1 ? 's' : '' }}
-        </button>
+
+      <!-- Friends List -->
+      <div class="friends-select-list" role="listbox">
+        @for (friend of filteredFriends(); track friend.id) {
+        <div class="friend-select-item" [class.selected]="isFriendSelected(friend.id)"
+          (click)="toggleFriendSelection(friend.id)" (keydown.enter)="toggleFriendSelection(friend.id)" tabindex="0"
+          role="option" [attr.aria-selected]="isFriendSelected(friend.id) ? 'true' : 'false'">
+          <div class="friend-avatar">
+            @if (friend.avatarUrl) {
+            <img [src]="friend.avatarUrl" alt="">
+            } @else {
+            <span>{{ getInitials(friend.name) }}</span>
+            }
+            <span class="status-dot" [style.background]="getStatusColor(friend.status)"></span>
+          </div>
+          <div class="friend-info">
+            <h4>{{ friend.name }}</h4>
+            <span>{{ friend.email }}</span>
+          </div>
+          <div class="select-check">
+            @if (isFriendSelected(friend.id)) {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            }
+          </div>
+        </div>
+        } @empty {
+        <p class="no-friends">No friends found</p>
+        }
+      </div>
+
+      <!-- Message -->
+      <div class="form-group">
+        <label for="share-detail-message">Add a message (optional)</label>
+        <textarea placeholder="Check out my simulation..." rows="2" [value]="shareMessage()"
+          (input)="shareMessage.set($any($event.target).value)"></textarea>
       </div>
     </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" (click)="closeShareModal()">Cancel</button>
+      <button class="btn btn-primary" (click)="shareWithFriends()" [disabled]="selectedFriends().size === 0">
+        Share with {{ selectedFriends().size }} friend{{ selectedFriends().size !== 1 ? 's' : '' }}
+      </button>
+    </div>
   </div>
+</div>
 }
 
 <!-- Invite Modal -->
 @if (showInviteModal()) {
-  <div class="modal-overlay" (click)="closeInviteModal()">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>Invite Someone</h3>
-        <button class="close-btn" (click)="closeInviteModal()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </button>
-      </div>
-      
-      <div class="modal-body">
-        <p class="invite-info">
-          Invite someone to view and collaborate on "{{ simulation()?.name }}"
-        </p>
-        
-        <div class="form-group">
-          <label>Email Address</label>
-          <input 
-            type="email" 
-            placeholder="friend@example.com"
-            [value]="inviteEmail()"
-            (input)="inviteEmail.set($any($event.target).value)"
-          >
-        </div>
-      </div>
-      
-      <div class="modal-footer">
-        <button class="btn btn-ghost" (click)="closeInviteModal()">Cancel</button>
-        <button class="btn btn-primary" (click)="sendInvite()" [disabled]="!inviteEmail()">
-          Send Invitation
-        </button>
+<div class="modal-overlay" (click)="closeInviteModal()" (keydown.enter)="closeInviteModal()" tabindex="0" role="button"
+  aria-label="Close modal" aria-modal="true">
+  <div class="modal" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Invite Someone</h3>
+      <button class="close-btn" (click)="closeInviteModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <p class="invite-info">
+        Invite someone to view and collaborate on "{{ simulation()?.name }}"
+      </p>
+
+      <div class="form-group">
+        <label for="invite-detail-email">Email Address</label>
+        <input type="email" id="invite-detail-email" placeholder="friend@example.com" [value]="inviteEmail()"
+          (input)="inviteEmail.set($any($event.target).value)">
       </div>
     </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" (click)="closeInviteModal()">Cancel</button>
+      <button class="btn btn-primary" (click)="sendInvite()" [disabled]="!inviteEmail()">
+        Send Invitation
+      </button>
+    </div>
   </div>
+</div>
 }

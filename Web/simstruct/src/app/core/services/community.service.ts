@@ -99,7 +99,7 @@ export interface ApiResponse<T> {
 export class CommunityService {
   private http = inject(HttpClient);
   private baseUrl = environment.apiUrl;
-  
+
   // Signals for reactive state
   private _friends = signal<FriendDTO[]>([]);
   private _pendingInvitations = signal<InvitationDTO[]>([]);
@@ -109,7 +109,7 @@ export class CommunityService {
   private _conversations = signal<ConversationDTO[]>([]);
   private _searchResults = signal<UserSearchResult[]>([]);
   private _searchLoading = signal(false);
-  
+
   // Public computed signals
   allFriends = computed(() => this._friends());
   pendingInvitations = computed(() => this._pendingInvitations());
@@ -120,9 +120,9 @@ export class CommunityService {
   userSearchResults = computed(() => this._searchResults());
   userSearchLoading = computed(() => this._searchLoading());
   allUserSearchResults = computed(() => this._searchResults());
-  
+
   // ========== FRIENDSHIP APIs ==========
-  
+
   /**
    * Load all friends
    */
@@ -139,7 +139,7 @@ export class CommunityService {
       })
     );
   }
-  
+
   /**
    * Search users by query
    */
@@ -159,7 +159,7 @@ export class CommunityService {
       })
     );
   }
-  
+
   /**
    * Load pending invitations (received)
    */
@@ -176,7 +176,7 @@ export class CommunityService {
       })
     );
   }
-  
+
   /**
    * Load sent invitations
    */
@@ -193,7 +193,7 @@ export class CommunityService {
       })
     );
   }
-  
+
   /**
    * Send friend request
    */
@@ -212,7 +212,7 @@ export class CommunityService {
       })
     );
   }
-  
+
   /**
    * Accept friend request
    */
@@ -230,7 +230,7 @@ export class CommunityService {
       })
     );
   }
-  
+
   /**
    * Reject friend request
    */
@@ -247,7 +247,7 @@ export class CommunityService {
       })
     );
   }
-  
+
   /**
    * Cancel sent friend request
    */
@@ -264,7 +264,7 @@ export class CommunityService {
       })
     );
   }
-  
+
   /**
    * Remove friend
    */
@@ -281,9 +281,9 @@ export class CommunityService {
       })
     );
   }
-  
+
   // ========== SHARING APIs ==========
-  
+
   /**
    * Load my shares (simulations I shared)
    */
@@ -300,7 +300,7 @@ export class CommunityService {
       })
     );
   }
-  
+
   /**
    * Load simulations shared with me
    */
@@ -317,14 +317,14 @@ export class CommunityService {
       })
     );
   }
-  
+
   /**
    * Get shares with a specific friend
    */
   getSharesWithFriend(friendId: string): Observable<ApiResponse<SharedSimulationDTO[]>> {
     return this.http.get<ApiResponse<SharedSimulationDTO[]>>(`${this.baseUrl}/shares/with-friend/${friendId}`);
   }
-  
+
   /**
    * Share a simulation with a friend
    */
@@ -343,7 +343,7 @@ export class CommunityService {
       })
     );
   }
-  
+
   /**
    * Unshare a simulation
    */
@@ -360,9 +360,9 @@ export class CommunityService {
       })
     );
   }
-  
+
   // ========== CHAT APIs ==========
-  
+
   /**
    * Load all conversations
    */
@@ -379,7 +379,7 @@ export class CommunityService {
       })
     );
   }
-  
+
   /**
    * Get conversation with a friend
    */
@@ -388,7 +388,7 @@ export class CommunityService {
       params: { limit: limit.toString() }
     });
   }
-  
+
   /**
    * Send a message
    */
@@ -398,7 +398,7 @@ export class CommunityService {
       content
     });
   }
-  
+
   /**
    * Mark messages as read
    */
@@ -406,30 +406,30 @@ export class CommunityService {
     return this.http.post<ApiResponse<void>>(`${this.baseUrl}/chat/read/${senderId}`, {}).pipe(
       tap(response => {
         if (response.success) {
-          this._conversations.update(arr => 
+          this._conversations.update(arr =>
             arr.map(c => c.friendId === senderId ? { ...c, unreadCount: 0 } : c)
           );
         }
       })
     );
   }
-  
+
   /**
    * Get unread message count
    */
   getUnreadCount(): Observable<ApiResponse<number>> {
     return this.http.get<ApiResponse<number>>(`${this.baseUrl}/chat/unread`);
   }
-  
+
   // ========== UTILITY ==========
-  
+
   /**
    * Clear search results
    */
   clearSearchResults(): void {
     this._searchResults.set([]);
   }
-  
+
   /**
    * Refresh all data
    */

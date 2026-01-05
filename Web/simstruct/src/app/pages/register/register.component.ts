@@ -78,17 +78,18 @@ export class RegisterComponent implements AfterViewInit, OnDestroy {
   }
   
   private createParticleNetwork(): void {
+    // Visual effect only - NOSONAR: Math.random used for non-security visual randomness
     const particleCount = 200;
     const positions = new Float32Array(particleCount * 3);
     const colors = new Float32Array(particleCount * 3);
     
     for (let i = 0; i < particleCount * 3; i += 3) {
-      positions[i] = (Math.random() - 0.5) * 100;
-      positions[i + 1] = (Math.random() - 0.5) * 100;
-      positions[i + 2] = (Math.random() - 0.5) * 50;
-      colors[i] = 0.2 + Math.random() * 0.2;
-      colors[i + 1] = 0.4 + Math.random() * 0.3;
-      colors[i + 2] = 0.9 + Math.random() * 0.1;
+      positions[i] = (Math.random() - 0.5) * 100; // NOSONAR - visual effect only
+      positions[i + 1] = (Math.random() - 0.5) * 100; // NOSONAR - visual effect only
+      positions[i + 2] = (Math.random() - 0.5) * 50; // NOSONAR - visual effect only
+      colors[i] = 0.2 + Math.random() * 0.2; // NOSONAR - visual effect only
+      colors[i + 1] = 0.4 + Math.random() * 0.3; // NOSONAR - visual effect only
+      colors[i + 2] = 0.9 + Math.random() * 0.1; // NOSONAR - visual effect only
     }
     
     const geometry = new THREE.BufferGeometry();

@@ -14,7 +14,7 @@
           </span>
         </div>
       </div>
-      
+
       <div class="usage-overview">
         <div class="usage-card">
           <div class="usage-header">
@@ -22,363 +22,322 @@
             <span class="usage-count">{{ usage().simulationsThisMonth }}/{{ usage().simulationsLimit }}</span>
           </div>
           <div class="usage-bar">
-            <div 
-              class="bar-fill"
-              [style.width.%]="getUsagePercentage(usage().simulationsThisMonth, usage().simulationsLimit)"
-            ></div>
+            <div class="bar-fill"
+              [style.width.%]="getUsagePercentage(usage().simulationsThisMonth, usage().simulationsLimit)"></div>
           </div>
         </div>
-        
+
         <div class="usage-card">
           <div class="usage-header">
             <span class="usage-label">Storage</span>
             <span class="usage-count">{{ usage().storageUsed }}GB/{{ usage().storageLimit }}GB</span>
           </div>
           <div class="usage-bar">
-            <div 
-              class="bar-fill storage"
-              [style.width.%]="getUsagePercentage(usage().storageUsed, usage().storageLimit)"
-            ></div>
+            <div class="bar-fill storage"
+              [style.width.%]="getUsagePercentage(usage().storageUsed, usage().storageLimit)"></div>
           </div>
         </div>
       </div>
     </header>
-    
+
     <!-- Navigation Tabs -->
     <nav class="profile-tabs">
       @for (tab of tabs; track tab.id) {
-        <button 
-          class="tab-btn"
-          [class.active]="activeTab() === tab.id"
-          (click)="setActiveTab($any(tab.id))"
-        >
-          <span class="tab-icon">{{ tab.icon }}</span>
-          <span class="tab-label">{{ tab.label }}</span>
-        </button>
+      <button class="tab-btn" [class.active]="activeTab() === tab.id" (click)="setActiveTab($any(tab.id))">
+        <span class="tab-icon">{{ tab.icon }}</span>
+        <span class="tab-label">{{ tab.label }}</span>
+      </button>
       }
     </nav>
-    
+
     <!-- Tab Content -->
     <div class="tab-content">
       <!-- Profile Tab -->
       @if (activeTab() === 'profile') {
-        <section class="content-section">
-          <div class="section-header">
-            <div>
-              <h2 class="section-title">Personal Information</h2>
-              <p class="section-subtitle">Update your personal details</p>
-            </div>
-            @if (!isEditing()) {
-              <button class="btn btn-outline" (click)="startEditing()">
-                ✏️ Edit Profile
-              </button>
+      <section class="content-section">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Personal Information</h2>
+            <p class="section-subtitle">Update your personal details</p>
+          </div>
+          @if (!isEditing()) {
+          <button class="btn btn-outline" (click)="startEditing()">
+            ✏️ Edit Profile
+          </button>
+          }
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="profile-name">Full Name</label>
+            @if (isEditing()) {
+            <input type="text" id="profile-name" class="form-input" [value]="editedProfile().name || profile().name"
+              (input)="updateEditedField('name', $event)" />
+            } @else {
+            <p class="form-value">{{ profile().name }}</p>
             }
           </div>
-          
-          <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label">Full Name</label>
-              @if (isEditing()) {
-                <input 
-                  type="text" 
-                  class="form-input"
-                  [value]="editedProfile().name || profile().name"
-                  (input)="updateEditedField('name', $event)"
-                />
-              } @else {
-                <p class="form-value">{{ profile().name }}</p>
-              }
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label">Email Address</label>
-              @if (isEditing()) {
-                <input 
-                  type="email" 
-                  class="form-input"
-                  [value]="editedProfile().email || profile().email"
-                  (input)="updateEditedField('email', $event)"
-                />
-              } @else {
-                <p class="form-value">{{ profile().email }}</p>
-              }
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label">Organization</label>
-              @if (isEditing()) {
-                <input 
-                  type="text" 
-                  class="form-input"
-                  [value]="editedProfile().organization || profile().organization"
-                  (input)="updateEditedField('organization', $event)"
-                />
-              } @else {
-                <p class="form-value">{{ profile().organization }}</p>
-              }
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label">Role</label>
-              @if (isEditing()) {
-                <input 
-                  type="text" 
-                  class="form-input"
-                  [value]="editedProfile().role || profile().role"
-                  (input)="updateEditedField('role', $event)"
-                />
-              } @else {
-                <p class="form-value">{{ profile().role }}</p>
-              }
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label">Member Since</label>
-              <p class="form-value">{{ formatDate(profile().joinDate) }}</p>
-            </div>
+
+          <div class="form-group">
+            <label class="form-label" for="profile-email">Email Address</label>
+            @if (isEditing()) {
+            <input type="email" id="profile-email" class="form-input" [value]="editedProfile().email || profile().email"
+              (input)="updateEditedField('email', $event)" />
+            } @else {
+            <p class="form-value">{{ profile().email }}</p>
+            }
           </div>
-          
-          @if (isEditing()) {
-            <div class="form-actions">
-              <button class="btn btn-outline" (click)="cancelEditing()">
-                Cancel
-              </button>
-              <button 
-                class="btn btn-primary" 
-                (click)="saveProfile()"
-                [disabled]="isSaving()"
-              >
-                @if (isSaving()) {
-                  <span class="loading-spinner small"></span>
-                  Saving...
-                } @else {
-                  Save Changes
-                }
-              </button>
-            </div>
-          }
-        </section>
+
+          <div class="form-group">
+            <label class="form-label" for="profile-org">Organization</label>
+            @if (isEditing()) {
+            <input type="text" id="profile-org" class="form-input"
+              [value]="editedProfile().organization || profile().organization"
+              (input)="updateEditedField('organization', $event)" />
+            } @else {
+            <p class="form-value">{{ profile().organization }}</p>
+            }
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="profile-role">Role</label>
+            @if (isEditing()) {
+            <input type="text" id="profile-role" class="form-input" [value]="editedProfile().role || profile().role"
+              (input)="updateEditedField('role', $event)" />
+            } @else {
+            <p class="form-value">{{ profile().role }}</p>
+            }
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="profile-since">Member Since</label>
+            <p class="form-value">{{ formatDate(profile().joinDate) }}</p>
+          </div>
+        </div>
+
+        @if (isEditing()) {
+        <div class="form-actions">
+          <button class="btn btn-outline" (click)="cancelEditing()">
+            Cancel
+          </button>
+          <button class="btn btn-primary" (click)="saveProfile()" [disabled]="isSaving()">
+            @if (isSaving()) {
+            <span class="loading-spinner small"></span>
+            Saving...
+            } @else {
+            Save Changes
+            }
+          </button>
+        </div>
+        }
+      </section>
       }
-      
+
       <!-- Security Tab -->
       @if (activeTab() === 'security') {
-        <section class="content-section">
-          <div class="section-header">
-            <div>
-              <h2 class="section-title">Security Settings</h2>
-              <p class="section-subtitle">Manage your account security</p>
-            </div>
+      <section class="content-section">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Security Settings</h2>
+            <p class="section-subtitle">Manage your account security</p>
           </div>
-          
-          <div class="security-options">
-            <div class="security-item">
-              <div class="security-info">
-                <h3>Two-Factor Authentication</h3>
-                <p>Add an extra layer of security to your account</p>
+        </div>
+
+        <div class="security-options">
+          <div class="security-item">
+            <div class="security-info">
+              <h3>Two-Factor Authentication</h3>
+              <p>Add an extra layer of security to your account</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-2fa" [checked]="securitySettings().twoFactorEnabled"
+                (change)="toggle2FA()" aria-label="Toggle Two-Factor Authentication" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="security-item">
+            <div class="security-info">
+              <h3>Password</h3>
+              <p>Last changed: {{ formatDate(securitySettings().lastPasswordChange) }}</p>
+            </div>
+            <button class="btn btn-outline" (click)="changePassword()">Change Password</button>
+          </div>
+
+          <div class="security-item">
+            <div class="security-info">
+              <h3>Active Sessions</h3>
+              <p>{{ securitySettings().activeSessions }} devices currently logged in</p>
+            </div>
+            <button class="btn btn-outline" (click)="manageSessions()">Manage Sessions</button>
+          </div>
+
+          <div class="security-item danger">
+            <div class="security-info">
+              <h3>Delete Account</h3>
+              <p>Permanently delete your account and all data</p>
+            </div>
+            <button class="btn btn-danger" (click)="deleteAccount()">Delete Account</button>
+          </div>
+        </div>
+      </section>
+      }
+
+      <!-- Notifications Tab -->
+      @if (activeTab() === 'notifications') {
+      <section class="content-section">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Notification Preferences</h2>
+            <p class="section-subtitle">Choose how you want to be notified</p>
+          </div>
+        </div>
+
+        <div class="notification-groups">
+          <div class="notification-group">
+            <h3 class="group-title">📧 Email Notifications</h3>
+
+            <div class="notification-item">
+              <div class="notification-info">
+                <span class="notification-label">Simulation Complete</span>
+                <span class="notification-desc">Get notified when your simulation finishes</span>
               </div>
               <label class="toggle-switch">
-                <input 
-                  type="checkbox"
-                  [checked]="securitySettings().twoFactorEnabled"
-                  (change)="toggle2FA()"
-                />
+                <input type="checkbox" id="toggle-email-sim-complete"
+                  [checked]="notifications().emailSimulationComplete"
+                  (change)="toggleNotification('emailSimulationComplete')"
+                  aria-label="Toggle Email Notifications for Simulation Complete" />
                 <span class="toggle-slider"></span>
               </label>
             </div>
-            
-            <div class="security-item">
-              <div class="security-info">
-                <h3>Password</h3>
-                <p>Last changed: {{ formatDate(securitySettings().lastPasswordChange) }}</p>
+
+            <div class="notification-item">
+              <div class="notification-info">
+                <span class="notification-label">Weekly Report</span>
+                <span class="notification-desc">Receive weekly summary of your simulations</span>
               </div>
-              <button class="btn btn-outline" (click)="changePassword()">Change Password</button>
+              <label class="toggle-switch">
+                <input type="checkbox" id="toggle-email-weekly" [checked]="notifications().emailWeeklyReport"
+                  (change)="toggleNotification('emailWeeklyReport')" aria-label="Toggle Weekly Report Emails" />
+                <span class="toggle-slider"></span>
+              </label>
             </div>
-            
-            <div class="security-item">
-              <div class="security-info">
-                <h3>Active Sessions</h3>
-                <p>{{ securitySettings().activeSessions }} devices currently logged in</p>
+
+            <div class="notification-item">
+              <div class="notification-info">
+                <span class="notification-label">Product Updates</span>
+                <span class="notification-desc">News about new features and improvements</span>
               </div>
-              <button class="btn btn-outline" (click)="manageSessions()">Manage Sessions</button>
-            </div>
-            
-            <div class="security-item danger">
-              <div class="security-info">
-                <h3>Delete Account</h3>
-                <p>Permanently delete your account and all data</p>
-              </div>
-              <button class="btn btn-danger" (click)="deleteAccount()">Delete Account</button>
+              <label class="toggle-switch">
+                <input type="checkbox" id="toggle-email-updates" [checked]="notifications().emailProductUpdates"
+                  (change)="toggleNotification('emailProductUpdates')" aria-label="Toggle Product Update Emails" />
+                <span class="toggle-slider"></span>
+              </label>
             </div>
           </div>
-        </section>
+
+          <div class="notification-group">
+            <h3 class="group-title">🔔 Push Notifications</h3>
+
+            <div class="notification-item">
+              <div class="notification-info">
+                <span class="notification-label">Simulation Complete</span>
+                <span class="notification-desc">Browser notifications for completed simulations</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="toggle-push-sim-complete" [checked]="notifications().pushSimulationComplete"
+                  (change)="toggleNotification('pushSimulationComplete')"
+                  aria-label="Toggle Push Notifications for Simulation Complete" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="notification-item">
+              <div class="notification-info">
+                <span class="notification-label">Safety Warnings</span>
+                <span class="notification-desc">Immediate alerts for critical safety issues</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="toggle-push-warnings" [checked]="notifications().pushWarnings"
+                  (change)="toggleNotification('pushWarnings')"
+                  aria-label="Toggle Push Notifications for Safety Warnings" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
       }
-      
-      <!-- Notifications Tab -->
-      @if (activeTab() === 'notifications') {
-        <section class="content-section">
-          <div class="section-header">
-            <div>
-              <h2 class="section-title">Notification Preferences</h2>
-              <p class="section-subtitle">Choose how you want to be notified</p>
-            </div>
-          </div>
-          
-          <div class="notification-groups">
-            <div class="notification-group">
-              <h3 class="group-title">📧 Email Notifications</h3>
-              
-              <div class="notification-item">
-                <div class="notification-info">
-                  <span class="notification-label">Simulation Complete</span>
-                  <span class="notification-desc">Get notified when your simulation finishes</span>
-                </div>
-                <label class="toggle-switch">
-                  <input 
-                    type="checkbox"
-                    [checked]="notifications().emailSimulationComplete"
-                    (change)="toggleNotification('emailSimulationComplete')"
-                  />
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-              
-              <div class="notification-item">
-                <div class="notification-info">
-                  <span class="notification-label">Weekly Report</span>
-                  <span class="notification-desc">Receive weekly summary of your simulations</span>
-                </div>
-                <label class="toggle-switch">
-                  <input 
-                    type="checkbox"
-                    [checked]="notifications().emailWeeklyReport"
-                    (change)="toggleNotification('emailWeeklyReport')"
-                  />
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-              
-              <div class="notification-item">
-                <div class="notification-info">
-                  <span class="notification-label">Product Updates</span>
-                  <span class="notification-desc">News about new features and improvements</span>
-                </div>
-                <label class="toggle-switch">
-                  <input 
-                    type="checkbox"
-                    [checked]="notifications().emailProductUpdates"
-                    (change)="toggleNotification('emailProductUpdates')"
-                  />
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-            </div>
-            
-            <div class="notification-group">
-              <h3 class="group-title">🔔 Push Notifications</h3>
-              
-              <div class="notification-item">
-                <div class="notification-info">
-                  <span class="notification-label">Simulation Complete</span>
-                  <span class="notification-desc">Browser notifications for completed simulations</span>
-                </div>
-                <label class="toggle-switch">
-                  <input 
-                    type="checkbox"
-                    [checked]="notifications().pushSimulationComplete"
-                    (change)="toggleNotification('pushSimulationComplete')"
-                  />
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-              
-              <div class="notification-item">
-                <div class="notification-info">
-                  <span class="notification-label">Safety Warnings</span>
-                  <span class="notification-desc">Immediate alerts for critical safety issues</span>
-                </div>
-                <label class="toggle-switch">
-                  <input 
-                    type="checkbox"
-                    [checked]="notifications().pushWarnings"
-                    (change)="toggleNotification('pushWarnings')"
-                  />
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-            </div>
-          </div>
-        </section>
-      }
-      
+
       <!-- Billing Tab -->
       @if (activeTab() === 'billing') {
-        <section class="content-section">
-          <div class="section-header">
-            <div>
-              <h2 class="section-title">Billing & Subscription</h2>
-              <p class="section-subtitle">Manage your plan and payment methods</p>
+      <section class="content-section">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Billing & Subscription</h2>
+            <p class="section-subtitle">Manage your plan and payment methods</p>
+          </div>
+        </div>
+
+        <div class="current-plan">
+          <div class="plan-info">
+            <span class="plan-badge large" [class]="getPlanBadgeClass()">
+              {{ profile().plan | uppercase }}
+            </span>
+            <div class="plan-details">
+              <h3>{{ profile().plan | titlecase }} Plan</h3>
+              <p>50 simulations/month • 5GB storage • Priority support</p>
             </div>
           </div>
-          
-          <div class="current-plan">
-            <div class="plan-info">
-              <span class="plan-badge large" [class]="getPlanBadgeClass()">
-                {{ profile().plan | uppercase }}
-              </span>
-              <div class="plan-details">
-                <h3>{{ profile().plan | titlecase }} Plan</h3>
-                <p>50 simulations/month • 5GB storage • Priority support</p>
-              </div>
+          <button class="btn btn-primary" (click)="upgradePlan()">Upgrade Plan</button>
+        </div>
+
+        <div class="billing-cards">
+          <h3 class="cards-title">Payment Methods</h3>
+          <div class="payment-card">
+            <div class="card-icon">💳</div>
+            <div class="card-info">
+              <span class="card-type">Visa ending in 4242</span>
+              <span class="card-expiry">Expires 12/25</span>
             </div>
-            <button class="btn btn-primary" (click)="upgradePlan()">Upgrade Plan</button>
+            <span class="default-badge">Default</span>
           </div>
-          
-          <div class="billing-cards">
-            <h3 class="cards-title">Payment Methods</h3>
-            <div class="payment-card">
-              <div class="card-icon">💳</div>
-              <div class="card-info">
-                <span class="card-type">Visa ending in 4242</span>
-                <span class="card-expiry">Expires 12/25</span>
-              </div>
-              <span class="default-badge">Default</span>
-            </div>
-            <button class="btn btn-outline add-card-btn" (click)="addPaymentMethod()">
-              ➕ Add Payment Method
-            </button>
-          </div>
-          
-          <div class="billing-history">
-            <h3 class="history-title">Billing History</h3>
-            <table class="history-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Description</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Jan 1, 2024</td>
-                  <td>Pro Plan - Monthly</td>
-                  <td>$29.00</td>
-                  <td><span class="status-paid">Paid</span></td>
-                  <td><button class="btn-link" (click)="downloadInvoice('INV-2024-001')">Invoice</button></td>
-                </tr>
-                <tr>
-                  <td>Dec 1, 2023</td>
-                  <td>Pro Plan - Monthly</td>
-                  <td>$29.00</td>
-                  <td><span class="status-paid">Paid</span></td>
-                  <td><button class="btn-link" (click)="downloadInvoice('INV-2023-012')">Invoice</button></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
+          <button class="btn btn-outline add-card-btn" (click)="addPaymentMethod()">
+            ➕ Add Payment Method
+          </button>
+        </div>
+
+        <div class="billing-history">
+          <h3 class="history-title">Billing History</h3>
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Jan 1, 2024</td>
+                <td>Pro Plan - Monthly</td>
+                <td>$29.00</td>
+                <td><span class="status-paid">Paid</span></td>
+                <td><button class="btn-link" (click)="downloadInvoice('INV-2024-001')">Invoice</button></td>
+              </tr>
+              <tr>
+                <td>Dec 1, 2023</td>
+                <td>Pro Plan - Monthly</td>
+                <td>$29.00</td>
+                <td><span class="status-paid">Paid</span></td>
+                <td><button class="btn-link" (click)="downloadInvoice('INV-2023-012')">Invoice</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
       }
     </div>
   </div>

@@ -19,18 +19,18 @@ export class App implements OnInit, OnDestroy {
   private router = inject(Router);
   authService = inject(AuthService);
   private routerSub!: Subscription;
-  
+
   protected readonly title = signal('SimStruct - Civil Structure Stability Simulation');
   isSimulationPage = signal(false);
   isFullscreenPage = signal(false); // For pages that need full screen without navbar (simulation, chat)
-  
+
   ngOnInit(): void {
     // Check for saved theme preference
     const savedTheme = localStorage.getItem('simstruct-theme');
     if (savedTheme === 'light') {
       this.renderer.addClass(document.body, 'light-mode');
     }
-    
+
     // Watch for route changes to handle fullscreen pages
     this.routerSub = this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
@@ -38,10 +38,10 @@ export class App implements OnInit, OnDestroy {
         const url = event.urlAfterRedirects;
         const isSimulation = url.includes('/simulation');
         const isChat = url.includes('/chat');
-        
+
         this.isSimulationPage.set(isSimulation);
         this.isFullscreenPage.set(isSimulation || isChat);
-        
+
         if (isSimulation || isChat) {
           this.renderer.addClass(document.body, 'simulation-fullscreen');
         } else {
@@ -49,7 +49,7 @@ export class App implements OnInit, OnDestroy {
         }
       });
   }
-  
+
   ngOnDestroy(): void {
     if (this.routerSub) {
       this.routerSub.unsubscribe();

@@ -1,0 +1,53 @@
+%==============================================================================
+% SLIDE 09 - CONCEPTION : DIAGRAMME DE CLASSES
+%==============================================================================
+
+\begin{frame}
+\frametitle{Conception}
+\framesubtitle{Diagramme de Classes}
+\customFooter
+
+\vspace{0.3cm}
+
+\begin{center}
+    \imagePlaceholder[12cm]{5.5cm}{
+        \textbf{[Diagramme de Classes UML]}\\[0.2cm]
+        Insérer l'image du diagramme exporté depuis\\
+        \texttt{Conception/DIAGRAMME\_DE\_CLASSES.md}
+    }
+\end{center}
+
+\vspace{0.2cm}
+
+% Entités principales
+\begin{center}
+\begin{tikzpicture}[
+    entity/.style={
+        rectangle,
+        rounded corners=4pt,
+        fill=#1,
+        fill opacity=0.15,
+        text opacity=1,
+        inner xsep=10pt,inner ysep=5pt,
+        font=\scriptsize
+    }
+]
+    \node[entity=primary] (e1) at (0,0) {
+        \textcolor{primary}{\faIcon{user}}\ User
+    };
+    \node[entity=secondary] (e2) at (2.5cm,0) {
+        \textcolor{secondary}{\faIcon{calculator}}\ Simulation
+    };
+    \node[entity=accent] (e3) at (5.5cm,0) {
+        \textcolor{accent}{\faIcon{chart-bar}}\ Result
+    };
+    \node[entity=primaryLight] (e4) at (8.2cm,0) {
+        \textcolor{primaryLight}{\faIcon{users}}\ Friendship
+    };
+    \node[entity=gray600] (e5) at (11cm,0) {
+        \textcolor{gray600}{\faIcon{comment}}\ ChatMessage
+    };
+\end{tikzpicture}
+\end{center}
+
+\end{frame}

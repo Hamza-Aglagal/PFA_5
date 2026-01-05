@@ -1,5 +1,7 @@
 package com.simstruct.backend.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.simstruct.backend.dto.SimulationRequest;
 import com.simstruct.backend.dto.SimulationResponse;
 import com.simstruct.backend.entity.User;
@@ -19,6 +21,7 @@ import java.util.Map;
 @RequestMapping("/api/v1/simulations")
 public class SimulationController {
 
+    private static final Logger logger = LoggerFactory.getLogger(SimulationController.class);
     private final SimulationService simulationService;
 
     public SimulationController(SimulationService simulationService) {
@@ -41,8 +44,7 @@ public class SimulationController {
             System.out.println("SimulationController: Success! ID = " + response.getId());
             return ResponseEntity.ok(Map.of("success", true, "data", response));
         } catch (Exception e) {
-            System.err.println("SimulationController: ERROR - " + e.getMessage());
-            e.printStackTrace();
+            logger.error("SimulationController: ERROR - {}", e.getMessage(), e);
             return ResponseEntity.status(500).body(Map.of("success", false, "error", e.getMessage()));
         }
     }

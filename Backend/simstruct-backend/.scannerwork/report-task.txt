@@ -1,0 +1,6 @@
+projectKey=simstruct-backend
+serverUrl=http://localhost:9000
+serverVersion=25.11.0.114957
+dashboardUrl=http://localhost:9000/dashboard?id=simstruct-backend
+ceTaskId=ae1714ea-4193-451d-b3b2-08c5a721c3c7
+ceTaskUrl=http://localhost:9000/api/ce/task?id=ae1714ea-4193-451d-b3b2-08c5a721c3c7

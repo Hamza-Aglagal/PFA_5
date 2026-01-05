@@ -6,7 +6,6 @@ import com.simstruct.backend.entity.Notification;
 import com.simstruct.backend.entity.NotificationType;
 import com.simstruct.backend.entity.User;
 import com.simstruct.backend.repository.NotificationRepository;
-import com.simstruct.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -29,7 +28,6 @@ import java.util.stream.Collectors;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
-    private final UserRepository userRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
     /**

@@ -1,0 +1,110 @@
+%==============================================================================
+% SLIDE 06 - SOLUTION PROPOSÉE
+%==============================================================================
+
+% Slide de transition
+\sectionSlide{04}{Solution Proposée}
+
+% Slide de contenu
+\begin{frame}
+\frametitle{Solution Proposée}
+\framesubtitle{SIMSTRUCT - Plateforme Complète}
+\customFooter
+
+\vspace{0.3cm}
+
+\begin{center}
+\begin{tikzpicture}[
+    scale=0.95,
+    transform shape,
+    box/.style={
+        rectangle,
+        rounded corners=10pt,
+        minimum width=2.8cm,
+        minimum height=2cm,
+        align=center,
+        font=\small,
+        drop shadow={shadow xshift=1pt, shadow yshift=-2pt, opacity=0.1}
+    },
+    arrow/.style={->,>=stealth,line width=2pt,primary}
+]
+
+%----------------------------------------------------------------------
+% UTILISATEUR (Centre haut)
+%----------------------------------------------------------------------
+\node[box,fill=primary!10,draw=primary,line width=1.5pt] (user) at (0,2) {
+    \textcolor{primary}{\fontsize{24}{28}\selectfont\faIcon{user}}\\[0.2cm]
+    \textbf{Utilisateur}
+};
+
+%----------------------------------------------------------------------
+% APPLICATIONS (Ligne du milieu)
+%----------------------------------------------------------------------
+% Web
+\node[box,fill=white,draw=primary,line width=1.5pt] (web) at (-4.5,0) {
+    \textcolor{primary}{\fontsize{20}{24}\selectfont\faIcon{globe}}\\[0.15cm]
+    \textbf{Application Web}\\
+    \textcolor{gray600}{\scriptsize Angular 21}
+};
+
+% Mobile
+\node[box,fill=white,draw=primaryLight,line width=1.5pt] (mobile) at (0,0) {
+    \textcolor{primaryLight}{\fontsize{20}{24}\selectfont\faIcon{mobile-alt}}\\[0.15cm]
+    \textbf{Application Mobile}\\
+    \textcolor{gray600}{\scriptsize Flutter}
+};
+
+% Backend
+\node[box,fill=white,draw=secondary,line width=1.5pt] (backend) at (4.5,0) {
+    \textcolor{secondary}{\fontsize{20}{24}\selectfont\faIcon{server}}\\[0.15cm]
+    \textbf{Backend API}\\
+    \textcolor{gray600}{\scriptsize Spring Boot}
+};
+
+%----------------------------------------------------------------------
+% COUCHE DONNÉES (Ligne du bas)
+%----------------------------------------------------------------------
+% IA
+\node[box,fill=accent!10,draw=accent,line width=1.5pt] (ai) at (-2.5,-2.5) {
+    \textcolor{accent}{\fontsize{20}{24}\selectfont\faIcon{brain}}\\[0.15cm]
+    \textbf{Modèle IA}\\
+    \textcolor{gray600}{\scriptsize PyTorch + FastAPI}
+};
+
+% Database
+\node[box,fill=gray100,draw=gray600,line width=1.5pt] (db) at (2.5,-2.5) {
+    \textcolor{gray600}{\fontsize{20}{24}\selectfont\faIcon{database}}\\[0.15cm]
+    \textbf{Base de Données}\\
+    \textcolor{gray600}{\scriptsize PostgreSQL}
+};
+
+%----------------------------------------------------------------------
+% CONNEXIONS
+%----------------------------------------------------------------------
+% User vers applications
+\draw[arrow] (user) -- (web);
+\draw[arrow] (user) -- (mobile);
+\draw[arrow,primaryLight] (user) -- (backend);
+
+% Apps vers Backend
+\draw[arrow,secondary] (web) -- (backend);
+\draw[arrow,secondary] (mobile) -- (backend);
+
+% Backend vers couche données
+\draw[arrow,accent] (backend) -- (ai);
+\draw[arrow,gray600] (backend) -- (db);
+
+% IA vers DB (optionnel)
+\draw[->,>=stealth,line width=1.5pt,gray400,dashed] (ai) -- (db);
+
+%----------------------------------------------------------------------
+% LÉGENDE
+%----------------------------------------------------------------------
+\node[font=\scriptsize,text=gray600] at (0,-4) {
+    Architecture Microservices avec communication REST API
+};
+
+\end{tikzpicture}
+\end{center}
+
+\end{frame}

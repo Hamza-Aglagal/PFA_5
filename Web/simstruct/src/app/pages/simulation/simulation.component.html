@@ -4,7 +4,7 @@
     <div class="header-left">
       <button class="back-btn" (click)="goBack()">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M19 12H5M12 19l-7-7 7-7"/>
+          <path d="M19 12H5M12 19l-7-7 7-7" />
         </svg>
         <span>Dashboard</span>
       </button>
@@ -14,11 +14,12 @@
       </div>
     </div>
     <div class="header-right">
-      <button class="theme-toggle-btn" (click)="toggleTheme()" [attr.aria-label]="isLightMode() ? 'Switch to dark mode' : 'Switch to light mode'">
+      <button class="theme-toggle-btn" (click)="toggleTheme()"
+        [attr.aria-label]="isLightMode() ? 'Switch to dark mode' : 'Switch to light mode'">
         @if (isLightMode()) {
-          <span>🌙</span>
+        <span>🌙</span>
         } @else {
-          <span>☀️</span>
+        <span>☀️</span>
         }
       </button>
     </div>
@@ -34,21 +35,17 @@
         </div>
         <div class="steps-indicators">
           @for (step of steps; track step.number) {
-            <button 
-              class="step-indicator"
-              [class.active]="currentStep() === step.number"
-              [class.completed]="currentStep() > step.number"
-              (click)="goToStep(step.number)"
-            >
-              <span class="step-icon">
-                @if (currentStep() > step.number) {
-                  ✓
-                } @else {
-                  {{ step.icon }}
-                }
-              </span>
-              <span class="step-title">{{ step.title }}</span>
-            </button>
+          <button class="step-indicator" [class.active]="currentStep() === step.number"
+            [class.completed]="currentStep() > step.number" (click)="goToStep(step.number)">
+            <span class="step-icon">
+              @if (currentStep() > step.number) {
+              ✓
+              } @else {
+              {{ step.icon }}
+              }
+            </span>
+            <span class="step-title">{{ step.title }}</span>
+          </button>
           }
         </div>
       </div>
@@ -57,444 +54,388 @@
       <div class="form-content">
         <!-- Step 1: Structure Type -->
         @if (currentStep() === 1) {
-          <div class="form-step animate-fade-in">
-            <h3 class="step-heading">Select Structure Type</h3>
-            
-            <div class="structure-type-grid">
-              @for (type of structureTypes; track type.id) {
-                <button 
-                  class="structure-type-card"
-                  [class.selected]="params().structureType === type.id"
-                  (click)="selectStructureType(type.id)"
-                >
-                  <span class="type-icon">{{ type.icon }}</span>
-                  <span class="type-name">{{ type.name }}</span>
-                  <span class="type-desc">{{ type.description }}</span>
-                  @if (params().structureType === type.id) {
-                    <span class="selection-check">✓</span>
-                  }
-                </button>
+        <div class="form-step animate-fade-in">
+          <h3 class="step-heading">Select Structure Type</h3>
+
+          <div class="structure-type-grid">
+            @for (type of structureTypes; track type.id) {
+            <button class="structure-type-card" [class.selected]="params().structureType === type.id"
+              (click)="selectStructureType(type.id)">
+              <span class="type-icon">{{ type.icon }}</span>
+              <span class="type-name">{{ type.name }}</span>
+              <span class="type-desc">{{ type.description }}</span>
+              @if (params().structureType === type.id) {
+              <span class="selection-check">✓</span>
               }
-            </div>
+            </button>
+            }
+          </div>
 
-            <div class="dimension-inputs">
-              <h4 class="input-section-title">Dimensions</h4>
-              <div class="input-row">
-                <div class="form-group">
-                  <label class="form-label">Length (m)</label>
-                  <div class="input-with-preview">
-                    <input 
-                      type="range" 
-                      class="form-range"
-                      [value]="params().length"
-                      min="1" max="30" step="0.5"
-                      (input)="updateParam('length', +$any($event.target).value)"
-                    >
-                    <span class="range-value">{{ params().length }}m</span>
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Height (m)</label>
-                  <div class="input-with-preview">
-                    <input 
-                      type="range" 
-                      class="form-range"
-                      [value]="params().height"
-                      min="0.2" max="10" step="0.1"
-                      (input)="updateParam('height', +$any($event.target).value)"
-                    >
-                    <span class="range-value">{{ params().height }}m</span>
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Width (m)</label>
-                  <div class="input-with-preview">
-                    <input 
-                      type="range" 
-                      class="form-range"
-                      [value]="params().width"
-                      min="0.1" max="5" step="0.1"
-                      (input)="updateParam('width', +$any($event.target).value)"
-                    >
-                    <span class="range-value">{{ params().width }}m</span>
-                  </div>
+          <div class="dimension-inputs">
+            <h4 class="input-section-title">Dimensions</h4>
+            <div class="input-row">
+              <div class="form-group">
+                <label class="form-label" for="beam-length">Length (m)</label>
+                <div class="input-with-preview">
+                  <input type="range" id="beam-length" class="form-range" [value]="params().length" min="1" max="30"
+                    step="0.5" (input)="updateParam('length', +$any($event.target).value)">
+                  <span class="range-value">{{ params().length }}m</span>
                 </div>
               </div>
-            </div>
-
-            <!-- Building Structure for AI -->
-            <div class="dimension-inputs">
-              <h4 class="input-section-title">Building Configuration</h4>
-              <div class="input-row">
-                <div class="form-group">
-                  <label class="form-label">Number of Floors</label>
-                  <input type="number" class="form-input" [value]="params().numFloors" min="1" max="50" (input)="updateParam('numFloors', +$any($event.target).value)">
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Floor Height (m)</label>
-                  <input type="number" class="form-input" [value]="params().floorHeight" min="2.5" max="6.0" step="0.1" (input)="updateParam('floorHeight', +$any($event.target).value)">
+              <div class="form-group">
+                <label class="form-label" for="beam-height">Height (m)</label>
+                <div class="input-with-preview">
+                  <input type="range" id="beam-height" class="form-range" [value]="params().height" min="0.2" max="10"
+                    step="0.1" (input)="updateParam('height', +$any($event.target).value)">
+                  <span class="range-value">{{ params().height }}m</span>
                 </div>
               </div>
-              <div class="input-row">
-                <div class="form-group">
-                  <label class="form-label">Number of Beams</label>
-                  <input type="number" class="form-input" [value]="params().numBeams" min="10" max="500" (input)="updateParam('numBeams', +$any($event.target).value)">
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Number of Columns</label>
-                  <input type="number" class="form-input" [value]="params().numColumns" min="4" max="200" (input)="updateParam('numColumns', +$any($event.target).value)">
-                </div>
-              </div>
-              <div class="input-row">
-                <div class="form-group">
-                  <label class="form-label">Beam Section (cm)</label>
-                  <input type="number" class="form-input" [value]="params().beamSection" min="20" max="100" (input)="updateParam('beamSection', +$any($event.target).value)">
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Column Section (cm)</label>
-                  <input type="number" class="form-input" [value]="params().columnSection" min="30" max="150" (input)="updateParam('columnSection', +$any($event.target).value)">
+              <div class="form-group">
+                <label class="form-label" for="beam-width">Width (m)</label>
+                <div class="input-with-preview">
+                  <input type="range" id="beam-width" class="form-range" [value]="params().width" min="0.1" max="5"
+                    step="0.1" (input)="updateParam('width', +$any($event.target).value)">
+                  <span class="range-value">{{ params().width }}m</span>
                 </div>
               </div>
             </div>
           </div>
+
+          <!-- Building Structure for AI -->
+          <div class="dimension-inputs">
+            <h4 class="input-section-title">Building Configuration</h4>
+            <div class="input-row">
+              <div class="form-group">
+                <label class="form-label" for="num-floors">Number of Floors</label>
+                <input type="number" id="num-floors" class="form-input" [value]="params().numFloors" min="1" max="50"
+                  (input)="updateParam('numFloors', +$any($event.target).value)">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="floor-height">Floor Height (m)</label>
+                <input type="number" id="floor-height" class="form-input" [value]="params().floorHeight" min="2.5"
+                  max="6.0" step="0.1" (input)="updateParam('floorHeight', +$any($event.target).value)">
+              </div>
+            </div>
+            <div class="input-row">
+              <div class="form-group">
+                <label class="form-label" for="num-beams">Number of Beams</label>
+                <input type="number" id="num-beams" class="form-input" [value]="params().numBeams" min="10" max="500"
+                  (input)="updateParam('numBeams', +$any($event.target).value)">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="num-columns">Number of Columns</label>
+                <input type="number" id="num-columns" class="form-input" [value]="params().numColumns" min="4" max="200"
+                  (input)="updateParam('numColumns', +$any($event.target).value)">
+              </div>
+            </div>
+            <div class="input-row">
+              <div class="form-group">
+                <label class="form-label" for="beam-section">Beam Section (cm)</label>
+                <input type="number" id="beam-section" class="form-input" [value]="params().beamSection" min="20"
+                  max="100" (input)="updateParam('beamSection', +$any($event.target).value)">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="column-section">Column Section (cm)</label>
+                <input type="number" id="column-section" class="form-input" [value]="params().columnSection" min="30"
+                  max="150" (input)="updateParam('columnSection', +$any($event.target).value)">
+              </div>
+            </div>
+          </div>
+        </div>
         }
 
         <!-- Step 2: Material -->
         @if (currentStep() === 2) {
-          <div class="form-step animate-fade-in">
-            <h3 class="step-heading">Select Material</h3>
-            
-            <div class="material-grid">
-              @for (mat of materials; track mat.id) {
-                <button 
-                  class="material-card"
-                  [class.selected]="params().material === mat.id"
-                  [style.--material-color]="mat.color"
-                  (click)="selectMaterial(mat.id)"
-                >
-                  <div class="material-swatch" [style.background]="mat.color"></div>
-                  <span class="material-name">{{ mat.name }}</span>
-                  <div class="material-props">
-                    <span>E: {{ mat.E }} GPa</span>
-                    <span>ρ: {{ mat.density }} kg/m³</span>
-                  </div>
-                </button>
-              }
-            </div>
+        <div class="form-step animate-fade-in">
+          <h3 class="step-heading">Select Material</h3>
 
-            <div class="material-properties">
-              <h4 class="input-section-title">Properties</h4>
-              <div class="property-grid">
-                <div class="property-card">
-                  <span class="property-label">Elastic Modulus</span>
-                  <div class="property-value">
-                    <input 
-                      type="number" 
-                      class="form-input"
-                      [value]="params().elasticModulus"
-                      (input)="updateParam('elasticModulus', +$any($event.target).value)"
-                    >
-                    <span class="unit">GPa</span>
-                  </div>
+          <div class="material-grid">
+            @for (mat of materials; track mat.id) {
+            <button class="material-card" [class.selected]="params().material === mat.id"
+              [style.--material-color]="mat.color" (click)="selectMaterial(mat.id)">
+              <div class="material-swatch" [style.background]="mat.color"></div>
+              <span class="material-name">{{ mat.name }}</span>
+              <div class="material-props">
+                <span>E: {{ mat.E }} GPa</span>
+                <span>ρ: {{ mat.density }} kg/m³</span>
+              </div>
+            </button>
+            }
+          </div>
+
+          <div class="material-properties">
+            <h4 class="input-section-title">Properties</h4>
+            <div class="property-grid">
+              <div class="property-card">
+                <label class="property-label" for="elastic-modulus">Elastic Modulus</label>
+                <div class="property-value">
+                  <input type="number" id="elastic-modulus" class="form-input" [value]="params().elasticModulus"
+                    (input)="updateParam('elasticModulus', +$any($event.target).value)">
+                  <span class="unit">GPa</span>
                 </div>
-                <div class="property-card">
-                  <span class="property-label">Density</span>
-                  <div class="property-value">
-                    <input 
-                      type="number" 
-                      class="form-input"
-                      [value]="params().density"
-                      (input)="updateParam('density', +$any($event.target).value)"
-                    >
-                    <span class="unit">kg/m³</span>
-                  </div>
+              </div>
+              <div class="property-card">
+                <label class="property-label" for="density">Density</label>
+                <div class="property-value">
+                  <input type="number" id="density" class="form-input" [value]="params().density"
+                    (input)="updateParam('density', +$any($event.target).value)">
+                  <span class="unit">kg/m³</span>
                 </div>
-                <div class="property-card">
-                  <span class="property-label">Yield Strength</span>
-                  <div class="property-value">
-                    <input 
-                      type="number" 
-                      class="form-input"
-                      [value]="params().yieldStrength"
-                      (input)="updateParam('yieldStrength', +$any($event.target).value)"
-                    >
-                    <span class="unit">MPa</span>
-                  </div>
+              </div>
+              <div class="property-card">
+                <label class="property-label" for="yield-strength">Yield Strength</label>
+                <div class="property-value">
+                  <input type="number" id="yield-strength" class="form-input" [value]="params().yieldStrength"
+                    (input)="updateParam('yieldStrength', +$any($event.target).value)">
+                  <span class="unit">MPa</span>
                 </div>
-                <div class="property-card">
-                  <span class="property-label">Concrete Strength</span>
-                  <div class="property-value">
-                    <input type="number" class="form-input" [value]="params().concreteStrength" min="20" max="90" (input)="updateParam('concreteStrength', +$any($event.target).value)">
-                    <span class="unit">MPa</span>
-                  </div>
+              </div>
+              <div class="property-card">
+                <label class="property-label" for="concrete-strength">Concrete Strength</label>
+                <div class="property-value">
+                  <input type="number" id="concrete-strength" class="form-input" [value]="params().concreteStrength"
+                    min="20" max="90" (input)="updateParam('concreteStrength', +$any($event.target).value)">
+                  <span class="unit">MPa</span>
                 </div>
-                <div class="property-card">
-                  <span class="property-label">Steel Grade</span>
-                  <div class="property-value">
-                    <input type="number" class="form-input" [value]="params().steelGrade" min="235" max="460" (input)="updateParam('steelGrade', +$any($event.target).value)">
-                    <span class="unit">MPa</span>
-                  </div>
+              </div>
+              <div class="property-card">
+                <label class="property-label" for="steel-grade">Steel Grade</label>
+                <div class="property-value">
+                  <input type="number" id="steel-grade" class="form-input" [value]="params().steelGrade" min="235"
+                    max="460" (input)="updateParam('steelGrade', +$any($event.target).value)">
+                  <span class="unit">MPa</span>
                 </div>
               </div>
             </div>
           </div>
+        </div>
         }
 
         <!-- Step 3: Loading -->
         @if (currentStep() === 3) {
-          <div class="form-step animate-fade-in">
-            <h3 class="step-heading">Define Loading</h3>
-            
-            <div class="loading-section">
-              <h4 class="input-section-title">Load Type</h4>
-              <div class="load-type-grid">
-                @for (load of loadTypes; track load.id) {
-                  <button 
-                    class="load-type-card"
-                    [class.selected]="params().loadType === load.id"
-                    (click)="updateParam('loadType', load.id)"
-                  >
-                    <span class="load-icon">{{ load.icon }}</span>
-                    <span class="load-name">{{ load.name }}</span>
-                  </button>
-                }
+        <div class="form-step animate-fade-in">
+          <h3 class="step-heading">Define Loading</h3>
+
+          <div class="loading-section">
+            <h4 class="input-section-title">Load Type</h4>
+            <div class="load-type-grid">
+              @for (load of loadTypes; track load.id) {
+              <button class="load-type-card" [class.selected]="params().loadType === load.id"
+                (click)="updateParam('loadType', load.id)">
+                <span class="load-icon">{{ load.icon }}</span>
+                <span class="load-name">{{ load.name }}</span>
+              </button>
+              }
+            </div>
+          </div>
+
+          <div class="load-params">
+            <div class="form-group">
+              <label class="form-label" for="load-magnitude">Load Magnitude (kN)</label>
+              <div class="input-with-preview">
+                <input type="range" id="load-magnitude" class="form-range" [value]="params().loadMagnitude" min="1"
+                  max="200" step="1" (input)="updateParam('loadMagnitude', +$any($event.target).value)">
+                <span class="range-value">{{ params().loadMagnitude }} kN</span>
               </div>
             </div>
 
-            <div class="load-params">
-              <div class="form-group">
-                <label class="form-label">Load Magnitude (kN)</label>
-                <div class="input-with-preview">
-                  <input 
-                    type="range" 
-                    class="form-range"
-                    [value]="params().loadMagnitude"
-                    min="1" max="200" step="1"
-                    (input)="updateParam('loadMagnitude', +$any($event.target).value)"
-                  >
-                  <span class="range-value">{{ params().loadMagnitude }} kN</span>
-                </div>
-              </div>
-              
-              <div class="form-group">
-                <label class="form-label">Load Position (%)</label>
-                <div class="input-with-preview">
-                  <input 
-                    type="range" 
-                    class="form-range"
-                    [value]="params().loadPosition"
-                    min="0" max="100" step="5"
-                    (input)="updateParam('loadPosition', +$any($event.target).value)"
-                  >
-                  <span class="range-value">{{ params().loadPosition }}%</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="support-section">
-              <h4 class="input-section-title">Support Type</h4>
-              <div class="support-grid">
-                @for (support of supportTypes; track support.id) {
-                  <button 
-                    class="support-card"
-                    [class.selected]="params().supportType === support.id"
-                    (click)="updateParam('supportType', support.id)"
-                  >
-                    <span class="support-icon">{{ support.icon }}</span>
-                    <span class="support-name">{{ support.name }}</span>
-                  </button>
-                }
-              </div>
-            </div>
-
-            <!-- Additional Load Parameters -->
-            <div class="load-params">
-              <h4 class="input-section-title">Environmental Loads</h4>
-              <div class="input-row">
-                <div class="form-group">
-                  <label class="form-label">Wind Load (kN/m²)</label>
-                  <input type="number" class="form-input" [value]="params().windLoad" min="0.5" max="3.0" step="0.1" (input)="updateParam('windLoad', +$any($event.target).value)">
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Live Load (kN/m²)</label>
-                  <input type="number" class="form-input" [value]="params().liveLoad" min="1.5" max="5.0" step="0.1" (input)="updateParam('liveLoad', +$any($event.target).value)">
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Dead Load (kN/m²)</label>
-                  <input type="number" class="form-input" [value]="params().deadLoad" min="3.0" max="8.0" step="0.1" (input)="updateParam('deadLoad', +$any($event.target).value)">
-                </div>
+            <div class="form-group">
+              <label class="form-label" for="load-position">Load Position (%)</label>
+              <div class="input-with-preview">
+                <input type="range" id="load-position" class="form-range" [value]="params().loadPosition" min="0"
+                  max="100" step="5" (input)="updateParam('loadPosition', +$any($event.target).value)">
+                <span class="range-value">{{ params().loadPosition }}%</span>
               </div>
             </div>
           </div>
+
+          <div class="support-section">
+            <h4 class="input-section-title">Support Type</h4>
+            <div class="support-grid">
+              @for (support of supportTypes; track support.id) {
+              <button class="support-card" [class.selected]="params().supportType === support.id"
+                (click)="updateParam('supportType', support.id)">
+                <span class="support-icon">{{ support.icon }}</span>
+                <span class="support-name">{{ support.name }}</span>
+              </button>
+              }
+            </div>
+          </div>
+
+          <!-- Additional Load Parameters -->
+          <div class="load-params">
+            <h4 class="input-section-title">Environmental Loads</h4>
+            <div class="input-row">
+              <div class="form-group">
+                <label class="form-label" for="wind-load">Wind Load (kN/m²)</label>
+                <input type="number" id="wind-load" class="form-input" [value]="params().windLoad" min="0.5" max="3.0"
+                  step="0.1" (input)="updateParam('windLoad', +$any($event.target).value)">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="live-load">Live Load (kN/m²)</label>
+                <input type="number" id="live-load" class="form-input" [value]="params().liveLoad" min="1.5" max="5.0"
+                  step="0.1" (input)="updateParam('liveLoad', +$any($event.target).value)">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="dead-load">Dead Load (kN/m²)</label>
+                <input type="number" id="dead-load" class="form-input" [value]="params().deadLoad" min="3.0" max="8.0"
+                  step="0.1" (input)="updateParam('deadLoad', +$any($event.target).value)">
+              </div>
+            </div>
+          </div>
+        </div>
         }
 
         <!-- Step 4: Review -->
         @if (currentStep() === 4) {
-          <div class="form-step animate-fade-in">
-            <h3 class="step-heading">Review & Analyze</h3>
-            
-            <!-- Simulation Name and Description -->
-            <div class="naming-section">
-              <div class="form-group">
-                <label class="form-label">Simulation Name <span class="required">*</span></label>
-                <input 
-                  type="text" 
-                  class="form-input"
-                  [class.input-error]="nameError()"
-                  [value]="params().name"
-                  placeholder="Enter a name for this simulation (min 3 characters)"
-                  (input)="updateParam('name', $any($event.target).value); validateName($any($event.target).value)"
-                  (blur)="validateName(params().name)"
-                  maxlength="100"
-                >
-                @if (nameError()) {
-                  <span class="field-error">{{ nameError() }}</span>
-                }
-              </div>
-              <div class="form-group">
-                <label class="form-label">Description (optional)</label>
-                <textarea 
-                  class="form-input form-textarea"
-                  [class.input-error]="descriptionError()"
-                  [value]="params().description"
-                  placeholder="Add a description..."
-                  rows="2"
-                  (input)="updateParam('description', $any($event.target).value); validateDescription($any($event.target).value)"
-                  maxlength="500"
-                ></textarea>
-                @if (descriptionError()) {
-                  <span class="field-error">{{ descriptionError() }}</span>
-                }
-                <span class="char-count">{{ params().description.length }}/500</span>
+        <div class="form-step animate-fade-in">
+          <h3 class="step-heading">Review & Analyze</h3>
+
+          <!-- Simulation Name and Description -->
+          <div class="naming-section">
+            <div class="form-group">
+              <label class="form-label" for="simulation-name">Simulation Name <span class="required">*</span></label>
+              <input type="text" id="simulation-name" class="form-input" [class.input-error]="nameError()"
+                [value]="params().name" placeholder="Enter a name for this simulation (min 3 characters)"
+                (input)="updateParam('name', $any($event.target).value); validateName($any($event.target).value)"
+                (blur)="validateName(params().name)" maxlength="100">
+              @if (nameError()) {
+              <span class="field-error">{{ nameError() }}</span>
+              }
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="simulation-description">Description (optional)</label>
+              <textarea id="simulation-description" class="form-input form-textarea"
+                [class.input-error]="descriptionError()" [value]="params().description"
+                placeholder="Add a description..." rows="2"
+                (input)="updateParam('description', $any($event.target).value); validateDescription($any($event.target).value)"
+                maxlength="500"></textarea>
+              @if (descriptionError()) {
+              <span class="field-error">{{ descriptionError() }}</span>
+              }
+              <span class="char-count">{{ params().description.length }}/500</span>
+            </div>
+          </div>
+
+          @if (errorMessage()) {
+          <div class="error-message">
+            <span class="error-icon">⚠️</span>
+            {{ errorMessage() }}
+          </div>
+          }
+
+          <div class="review-summary">
+            <div class="summary-section">
+              <h5 class="summary-title">
+                <span class="summary-icon">🏗️</span>
+                Structure
+              </h5>
+              <div class="summary-items">
+                <div class="summary-item">
+                  <span class="item-label">Type</span>
+                  <span class="item-value">{{ params().structureType | titlecase }}</span>
+                </div>
+                <div class="summary-item">
+                  <span class="item-label">Dimensions</span>
+                  <span class="item-value">{{ params().length }}m × {{ params().height }}m × {{ params().width
+                    }}m</span>
+                </div>
               </div>
             </div>
 
-            @if (errorMessage()) {
-              <div class="error-message">
-                <span class="error-icon">⚠️</span>
-                {{ errorMessage() }}
-              </div>
-            }
-            
-            <div class="review-summary">
-              <div class="summary-section">
-                <h5 class="summary-title">
-                  <span class="summary-icon">🏗️</span>
-                  Structure
-                </h5>
-                <div class="summary-items">
-                  <div class="summary-item">
-                    <span class="item-label">Type</span>
-                    <span class="item-value">{{ params().structureType | titlecase }}</span>
-                  </div>
-                  <div class="summary-item">
-                    <span class="item-label">Dimensions</span>
-                    <span class="item-value">{{ params().length }}m × {{ params().height }}m × {{ params().width }}m</span>
-                  </div>
+            <div class="summary-section">
+              <h5 class="summary-title">
+                <span class="summary-icon">🔩</span>
+                Material
+              </h5>
+              <div class="summary-items">
+                <div class="summary-item">
+                  <span class="item-label">Type</span>
+                  <span class="item-value material-badge" [style.--mat-color]="selectedMaterial().color">
+                    <span class="badge-dot" [style.background]="selectedMaterial().color"></span>
+                    {{ selectedMaterial().name }}
+                  </span>
+                </div>
+                <div class="summary-item">
+                  <span class="item-label">E</span>
+                  <span class="item-value">{{ params().elasticModulus }} GPa</span>
+                </div>
+                <div class="summary-item">
+                  <span class="item-label">fy</span>
+                  <span class="item-value">{{ params().yieldStrength }} MPa</span>
                 </div>
               </div>
+            </div>
 
-              <div class="summary-section">
-                <h5 class="summary-title">
-                  <span class="summary-icon">🔩</span>
-                  Material
-                </h5>
-                <div class="summary-items">
-                  <div class="summary-item">
-                    <span class="item-label">Type</span>
-                    <span class="item-value material-badge" [style.--mat-color]="selectedMaterial().color">
-                      <span class="badge-dot" [style.background]="selectedMaterial().color"></span>
-                      {{ selectedMaterial().name }}
-                    </span>
-                  </div>
-                  <div class="summary-item">
-                    <span class="item-label">E</span>
-                    <span class="item-value">{{ params().elasticModulus }} GPa</span>
-                  </div>
-                  <div class="summary-item">
-                    <span class="item-label">fy</span>
-                    <span class="item-value">{{ params().yieldStrength }} MPa</span>
-                  </div>
+            <div class="summary-section">
+              <h5 class="summary-title">
+                <span class="summary-icon">⚡</span>
+                Loading
+              </h5>
+              <div class="summary-items">
+                <div class="summary-item">
+                  <span class="item-label">Load Type</span>
+                  <span class="item-value">{{ params().loadType | titlecase }}</span>
+                </div>
+                <div class="summary-item">
+                  <span class="item-label">Magnitude</span>
+                  <span class="item-value">{{ params().loadMagnitude }} kN</span>
+                </div>
+                <div class="summary-item">
+                  <span class="item-label">Support</span>
+                  <span class="item-value">{{ params().supportType }}</span>
                 </div>
               </div>
+            </div>
 
-              <div class="summary-section">
-                <h5 class="summary-title">
-                  <span class="summary-icon">⚡</span>
-                  Loading
-                </h5>
-                <div class="summary-items">
-                  <div class="summary-item">
-                    <span class="item-label">Load Type</span>
-                    <span class="item-value">{{ params().loadType | titlecase }}</span>
-                  </div>
-                  <div class="summary-item">
-                    <span class="item-label">Magnitude</span>
-                    <span class="item-value">{{ params().loadMagnitude }} kN</span>
-                  </div>
-                  <div class="summary-item">
-                    <span class="item-label">Support</span>
-                    <span class="item-value">{{ params().supportType }}</span>
-                  </div>
+            <!-- AI Analysis Section (always enabled) -->
+            <div class="summary-section ai-section">
+              <h5 class="summary-title">
+                <span class="summary-icon">🤖</span>
+                AI Analysis
+              </h5>
+              <div class="summary-items">
+                <div class="summary-item">
+                  <span class="item-label">Status</span>
+                  <span class="item-value ai-enabled">
+                    <span class="status-dot"></span>
+                    Deep Learning Model Active
+                  </span>
                 </div>
-              </div>
-
-              <!-- AI Analysis Section (always enabled) -->
-              <div class="summary-section ai-section">
-                <h5 class="summary-title">
-                  <span class="summary-icon">🤖</span>
-                  AI Analysis
-                </h5>
-                <div class="summary-items">
-                  <div class="summary-item">
-                    <span class="item-label">Status</span>
-                    <span class="item-value ai-enabled">
-                      <span class="status-dot"></span>
-                      Deep Learning Model Active
-                    </span>
-                  </div>
-                  <div class="summary-item">
-                    <span class="item-label">Model</span>
-                    <span class="item-value">SimStruct Neural Network</span>
-                  </div>
+                <div class="summary-item">
+                  <span class="item-label">Model</span>
+                  <span class="item-value">SimStruct Neural Network</span>
                 </div>
               </div>
             </div>
           </div>
+        </div>
         }
       </div>
 
       <!-- Navigation -->
       <div class="form-navigation">
-        <button 
-          class="btn btn-ghost"
-          [disabled]="currentStep() === 1"
-          (click)="prevStep()"
-        >
+        <button class="btn btn-ghost" [disabled]="currentStep() === 1" (click)="prevStep()">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
+            <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
           Previous
         </button>
-        
-        @if (currentStep() < totalSteps) {
-          <button class="btn btn-primary" (click)="nextStep()">
-            Next
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M5 12h14M12 5l7 7-7 7"/>
-            </svg>
+
+        @if (currentStep() < totalSteps) { <button class="btn btn-primary" (click)="nextStep()">
+          Next
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
           </button>
-        } @else {
-          <button 
-            class="btn btn-accent btn-run"
-            (click)="runAnalysis()"
-          >
+          } @else {
+          <button class="btn btn-accent btn-run" (click)="runAnalysis()">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="5,3 19,12 5,21"/>
+              <polygon points="5,3 19,12 5,21" />
             </svg>
             Run Analysis
           </button>
-        }
+          }
       </div>
     </div>
 
@@ -528,16 +469,16 @@
         <div class="analysis-spinner-ring"></div>
         <div class="analysis-icon">🔬</div>
       </div>
-      
+
       <h2 class="analysis-title">Analyzing Structure</h2>
       <p class="analysis-subtitle">Our AI is processing your simulation parameters</p>
-      
+
       <div class="analysis-progress-bar">
         <div class="analysis-progress-fill" [style.width.%]="analysisProgress()"></div>
       </div>
-      
+
       <div class="analysis-percent">{{ analysisProgress() | number:'1.0-0' }}%</div>
-      
+
       <div class="analysis-stages">
         <span [class.active]="analysisStage() === 'preprocessing'" [class.completed]="analysisProgress() >= 30">
           Preprocessing

@@ -1,0 +1,192 @@
+%==============================================================================
+% SLIDE 04 - PROBLÉMATIQUE
+%==============================================================================
+
+% Slide de transition
+\sectionSlide{02}{Problématique}
+
+% Slide de contenu
+\begin{frame}
+\frametitle{Problématique}
+\framesubtitle{Les Défis Actuels du Secteur}
+\customFooter
+
+\vspace{0.2cm}
+
+\begin{columns}[T]
+%----------------------------------------------------------------------
+% COLONNE GAUCHE - PROBLÈMES
+%----------------------------------------------------------------------
+\begin{column}{0.48\textwidth}
+
+    % Titre
+    \begin{tikzpicture}
+        \node[
+            rectangle,
+            rounded corners=4pt,
+            fill=danger,
+            text=white,
+            inner xsep=10pt,inner ysep=6pt,
+            font=\small\bfseries
+        ] {\faIcon{exclamation-triangle}\ \ Problèmes Identifiés};
+    \end{tikzpicture}
+    
+    \vspace{0.4cm}
+    
+    % Carte 1 - Coût
+    \begin{tikzpicture}
+        \node[
+            rectangle,
+            rounded corners=8pt,
+            fill=danger,
+            fill opacity=0.08,
+            draw=danger,
+            draw opacity=0.3,
+            line width=1pt,
+            minimum width=6.2cm,
+            inner sep=10pt,
+            text opacity=1
+        ] {
+            \begin{minipage}{5.5cm}
+                \textcolor{danger}{\faIcon{dollar-sign}\ \textbf{Coût Élevé}}\\[0.15cm]
+                \small\textcolor{dark}{Logiciels professionnels très\\coûteux (5000€+/an)}
+            \end{minipage}
+        };
+    \end{tikzpicture}
+    
+    \vspace{0.25cm}
+    
+    % Carte 2 - Complexité
+    \begin{tikzpicture}
+        \node[
+            rectangle,
+            rounded corners=8pt,
+            fill=accent,
+            fill opacity=0.08,
+            draw=accent,
+            draw opacity=0.3,
+            line width=1pt,
+            minimum width=6.2cm,
+            inner sep=10pt,
+            text opacity=1
+        ] {
+            \begin{minipage}{5.5cm}
+                \textcolor{accent}{\faIcon{graduation-cap}\ \textbf{Complexité}}\\[0.15cm]
+                \small\textcolor{dark}{Courbe d'apprentissage\\importante pour les débutants}
+            \end{minipage}
+        };
+    \end{tikzpicture}
+    
+    \vspace{0.25cm}
+    
+    % Carte 3 - Temps
+    \begin{tikzpicture}
+        \node[
+            rectangle,
+            rounded corners=8pt,
+            fill=gray600,
+            fill opacity=0.08,
+            draw=gray600,
+            draw opacity=0.3,
+            line width=1pt,
+            minimum width=6.2cm,
+            inner sep=10pt,
+            text opacity=1
+        ] {
+            \begin{minipage}{5.5cm}
+                \textcolor{gray600}{\faIcon{clock}\ \textbf{Temps de Calcul}}\\[0.15cm]
+                \small\textcolor{dark}{Simulations traditionnelles\\longues et gourmandes}
+            \end{minipage}
+        };
+    \end{tikzpicture}
+
+\end{column}
+
+%----------------------------------------------------------------------
+% COLONNE DROITE - QUESTIONS
+%----------------------------------------------------------------------
+\begin{column}{0.48\textwidth}
+
+    % Titre
+    \begin{tikzpicture}
+        \node[
+            rectangle,
+            rounded corners=4pt,
+            fill=primary,
+            text=white,
+            inner xsep=10pt,inner ysep=6pt,
+            font=\small\bfseries
+        ] {\faIcon{question-circle}\ \ Questions Clés};
+    \end{tikzpicture}
+    
+    \vspace{0.4cm}
+    
+    % Question 1
+    \begin{tikzpicture}
+        \node[
+            rectangle,
+            rounded corners=8pt,
+            fill=primary,
+            fill opacity=0.06,
+            draw=primary,
+            draw opacity=0.2,
+            line width=1pt,
+            minimum width=6.2cm,
+            inner sep=10pt,
+            text opacity=1
+        ] {
+            \begin{minipage}{5.5cm}
+                \small\textcolor{dark}{Comment rendre les simulations structurelles \textbf{accessibles} à tous ?}
+            \end{minipage}
+        };
+    \end{tikzpicture}
+    
+    \vspace{0.25cm}
+    
+    % Question 2
+    \begin{tikzpicture}
+        \node[
+            rectangle,
+            rounded corners=8pt,
+            fill=primary,
+            fill opacity=0.06,
+            draw=primary,
+            draw opacity=0.2,
+            line width=1pt,
+            minimum width=6.2cm,
+            inner sep=10pt,
+            text opacity=1
+        ] {
+            \begin{minipage}{5.5cm}
+                \small\textcolor{dark}{Comment \textbf{accélérer} les calculs tout en maintenant la précision ?}
+            \end{minipage}
+        };
+    \end{tikzpicture}
+    
+    \vspace{0.25cm}
+    
+    % Question 3
+    \begin{tikzpicture}
+        \node[
+            rectangle,
+            rounded corners=8pt,
+            fill=primary,
+            fill opacity=0.06,
+            draw=primary,
+            draw opacity=0.2,
+            line width=1pt,
+            minimum width=6.2cm,
+            inner sep=10pt,
+            text opacity=1
+        ] {
+            \begin{minipage}{5.5cm}
+                \small\textcolor{dark}{Comment faciliter le \textbf{partage} des connaissances entre professionnels ?}
+            \end{minipage}
+        };
+    \end{tikzpicture}
+
+\end{column}
+
+\end{columns}
+
+\end{frame}

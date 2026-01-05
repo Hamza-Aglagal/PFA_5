@@ -1,0 +1,87 @@
+%==============================================================================
+% SLIDE 02 - PLAN DE LA PRÉSENTATION
+%==============================================================================
+
+\begin{frame}
+\frametitle{Plan de la Présentation}
+\customFooter
+
+\vspace{0.3cm}
+
+\begin{center}
+\begin{tikzpicture}[
+    node distance=0.4cm,
+    item/.style={
+        rectangle,
+        rounded corners=6pt,
+        fill=gray100,
+        minimum width=5.8cm,
+        minimum height=0.9cm,
+        inner sep=8pt,
+        font=\small
+    },
+    num/.style={
+        circle,
+        fill=#1,
+        text=white,
+        minimum size=1.6em,
+        inner sep=0pt,
+        font=\small\bfseries
+    }
+]
+
+%----------------------------------------------------------------------
+% COLONNE GAUCHE
+%----------------------------------------------------------------------
+\node[item] (i1) at (0,0) {};
+\node[num=primary] at (-2.4,0) {1};
+\node[anchor=west,font=\normalsize] at (-1.9,0) {Introduction};
+
+\node[item,below=of i1] (i2) {};
+\node[num=primary] at ([xshift=-2.4cm]i2) {2};
+\node[anchor=west,font=\normalsize] at ([xshift=-1.9cm]i2) {Problématique};
+
+\node[item,below=of i2] (i3) {};
+\node[num=primary] at ([xshift=-2.4cm]i3) {3};
+\node[anchor=west,font=\normalsize] at ([xshift=-1.9cm]i3) {Objectifs};
+
+\node[item,below=of i3] (i4) {};
+\node[num=primary] at ([xshift=-2.4cm]i4) {4};
+\node[anchor=west,font=\normalsize] at ([xshift=-1.9cm]i4) {Solution Proposée};
+
+\node[item,below=of i4] (i5) {};
+\node[num=primary] at ([xshift=-2.4cm]i5) {5};
+\node[anchor=west,font=\normalsize] at ([xshift=-1.9cm]i5) {Architecture};
+
+%----------------------------------------------------------------------
+% COLONNE DROITE
+%----------------------------------------------------------------------
+\node[item] (i6) at (7cm,0) {};
+\node[num=secondary] at ([xshift=-2.4cm]i6) {6};
+\node[anchor=west,font=\normalsize] at ([xshift=-1.9cm]i6) {Conception};
+
+\node[item,below=of i6] (i7) {};
+\node[num=secondary] at ([xshift=-2.4cm]i7) {7};
+\node[anchor=west,font=\normalsize] at ([xshift=-1.9cm]i7) {Technologies};
+
+\node[item,below=of i7] (i8) {};
+\node[num=secondary] at ([xshift=-2.4cm]i8) {8};
+\node[anchor=west,font=\normalsize] at ([xshift=-1.9cm]i8) {Réalisation};
+
+\node[item,below=of i8] (i9) {};
+\node[num=secondary] at ([xshift=-2.4cm]i9) {9};
+\node[anchor=west,font=\normalsize] at ([xshift=-1.9cm]i9) {Démonstration};
+
+\node[item,below=of i9] (i10) {};
+\node[num=secondary] at ([xshift=-2.4cm]i10) {10};
+\node[anchor=west,font=\normalsize] at ([xshift=-1.9cm]i10) {Conclusion};
+
+%----------------------------------------------------------------------
+% LIGNE DE CONNEXION CENTRALE
+%----------------------------------------------------------------------
+\draw[gray400,dashed,line width=1pt] (3.5cm,0.2cm) -- (3.5cm,-5.4cm);
+
+\end{tikzpicture}
+\end{center}
+
+\end{frame}

@@ -1,0 +1,211 @@
+%==============================================================================
+% Thème SIMSTRUCT - Design Professionnel et Créatif
+%==============================================================================
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}           % Police Latin Modern (supporte grandes tailles)
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{fontawesome5}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{calc}
+\usepackage{eso-pic}
+\usepackage{transparent}
+\usepackage{fix-cm}            % Correction pour les grandes tailles de police
+
+\usetikzlibrary{shapes.geometric,positioning,calc,shadows.blur,decorations.pathreplacing}
+
+%------------------------------------------------------------------------------
+% PALETTE DE COULEURS PROFESSIONNELLE
+%------------------------------------------------------------------------------
+\definecolor{primary}{RGB}{37, 99, 235}        % Bleu principal
+\definecolor{primaryDark}{RGB}{29, 78, 216}    % Bleu foncé
+\definecolor{primaryLight}{RGB}{96, 165, 250}  % Bleu clair
+\definecolor{secondary}{RGB}{16, 185, 129}     % Vert succès
+\definecolor{accent}{RGB}{245, 158, 11}        % Orange accent
+\definecolor{danger}{RGB}{239, 68, 68}         % Rouge erreur
+\definecolor{dark}{RGB}{30, 41, 59}            % Texte foncé
+\definecolor{gray600}{RGB}{71, 85, 105}        % Gris moyen
+\definecolor{gray400}{RGB}{148, 163, 184}      % Gris clair
+\definecolor{gray100}{RGB}{241, 245, 249}      % Fond très clair
+\definecolor{white}{RGB}{255, 255, 255}        % Blanc
+
+%------------------------------------------------------------------------------
+% CONFIGURATION BEAMER DE BASE
+%------------------------------------------------------------------------------
+\usetheme{default}
+\usecolortheme{default}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}{}
+\setbeamertemplate{headline}{}
+
+% Couleurs globales
+\setbeamercolor{background canvas}{bg=white}
+\setbeamercolor{normal text}{fg=dark}
+\setbeamercolor{structure}{fg=primary}
+\setbeamercolor{itemize item}{fg=primary}
+\setbeamercolor{itemize subitem}{fg=primaryLight}
+
+% Polices
+\setbeamerfont{title}{size=\fontsize{42}{48}\selectfont,series=\bfseries}
+\setbeamerfont{frametitle}{size=\Large,series=\bfseries}
+\setbeamerfont{framesubtitle}{size=\normalsize}
+
+% Items
+\setbeamertemplate{itemize item}{\textcolor{primary}{\rule[0.5ex]{0.6ex}{0.6ex}}}
+\setbeamertemplate{itemize subitem}{\textcolor{primaryLight}{\rule[0.5ex]{0.5ex}{0.5ex}}}
+
+%------------------------------------------------------------------------------
+% COMMANDES UTILITAIRES
+%------------------------------------------------------------------------------
+
+% Icône avec cercle
+\newcommand{\iconCircle}[2][primary]{%
+    \tikz[baseline=-0.5ex]{
+        \node[circle,fill=#1,minimum size=1.8em,inner sep=0pt] {\textcolor{white}{\small#2}};
+    }%
+}
+
+% Badge numéroté
+\newcommand{\badge}[2][primary]{%
+    \tikz[baseline=-0.5ex]{
+        \node[circle,fill=#1,minimum size=2em,inner sep=0pt,font=\bfseries\small] {\textcolor{white}{#2}};
+    }%
+}
+
+% Carte avec ombre
+\newcommand{\card}[3][primary]{%
+    \begin{tikzpicture}
+        \node[
+            rectangle,
+            rounded corners=8pt,
+            fill=white,
+            draw=#1,
+            line width=1pt,
+            minimum width=#2,
+            minimum height=1cm,
+            inner sep=12pt,
+            drop shadow={shadow xshift=1pt, shadow yshift=-2pt, opacity=0.15}
+        ] {#3};
+    \end{tikzpicture}%
+}
+
+% Titre de section coloré
+\newcommand{\sectionTitle}[2]{%
+    \begin{tikzpicture}
+        \node[
+            rectangle,
+            rounded corners=4pt,
+            fill=#1,
+            inner sep=10pt,
+            font=\bfseries
+        ] {\textcolor{white}{#2}};
+    \end{tikzpicture}%
+}
+
+% Check et Cross marks
+\newcommand{\cmark}{\textcolor{secondary}{\faIcon{check-circle}}}
+\newcommand{\xmark}{\textcolor{danger}{\faIcon{times-circle}}}
+
+%------------------------------------------------------------------------------
+% TEMPLATE POUR SLIDES DE SECTION
+%------------------------------------------------------------------------------
+\newcommand{\sectionSlide}[2]{%
+{
+\setbeamertemplate{footline}{}
+\begin{frame}[plain]
+\begin{tikzpicture}[remember picture,overlay]
+    % Fond dégradé
+    \fill[primary] (current page.south west) rectangle (current page.north east);
+    
+    % Cercles décoratifs
+    \fill[primaryDark,opacity=0.5] ([xshift=-3cm,yshift=2cm]current page.south west) circle (6cm);
+    \fill[primaryLight,opacity=0.2] ([xshift=4cm,yshift=-1cm]current page.north east) circle (5cm);
+    \fill[white,opacity=0.08] ([xshift=-2cm,yshift=-2cm]current page.north west) circle (3cm);
+    
+    % Ligne décorative
+    \draw[white,line width=3pt] ([yshift=-0.5cm]current page.center) ++(-3cm,0) -- ++(6cm,0);
+    
+    % Numéro de section
+    \node[white,font=\fontsize{72}{80}\selectfont\bfseries,opacity=0.3] 
+        at ([yshift=2cm]current page.center) {#1};
+    
+    % Titre de section
+    \node[white,font=\fontsize{36}{42}\selectfont\bfseries] 
+        at ([yshift=-0.5cm]current page.center) {#2};
+        
+\end{tikzpicture}
+\end{frame}
+}
+}
+
+%------------------------------------------------------------------------------
+% TEMPLATE POUR FRAME TITRE PERSONNALISÉ
+%------------------------------------------------------------------------------
+\setbeamertemplate{frametitle}{
+    \vspace{0.6cm}
+    \begin{beamercolorbox}[wd=\paperwidth]{frametitle}
+        \hspace{0.6cm}
+        \begin{tikzpicture}[baseline]
+            % Barre latérale colorée
+            \fill[primary] (0,0) rectangle (0.15cm,0.8cm);
+            % Titre
+            \node[anchor=west,font=\Large\bfseries,text=dark] at (0.4cm,0.4cm) {\insertframetitle};
+        \end{tikzpicture}
+        
+        \ifx\insertframesubtitle\empty\else
+            \hspace{1.15cm}\textcolor{gray600}{\small\insertframesubtitle}
+        \fi
+    \end{beamercolorbox}
+}
+
+%------------------------------------------------------------------------------
+% FOOTER PERSONNALISÉ
+%------------------------------------------------------------------------------
+\newcommand{\customFooter}{
+    \begin{tikzpicture}[remember picture,overlay]
+        % Ligne de séparation
+        \draw[gray400,line width=0.5pt] 
+            ([xshift=0.8cm,yshift=0.6cm]current page.south west) -- 
+            ([xshift=-0.8cm,yshift=0.6cm]current page.south east);
+        
+        % Auteur
+        \node[anchor=west,font=\tiny,text=gray600] 
+            at ([xshift=0.8cm,yshift=0.3cm]current page.south west) {\insertshortauthor};
+        
+        % Titre
+        \node[anchor=center,font=\tiny\bfseries,text=primary] 
+            at ([yshift=0.3cm]current page.south) {SIMSTRUCT};
+        
+        % Numéro de page
+        \node[anchor=east,font=\tiny,text=gray600] 
+            at ([xshift=-0.8cm,yshift=0.3cm]current page.south east) 
+            {\insertframenumber\ /\ \inserttotalframenumber};
+    \end{tikzpicture}
+}
+
+%------------------------------------------------------------------------------
+% ENVIRONNEMENT POUR PLACEHOLDER D'IMAGE
+%------------------------------------------------------------------------------
+\newcommand{\imagePlaceholder}[3][13cm]{%
+    \begin{tikzpicture}
+        \node[
+            rectangle,
+            rounded corners=12pt,
+            fill=gray100,
+            draw=primary,
+            line width=2pt,
+            minimum width=#1,
+            minimum height=#2,
+            inner sep=0pt
+        ] (box) {};
+        
+        \node[text=gray400,font=\fontsize{36}{42}\selectfont] at (box.center) {\faIcon{image}};
+        \node[text=gray600,font=\small,below=0.3cm of box.center,text width=8cm,align=center] {#3};
+    \end{tikzpicture}%
+}

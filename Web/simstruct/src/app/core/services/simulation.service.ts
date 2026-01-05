@@ -290,7 +290,7 @@ export class SimulationService {
         console.log('SimulationService: Updated', simulation);
         this._currentSimulation.set(simulation);
         // Update in list
-        this._simulations.update(list => 
+        this._simulations.update(list =>
           list.map(s => s.id === id ? simulation : s)
         );
         this._isLoading.set(false);
@@ -335,7 +335,7 @@ export class SimulationService {
       tap(simulation => {
         console.log('SimulationService: Favorite toggled to', simulation.isFavorite);
         // Update in list
-        this._simulations.update(list => 
+        this._simulations.update(list =>
           list.map(s => s.id === id ? simulation : s)
         );
         if (this._currentSimulation()?.id === id) {
@@ -359,7 +359,7 @@ export class SimulationService {
       tap(simulation => {
         console.log('SimulationService: Public toggled to', simulation.isPublic);
         // Update in list
-        this._simulations.update(list => 
+        this._simulations.update(list =>
           list.map(s => s.id === id ? simulation : s)
         );
         if (this._currentSimulation()?.id === id) {

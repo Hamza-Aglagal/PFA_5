@@ -1,0 +1,150 @@
+%==============================================================================
+% SLIDE 07 - ARCHITECTURE
+%==============================================================================
+
+% Slide de transition
+\sectionSlide{05}{Architecture}
+
+% Slide de contenu
+\begin{frame}
+\frametitle{Architecture du Système}
+\framesubtitle{Architecture en Couches}
+\customFooter
+
+\vspace{0.2cm}
+
+\begin{center}
+\begin{tikzpicture}[
+    scale=0.88,
+    transform shape,
+    layer/.style={
+        rectangle,
+        rounded corners=8pt,
+        minimum width=13cm,
+        minimum height=1.1cm,
+        align=center,
+        font=\small
+    },
+    comp/.style={
+        rectangle,
+        rounded corners=5pt,
+        fill=white,
+        draw=gray400,
+        line width=0.5pt,
+        minimum width=2.4cm,
+        minimum height=0.7cm,
+        font=\scriptsize
+    },
+    label/.style={
+        font=\scriptsize\bfseries,
+        text=white,
+        rotate=90
+    }
+]
+
+%----------------------------------------------------------------------
+% COUCHE PRÉSENTATION
+%----------------------------------------------------------------------
+\node[layer,fill=primary!15,draw=primary,line width=1pt] (l1) at (0,3) {};
+\node[comp] at (-4,3) {\faIcon[brands]{angular}\ Angular 21};
+\node[comp] at (-1,3) {\faIcon{mobile-alt}\ Flutter};
+\node[comp] at (2,3) {\faIcon{cube}\ Three.js};
+\node[comp] at (5,3) {\faIcon[brands]{sass}\ SCSS};
+
+\node[
+    rectangle,
+    rounded corners=5pt,
+    fill=primary,
+    minimum width=0.8cm,
+    minimum height=1.1cm,
+    anchor=east
+] at (-6.5,3) {};
+\node[label] at (-6.3,3) {Présentation};
+
+%----------------------------------------------------------------------
+% COUCHE API
+%----------------------------------------------------------------------
+\node[layer,fill=secondary!15,draw=secondary,line width=1pt] (l2) at (0,1.5) {};
+\node[comp] at (-4,1.5) {\faIcon{exchange-alt}\ REST API};
+\node[comp] at (-1,1.5) {\faIcon{lock}\ JWT Auth};
+\node[comp] at (2,1.5) {\faIcon{plug}\ WebSocket};
+\node[comp] at (5,1.5) {\faIcon{shield-alt}\ Spring Security};
+
+\node[
+    rectangle,
+    rounded corners=5pt,
+    fill=secondary,
+    minimum width=0.8cm,
+    minimum height=1.1cm,
+    anchor=east
+] at (-6.5,1.5) {};
+\node[label] at (-6.3,1.5) {API Gateway};
+
+%----------------------------------------------------------------------
+% COUCHE SERVICES
+%----------------------------------------------------------------------
+\node[layer,fill=primaryLight!15,draw=primaryLight,line width=1pt] (l3) at (0,0) {};
+\node[comp] at (-4.2,0) {\faIcon{user}\ AuthService};
+\node[comp] at (-1.4,0) {\faIcon{calculator}\ SimulationService};
+\node[comp] at (1.8,0) {\faIcon{users}\ CommunityService};
+\node[comp] at (4.8,0) {\faIcon{comment}\ ChatService};
+
+\node[
+    rectangle,
+    rounded corners=5pt,
+    fill=primaryLight,
+    minimum width=0.8cm,
+    minimum height=1.1cm,
+    anchor=east
+] at (-6.5,0) {};
+\node[label] at (-6.3,0) {Services};
+
+%----------------------------------------------------------------------
+% COUCHE IA
+%----------------------------------------------------------------------
+\node[layer,fill=accent!15,draw=accent,line width=1pt] (l4) at (0,-1.5) {};
+\node[comp] at (-3.5,-1.5) {\faIcon[brands]{python}\ FastAPI};
+\node[comp] at (-0.5,-1.5) {\faIcon{fire}\ PyTorch Model};
+\node[comp] at (2.5,-1.5) {\faIcon{chart-line}\ Prédictions};
+\node[comp] at (5.3,-1.5) {\faIcon{cogs}\ Scalers};
+
+\node[
+    rectangle,
+    rounded corners=5pt,
+    fill=accent,
+    minimum width=0.8cm,
+    minimum height=1.1cm,
+    anchor=east
+] at (-6.5,-1.5) {};
+\node[label] at (-6.3,-1.5) {Intelligence};
+
+%----------------------------------------------------------------------
+% COUCHE DONNÉES
+%----------------------------------------------------------------------
+\node[layer,fill=gray100,draw=gray600,line width=1pt] (l5) at (0,-3) {};
+\node[comp] at (-3.5,-3) {\faIcon{database}\ PostgreSQL};
+\node[comp] at (-0.5,-3) {\faIcon{database}\ H2 (Dev)};
+\node[comp] at (2.5,-3) {\faIcon[brands]{docker}\ Docker};
+\node[comp] at (5.3,-3) {\faIcon{file}\ JPA/Hibernate};
+
+\node[
+    rectangle,
+    rounded corners=5pt,
+    fill=gray600,
+    minimum width=0.8cm,
+    minimum height=1.1cm,
+    anchor=east
+] at (-6.5,-3) {};
+\node[label] at (-6.3,-3) {Données};
+
+%----------------------------------------------------------------------
+% FLÈCHES DE CONNEXION
+%----------------------------------------------------------------------
+\foreach \y in {2.3,0.8,-0.7,-2.2} {
+    \draw[->,>=stealth,primary,line width=1.5pt] (0,\y) -- (0,\y-0.3);
+}
+
+\end{tikzpicture}
+\end{center}
+
+\end{frame}

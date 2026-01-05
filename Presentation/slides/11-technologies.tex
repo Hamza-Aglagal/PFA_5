@@ -1,0 +1,178 @@
+%==============================================================================
+% SLIDE 11 - TECHNOLOGIES
+%==============================================================================
+
+% Slide de transition
+\sectionSlide{07}{Technologies}
+
+% Slide de contenu
+\begin{frame}
+\frametitle{Technologies Utilisées}
+\framesubtitle{Stack Technique Moderne}
+\customFooter
+
+\vspace{0.2cm}
+
+\begin{columns}[T]
+%----------------------------------------------------------------------
+% COLONNE 1 - FRONTEND
+%----------------------------------------------------------------------
+\begin{column}{0.32\textwidth}
+    \begin{center}
+        \begin{tikzpicture}
+            \node[
+                rectangle,
+                rounded corners=6pt,
+                fill=primary,
+                text=white,
+                minimum width=4.5cm,
+                inner sep=8pt,
+                font=\bfseries
+            ] {\faIcon{desktop}\ Frontend};
+        \end{tikzpicture}
+    \end{center}
+    
+    \vspace{0.4cm}
+    
+    \begin{tikzpicture}[
+        tech/.style={
+            rectangle,
+            rounded corners=5pt,
+            fill=primary!8,
+            minimum width=4.3cm,
+            minimum height=0.8cm,
+            inner sep=6pt,
+            font=\small
+        }
+    ]
+        \node[tech] (t1) at (0,0) {
+            \textcolor{danger}{\faIcon[brands]{angular}}\ \ \textbf{Angular 21}
+        };
+        \node[font=\tiny,text=gray600,below=-0.1cm of t1] {Framework Web};
+        
+        \node[tech] (t2) at (0,-1.3) {
+            \textcolor{primaryLight}{\faIcon{mobile-alt}}\ \ \textbf{Flutter}
+        };
+        \node[font=\tiny,text=gray600,below=-0.1cm of t2] {Application Mobile};
+        
+        \node[tech] (t3) at (0,-2.6) {
+            \textcolor{dark}{\faIcon{cube}}\ \ \textbf{Three.js}
+        };
+        \node[font=\tiny,text=gray600,below=-0.1cm of t3] {Visualisation 3D};
+        
+        \node[tech] (t4) at (0,-3.9) {
+            \textcolor{danger}{\faIcon[brands]{sass}}\ \ \textbf{SCSS}
+        };
+        \node[font=\tiny,text=gray600,below=-0.1cm of t4] {Styles};
+    \end{tikzpicture}
+\end{column}
+
+%----------------------------------------------------------------------
+% COLONNE 2 - BACKEND
+%----------------------------------------------------------------------
+\begin{column}{0.32\textwidth}
+    \begin{center}
+        \begin{tikzpicture}
+            \node[
+                rectangle,
+                rounded corners=6pt,
+                fill=secondary,
+                text=white,
+                minimum width=4.5cm,
+                inner sep=8pt,
+                font=\bfseries
+            ] {\faIcon{server}\ Backend};
+        \end{tikzpicture}
+    \end{center}
+    
+    \vspace{0.4cm}
+    
+    \begin{tikzpicture}[
+        tech/.style={
+            rectangle,
+            rounded corners=5pt,
+            fill=secondary!8,
+            minimum width=4.3cm,
+            minimum height=0.8cm,
+            inner sep=6pt,
+            font=\small
+        }
+    ]
+        \node[tech] (t1) at (0,0) {
+            \textcolor{secondary}{\faIcon{leaf}}\ \ \textbf{Spring Boot 3.4}
+        };
+        \node[font=\tiny,text=gray600,below=-0.1cm of t1] {Framework Java};
+        
+        \node[tech] (t2) at (0,-1.3) {
+            \textcolor{secondary}{\faIcon{lock}}\ \ \textbf{Spring Security}
+        };
+        \node[font=\tiny,text=gray600,below=-0.1cm of t2] {JWT Authentication};
+        
+        \node[tech] (t3) at (0,-2.6) {
+            \textcolor{primary}{\faIcon{database}}\ \ \textbf{PostgreSQL}
+        };
+        \node[font=\tiny,text=gray600,below=-0.1cm of t3] {Base de données};
+        
+        \node[tech] (t4) at (0,-3.9) {
+            \textcolor{primaryLight}{\faIcon[brands]{docker}}\ \ \textbf{Docker}
+        };
+        \node[font=\tiny,text=gray600,below=-0.1cm of t4] {Conteneurisation};
+    \end{tikzpicture}
+\end{column}
+
+%----------------------------------------------------------------------
+% COLONNE 3 - IA
+%----------------------------------------------------------------------
+\begin{column}{0.32\textwidth}
+    \begin{center}
+        \begin{tikzpicture}
+            \node[
+                rectangle,
+                rounded corners=6pt,
+                fill=accent,
+                text=white,
+                minimum width=4.5cm,
+                inner sep=8pt,
+                font=\bfseries
+            ] {\faIcon{brain}\ Intelligence Artificielle};
+        \end{tikzpicture}
+    \end{center}
+    
+    \vspace{0.4cm}
+    
+    \begin{tikzpicture}[
+        tech/.style={
+            rectangle,
+            rounded corners=5pt,
+            fill=accent!8,
+            minimum width=4.3cm,
+            minimum height=0.8cm,
+            inner sep=6pt,
+            font=\small
+        }
+    ]
+        \node[tech] (t1) at (0,0) {
+            \textcolor{accent}{\faIcon[brands]{python}}\ \ \textbf{Python 3.11}
+        };
+        \node[font=\tiny,text=gray600,below=-0.1cm of t1] {Langage principal};
+        
+        \node[tech] (t2) at (0,-1.3) {
+            \textcolor{accent}{\faIcon{fire}}\ \ \textbf{PyTorch}
+        };
+        \node[font=\tiny,text=gray600,below=-0.1cm of t2] {Deep Learning};
+        
+        \node[tech] (t3) at (0,-2.6) {
+            \textcolor{secondary}{\faIcon{bolt}}\ \ \textbf{FastAPI}
+        };
+        \node[font=\tiny,text=gray600,below=-0.1cm of t3] {API REST rapide};
+        
+        \node[tech] (t4) at (0,-3.9) {
+            \textcolor{primary}{\faIcon{chart-bar}}\ \ \textbf{Scikit-learn}
+        };
+        \node[font=\tiny,text=gray600,below=-0.1cm of t4] {Prétraitement};
+    \end{tikzpicture}
+\end{column}
+
+\end{columns}
+
+\end{frame}

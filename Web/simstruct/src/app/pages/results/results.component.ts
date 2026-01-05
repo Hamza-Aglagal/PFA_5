@@ -19,19 +19,19 @@ interface AnalysisResult {
 })
 export class ResultsComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('structureCanvas', { static: false }) structureCanvasRef!: ElementRef<HTMLCanvasElement>;
-  
+
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private simulationService = inject(SimulationService);
   private notificationService = inject(NotificationService);
-  
+
   private scene!: THREE.Scene;
   private camera!: THREE.PerspectiveCamera;
   private renderer!: THREE.WebGLRenderer;
   private controls!: OrbitControls;
   private animationId: number = 0;
   private structure!: THREE.Group;
-  
+
   isLoading = signal(false);
   loadError = signal<string | null>(null);
   simulationData = signal<SimulationResponse | null>(null);
@@ -39,22 +39,22 @@ export class ResultsComponent implements OnInit, AfterViewInit, OnDestroy {
   simulationDate = signal(new Date());
   structureType = signal('Beam');
   material = signal('Steel');
-  
+
   overallStatus = signal<'safe' | 'warning' | 'critical'>('safe');
   safetyFactor = signal(2.5);
   aiConfidence = signal(95);
-  
+
   results = signal<AnalysisResult[]>([]);
-  
+
   recommendations = signal<{ type: string; title: string; description: string }[]>([]);
-  
+
   activeTab = signal<'stress' | 'deformation' | '3d'>('3d');
   showStressVisualization = signal(true);
-  
+
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     console.log('ResultsComponent: Loading simulation ID:', id);
-    
+
     if (id) {
       // Load from API by ID
       this.isLoading.set(true);
@@ -77,7 +77,7 @@ export class ResultsComponent implements OnInit, AfterViewInit, OnDestroy {
       this.loadFromLocalStorage();
     }
   }
-  
+
   private loadFromLocalStorage(): void {
     const lastResult = localStorage.getItem('lastSimulationResult');
     if (lastResult) {
@@ -91,41 +91,41 @@ export class ResultsComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }
   }
-  
+
   private populateResults(sim: SimulationResponse): void {
     this.simulationData.set(sim);
     this.simulationName.set(sim.name);
     this.simulationDate.set(new Date(sim.createdAt));
     this.structureType.set(sim.supportType);
     this.material.set(sim.materialType);
-    
+
     if (sim.results) {
       const sf = sim.results.safetyFactor;
       this.safetyFactor.set(sf);
       this.overallStatus.set(sf >= 2.0 ? 'safe' : sf >= 1.0 ? 'warning' : 'critical');
-      
+
       const baseResults: AnalysisResult[] = [
-        { id: '1', category: 'Stress', metric: 'Max Stress', value: sim.results.maxStress / 1e6, unit: 'MPa', status: this.getStatus(sim.results.maxStress / 1e6, 250) as 'safe' | 'warning' | 'critical', threshold: 250 },
-        { id: '2', category: 'Deformation', metric: 'Max Deflection', value: sim.results.maxDeflection * 1000, unit: 'mm', status: this.getStatus(sim.results.maxDeflection * 1000, 20) as 'safe' | 'warning' | 'critical', threshold: 20 },
-        { id: '3', category: 'Forces', metric: 'Max Bending', value: sim.results.maxBendingMoment / 1000, unit: 'kNm', status: 'safe' as const, threshold: 500 },
-        { id: '4', category: 'Forces', metric: 'Max Shear', value: sim.results.maxShearForce / 1000, unit: 'kN', status: 'safe' as const, threshold: 200 },
-        { id: '5', category: 'Stability', metric: 'Safety Factor', value: sf, unit: '', status: this.getStatus(sf, 1.5, true) as 'safe' | 'warning' | 'critical', threshold: 1.5 }
+        { id: '1', category: 'Stress', metric: 'Max Stress', value: sim.results.maxStress / 1e6, unit: 'MPa', status: this.getStatus(sim.results.maxStress / 1e6, 250), threshold: 250 },
+        { id: '2', category: 'Deformation', metric: 'Max Deflection', value: sim.results.maxDeflection * 1000, unit: 'mm', status: this.getStatus(sim.results.maxDeflection * 1000, 20), threshold: 20 },
+        { id: '3', category: 'Forces', metric: 'Max Bending', value: sim.results.maxBendingMoment / 1000, unit: 'kNm', status: 'safe', threshold: 500 },
+        { id: '4', category: 'Forces', metric: 'Max Shear', value: sim.results.maxShearForce / 1000, unit: 'kN', status: 'safe', threshold: 200 },
+        { id: '5', category: 'Stability', metric: 'Safety Factor', value: sf, unit: '', status: this.getStatus(sf, 1.5, true), threshold: 1.5 }
       ];
-      
+
       // Add AI predictions if available
       if (sim.results.aiPredictions) {
         console.log('AI Predictions found:', sim.results.aiPredictions);
         const ai = sim.results.aiPredictions;
         baseResults.push(
-          { id: '6', category: 'AI Analysis', metric: 'Stability Index', value: ai.stabilityIndex * 100, unit: '%', status: this.getStatus(ai.stabilityIndex * 100, 70, true) as 'safe' | 'warning' | 'critical', threshold: 70 },
-          { id: '7', category: 'AI Analysis', metric: 'Seismic Resistance', value: ai.seismicResistance * 100, unit: '%', status: this.getStatus(ai.seismicResistance * 100, 70, true) as 'safe' | 'warning' | 'critical', threshold: 70 },
-          { id: '8', category: 'AI Analysis', metric: 'Crack Risk', value: ai.crackRisk * 100, unit: '%', status: this.getStatus(ai.crackRisk * 100, 30, false) as 'safe' | 'warning' | 'critical', threshold: 30 },
-          { id: '9', category: 'AI Analysis', metric: 'Foundation Stability', value: ai.foundationStability * 100, unit: '%', status: this.getStatus(ai.foundationStability * 100, 70, true) as 'safe' | 'warning' | 'critical', threshold: 70 }
+          { id: '6', category: 'AI Analysis', metric: 'Stability Index', value: ai.stabilityIndex * 100, unit: '%', status: this.getStatus(ai.stabilityIndex * 100, 70, true), threshold: 70 },
+          { id: '7', category: 'AI Analysis', metric: 'Seismic Resistance', value: ai.seismicResistance * 100, unit: '%', status: this.getStatus(ai.seismicResistance * 100, 70, true), threshold: 70 },
+          { id: '8', category: 'AI Analysis', metric: 'Crack Risk', value: ai.crackRisk * 100, unit: '%', status: this.getStatus(ai.crackRisk * 100, 30, false), threshold: 30 },
+          { id: '9', category: 'AI Analysis', metric: 'Foundation Stability', value: ai.foundationStability * 100, unit: '%', status: this.getStatus(ai.foundationStability * 100, 70, true), threshold: 70 }
         );
         // Update AI confidence based on average of AI predictions
         const avgConfidence = ((ai.stabilityIndex + ai.seismicResistance + ai.foundationStability + (1 - ai.crackRisk)) / 4) * 100;
         this.aiConfidence.set(Math.round(avgConfidence));
-        
+
         // Generate AI-specific recommendations
         this.generateAIRecommendations(ai, sf);
       } else {
@@ -135,14 +135,14 @@ export class ResultsComponent implements OnInit, AfterViewInit, OnDestroy {
           { type: 'info', title: 'Traditional Analysis', description: 'This simulation used classical beam theory. Enable AI for advanced predictions including seismic resistance and crack risk analysis.' }
         ]);
       }
-      
+
       this.results.set(baseResults);
     }
   }
-  
+
   private generateAIRecommendations(ai: any, safetyFactor: number): void {
     const recs: { type: string; title: string; description: string }[] = [];
-    
+
     // Overall safety
     if (safetyFactor >= 2.0 && ai.stabilityIndex >= 0.8) {
       recs.push({ type: 'success', title: 'Excellent Structural Performance', description: 'AI analysis confirms high stability and safety margins. Structure exceeds all safety requirements.' });
@@ -151,79 +151,79 @@ export class ResultsComponent implements OnInit, AfterViewInit, OnDestroy {
     } else {
       recs.push({ type: 'warning', title: 'Safety Review Recommended', description: 'Consider structural reinforcement to improve safety factors and stability indices.' });
     }
-    
+
     // Seismic resistance
     if (ai.seismicResistance < 0.6) {
       recs.push({ type: 'warning', title: 'Seismic Vulnerability Detected', description: 'AI predicts low earthquake resistance. Consider seismic reinforcement or base isolation for high-risk zones.' });
     } else if (ai.seismicResistance >= 0.8) {
       recs.push({ type: 'success', title: 'Excellent Seismic Performance', description: 'Structure demonstrates high resistance to seismic loads based on AI analysis.' });
     }
-    
+
     // Crack risk
     if (ai.crackRisk > 0.5) {
       recs.push({ type: 'warning', title: 'High Crack Risk Detected', description: 'AI predicts significant cracking potential. Review concrete mix design, reinforcement spacing, and consider crack control measures.' });
     } else if (ai.crackRisk < 0.2) {
       recs.push({ type: 'success', title: 'Low Crack Risk', description: 'AI analysis indicates minimal cracking potential with current design parameters.' });
     }
-    
+
     // Foundation stability
     if (ai.foundationStability < 0.7) {
       recs.push({ type: 'warning', title: 'Foundation Concerns', description: 'AI suggests potential foundation stability issues. Consider soil investigation and foundation reinforcement.' });
     } else if (ai.foundationStability >= 0.85) {
       recs.push({ type: 'success', title: 'Stable Foundation Design', description: 'Foundation system shows excellent stability characteristics per AI predictions.' });
     }
-    
+
     // General optimization
     if (safetyFactor > 3.0 && ai.stabilityIndex > 0.9) {
       recs.push({ type: 'info', title: 'Over-Design Detected', description: 'Structure is significantly over-designed. Material optimization could reduce costs while maintaining safety.' });
     }
-    
+
     this.recommendations.set(recs);
   }
-  
+
   private getStatus(value: number, threshold: number, inverse = false): 'safe' | 'warning' | 'critical' {
     if (inverse) { return value >= threshold ? 'safe' : value >= threshold * 0.7 ? 'warning' : 'critical'; }
     return value <= threshold * 0.7 ? 'safe' : value <= threshold ? 'warning' : 'critical';
   }
-  
+
   ngAfterViewInit(): void { setTimeout(() => this.initThreeJS(), 100); }
   ngOnDestroy(): void { if (this.animationId) cancelAnimationFrame(this.animationId); if (this.controls) this.controls.dispose(); if (this.renderer) this.renderer.dispose(); }
-  
+
   private initThreeJS(): void {
     if (!this.structureCanvasRef?.nativeElement) return;
     const canvas = this.structureCanvasRef.nativeElement;
     const container = canvas.parentElement;
     if (!container) return;
-    
+
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x0f172a);
-    
+
     const width = container.clientWidth;
     const height = container.clientHeight;
-    
+
     this.camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
     this.camera.position.set(15, 10, 15);
     this.camera.lookAt(0, 0, 0);
-    
+
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    
+
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;
     this.controls.autoRotate = true;
     this.controls.autoRotateSpeed = 0.5;
-    
+
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
     this.scene.add(ambientLight);
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
     directionalLight.position.set(10, 20, 10);
     this.scene.add(directionalLight);
-    
+
     this.createStructure();
     this.animate();
   }
-  
+
   private createStructure(): void {
     this.structure = new THREE.Group();
     const beamGeometry = new THREE.BoxGeometry(10, 0.8, 0.5);
@@ -231,7 +231,7 @@ export class ResultsComponent implements OnInit, AfterViewInit, OnDestroy {
     const beam = new THREE.Mesh(beamGeometry, beamMaterial);
     beam.position.y = 1;
     this.structure.add(beam);
-    
+
     // Supports
     const supportGeom = new THREE.ConeGeometry(0.4, 0.5, 4);
     const supportMat = new THREE.MeshStandardMaterial({ color: 0x374151 });
@@ -241,26 +241,26 @@ export class ResultsComponent implements OnInit, AfterViewInit, OnDestroy {
     const rightSupport = new THREE.Mesh(supportGeom, supportMat);
     rightSupport.position.set(4.5, 0.25, 0);
     this.structure.add(rightSupport);
-    
+
     // Grid
     const grid = new THREE.GridHelper(20, 20, 0x374151, 0x1f2937);
     this.scene.add(grid);
-    
+
     this.scene.add(this.structure);
   }
-  
+
   private animate(): void {
     this.animationId = requestAnimationFrame(() => this.animate());
     if (this.controls) this.controls.update();
     this.renderer.render(this.scene, this.camera);
   }
-  
+
   setActiveTab(tab: 'stress' | 'deformation' | '3d'): void { this.activeTab.set(tab); }
   getStatusClass(status: string): string { return 'status-' + status; }
   getSafetyClass(factor: number): string { return factor >= 2.0 ? 'safe' : factor >= 1.0 ? 'warning' : 'critical'; }
-  
+
   exportPDF(): void { this.exportReport('pdf'); }
-  shareResults(): void { 
+  shareResults(): void {
     const sim = this.simulationData();
     if (sim) {
       // Toggle public status
@@ -287,9 +287,9 @@ export class ResultsComponent implements OnInit, AfterViewInit, OnDestroy {
       this.notificationService.error('Error', 'No simulation data to export.');
       return;
     }
-    
+
     console.log('Exporting report as', format);
-    
+
     switch (format) {
       case 'pdf':
         this.exportAsPDF(sim);
@@ -302,7 +302,7 @@ export class ResultsComponent implements OnInit, AfterViewInit, OnDestroy {
         break;
     }
   }
-  
+
   private exportAsPDF(sim: SimulationResponse): void {
     // Create a printable HTML document
     const content = `
@@ -386,7 +386,7 @@ export class ResultsComponent implements OnInit, AfterViewInit, OnDestroy {
       </body>
       </html>
     `;
-    
+
     // Open print dialog
     const printWindow = window.open('', '_blank');
     if (printWindow) {
@@ -397,10 +397,10 @@ export class ResultsComponent implements OnInit, AfterViewInit, OnDestroy {
         printWindow.print();
       }, 500);
     }
-    
+
     this.notificationService.success('PDF Export', 'Print dialog opened. Save as PDF.');
   }
-  
+
   private exportAsCSV(sim: SimulationResponse): void {
     const rows = [
       ['SimStruct Analysis Report'],
@@ -433,18 +433,18 @@ export class ResultsComponent implements OnInit, AfterViewInit, OnDestroy {
       ['Natural Frequency (Hz)', sim.results?.naturalFrequency?.toFixed(2) || 'N/A'],
       ['Weight (kg)', sim.results?.weight?.toFixed(1) || 'N/A']
     ];
-    
-    const csvContent = rows.map(row => row.join(',')).join('\\n');
-    this.downloadFile(csvContent, `simstruct-${sim.name.replace(/\\s+/g, '-')}.csv`, 'text/csv');
+
+    const csvContent = rows.map(row => row.join(',')).join('\n');
+    this.downloadFile(csvContent, `simstruct-${sim.name.replaceAll(/\s+/g, '-')}.csv`, 'text/csv');
     this.notificationService.success('CSV Export', 'CSV file downloaded successfully.');
   }
-  
+
   private exportAsJSON(sim: SimulationResponse): void {
     const jsonContent = JSON.stringify(sim, null, 2);
-    this.downloadFile(jsonContent, `simstruct-${sim.name.replace(/\\s+/g, '-')}.json`, 'application/json');
+    this.downloadFile(jsonContent, `simstruct-${sim.name.replaceAll(/\s+/g, '-')}.json`, 'application/json');
     this.notificationService.success('JSON Export', 'JSON file downloaded successfully.');
   }
-  
+
   private downloadFile(content: string, filename: string, mimeType: string): void {
     const blob = new Blob([content], { type: mimeType });
     const url = window.URL.createObjectURL(blob);

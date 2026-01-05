@@ -15,7 +15,7 @@ export interface Toast {
 export class NotificationService {
   // Active toasts list
   private toasts = signal<Toast[]>([]);
-  
+
   // Expose toasts as readonly
   activeToasts = this.toasts.asReadonly();
 
@@ -29,12 +29,12 @@ export class NotificationService {
   show(type: Toast['type'], title: string, message: string, duration: number = 4000): void {
     const id = this.generateId();
     const toast: Toast = { id, type, title, message, duration };
-    
+
     console.log(`NotificationService: Showing ${type} toast - ${title}`);
-    
+
     // Add toast to list
     this.toasts.update(toasts => [...toasts, toast]);
-    
+
     // Auto dismiss after duration
     if (duration > 0) {
       setTimeout(() => this.dismiss(id), duration);
@@ -84,9 +84,11 @@ export class NotificationService {
   }
 
   /**
-   * Generate unique id
+   * Generate unique id using crypto API (secure random)
    */
   private generateId(): string {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    // Use crypto.randomUUID() for secure random ID generation
+    // This satisfies SonarQube security requirements
+    return crypto.randomUUID();
   }
 }
